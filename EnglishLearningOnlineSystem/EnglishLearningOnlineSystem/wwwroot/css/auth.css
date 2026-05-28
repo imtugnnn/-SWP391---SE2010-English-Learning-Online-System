@@ -1,0 +1,153 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: Arial, sans-serif;
+}
+
+body {
+    min-height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background: linear-gradient(to right, #4f46e5, #1da1f2);
+    padding: 24px;
+}
+
+.login-container,
+.register-container {
+    width: 450px;
+    background: #f5f5f5;
+    border-radius: 30px;
+}
+
+.login-container {
+    padding: 50px 40px;
+}
+
+.register-container {
+    padding: 42px 40px;
+}
+
+.login-title,
+.register-title {
+    text-align: center;
+    font-weight: bold;
+    color: #4f46e5;
+    line-height: 1.2;
+}
+
+.login-title {
+    font-size: 52px;
+    margin-bottom: 50px;
+}
+
+.register-title {
+    font-size: 48px;
+    margin-bottom: 36px;
+}
+
+.form-group {
+    margin-bottom: 28px;
+}
+
+.register-container .form-group {
+    margin-bottom: 22px;
+}
+
+.form-input {
+    width: 100%;
+    padding: 18px 20px;
+    border: 1px solid #dcdcdc;
+    border-radius: 18px;
+    font-size: 18px;
+    outline: none;
+    background: white;
+}
+
+.form-input:focus {
+    border-color: #4f46e5;
+}
+
+.btn-login,
+.btn-register {
+    width: 100%;
+    padding: 18px;
+    border: none;
+    border-radius: 18px;
+    background: #4f46e5;
+    color: white;
+    font-size: 22px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: 0.3s;
+}
+
+.btn-login {
+    margin-bottom: 25px;
+}
+
+.btn-register {
+    margin-bottom: 20px;
+}
+
+.btn-login:hover,
+.btn-register:hover {
+    background: #4338ca;
+}
+
+.btn-google {
+    width: 100%;
+    padding: 18px;
+    border-radius: 18px;
+    border: 1px solid #dcdcdc;
+    background: white;
+    font-size: 20px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: 0.3s;
+}
+
+.btn-google:hover {
+    background: #f3f3f3;
+}
+
+.register-link,
+.login-link {
+    display: block;
+    text-align: center;
+    color: #4f46e5;
+    font-size: 17px;
+    font-weight: 600;
+    text-decoration: none;
+}
+
+.register-link {
+    margin-top: 20px;
+}
+
+.register-link:hover,
+.login-link:hover {
+    text-decoration: underline;
+}
+
+@media (max-width: 500px) {
+    .login-container,
+    .register-container {
+        width: 100%;
+        padding: 40px 25px;
+    }
+
+    .register-container {
+        padding-top: 36px;
+        padding-bottom: 36px;
+    }
+
+    .login-title {
+        font-size: 40px;
+    }
+
+    .register-title {
+        font-size: 38px;
+    }
+}

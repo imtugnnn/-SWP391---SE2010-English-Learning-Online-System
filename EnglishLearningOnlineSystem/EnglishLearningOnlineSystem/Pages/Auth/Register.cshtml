@@ -1,0 +1,91 @@
+@page "/register"
+@model EnglishLearningOnlineSystem.Pages.Auth.RegisterModel
+
+@{
+    ViewData["Title"] = "Register";
+    Layout = null;
+}
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+    <title>ELS Register</title>
+
+    <link rel="stylesheet" href="~/css/auth.css" asp-append-version="true" />
+</head>
+
+<body>
+
+    <div class="register-container">
+
+        <div class="register-title">
+            Create <br />
+            Account
+        </div>
+
+        <form method="post">
+            <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+
+            <div class="form-group">
+                <input type="text"
+                       class="form-input"
+                       placeholder="Enter Username"
+                       asp-for="Input.Username" />
+                <span asp-validation-for="Input.Username" class="text-danger"></span>
+            </div>
+
+            <div class="form-group">
+                <input type="email"
+                       class="form-input"
+                       placeholder="Enter Email"
+                       asp-for="Input.Email" />
+                <span asp-validation-for="Input.Email" class="text-danger"></span>
+            </div>
+
+            <div class="form-group">
+                <input type="password"
+                       class="form-input"
+                       placeholder="Enter Password"
+                       asp-for="Input.Password" />
+                <span asp-validation-for="Input.Password" class="text-danger"></span>
+            </div>
+
+            <div class="form-group">
+                <input type="password"
+                       class="form-input"
+                       placeholder="Confirm Password"
+                       asp-for="Input.ConfirmPassword" />
+                <span asp-validation-for="Input.ConfirmPassword" class="text-danger"></span>
+            </div>
+
+            <div class="form-group">
+                <input type="date"
+                       class="form-input"
+                       asp-for="Input.BirthDate" />
+                <span asp-validation-for="Input.BirthDate" class="text-danger"></span>
+            </div>
+
+            <div class="form-group">
+                <select class="form-input" asp-for="Input.RoleId" asp-items="Model.RoleOptions">
+                    <option value="">Choose role</option>
+                </select>
+                <span asp-validation-for="Input.RoleId" class="text-danger"></span>
+            </div>
+
+            <button type="submit" class="btn-register">
+                Register
+            </button>
+
+            <a class="login-link" href="/login">
+                Already have an account? Login
+            </a>
+
+        </form>
+
+    </div>
+
+</body>
+</html>

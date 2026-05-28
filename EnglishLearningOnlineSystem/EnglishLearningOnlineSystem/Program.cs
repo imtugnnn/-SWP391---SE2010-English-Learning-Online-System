@@ -20,7 +20,7 @@ var connectionString =
     $"Password={dbPassword};" +
     $"TrustServerCertificate=True;";
 
-builder.Services.AddDbContext<DBContext>(options =>
+builder.Services.AddDbContext<WebDbContext>(options =>
     options.UseSqlServer(connectionString));
 // ===================================================================================
 
@@ -46,7 +46,7 @@ using (var scope = app.Services.CreateScope())
     try
     {
         // Nhờ đã đăng ký ở trên nên hàm này sẽ không còn bị crash lỗi "No service" nữa
-        var context = services.GetRequiredService<DBContext>();
+        var context = services.GetRequiredService<WebDbContext>();
         context.Database.Migrate(); 
         Console.WriteLine("=== ĐÃ CẬP NHẬT DATABASE VÀ BẢNG THÀNH CÔNG ===");
     }
