@@ -6,19 +6,7 @@ var builder = WebApplication.CreateBuilder(args);
 // 1. Đăng ký các dịch vụ cơ bản của hệ thống
 builder.Services.AddRazorPages();
 
-// ================= BỔ SUNG ĐOẠN ĐĂNG KÝ NÀY VÀO DƯỚI AddRazorPages =================
-// Đọc chuỗi kết nối từ biến môi trường, nếu không có thì lấy mặc định từ appsettings
-// 1. Lấy thông tin tài khoản từ biến môi trường hệ thống của bạn
-var dbUser = Environment.GetEnvironmentVariable("DB_USERNAME") ?? "sa";
-
-var dbPassword = Environment.GetEnvironmentVariable("DB_PASSWORD") ?? "";
-
-var connectionString =
-    $"Server=localhost;" +
-    $"Database=EnglishLearningDB;" +
-    $"User Id={dbUser};" +
-    $"Password={dbPassword};" +
-    $"TrustServerCertificate=True;";
+var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
 
 builder.Services.AddDbContext<WebDbContext>(options =>
     options.UseSqlServer(connectionString));

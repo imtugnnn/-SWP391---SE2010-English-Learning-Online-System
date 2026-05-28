@@ -69,6 +69,25 @@ body {
     border-color: #4f46e5;
 }
 
+.text-danger {
+    display: block;
+    margin-top: 8px;
+    color: #dc2626;
+    font-size: 14px;
+    font-weight: 600;
+}
+
+.validation-summary {
+    margin-bottom: 18px;
+    text-align: center;
+}
+
+.validation-summary ul {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+
 .btn-login,
 .btn-register {
     width: 100%;
