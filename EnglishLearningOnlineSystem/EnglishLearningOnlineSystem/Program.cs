@@ -8,44 +8,62 @@ using Microsoft.AspNetCore.Authentication.Google;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// 1. Đăng ký các dịch vụ cơ bản của hệ thống
+// Đăng ký các dịch vụ và middleware của ứng dụng
 builder.Services.AddControllersWithViews();
 
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
 
 builder.Services.AddDbContext<EnglishLearningOnlineSystem.Data.AppDbContext>(options =>
     options.UseSqlServer(connectionString));
+
+// Đăng ký Repository và Service cho Dependency Injection
 builder.Services.AddScoped<IUserRepository, UserRepository>();
 builder.Services.AddScoped<IRoleRepository, RoleRepository>();
 builder.Services.AddScoped<IAuthService, AuthService>();
-builder.Services.AddHttpContextAccessor();
-builder.Services.AddDistributedMemoryCache();
-builder.Services.AddSession(options => { options.IdleTimeout = TimeSpan.FromHours(8); options.Cookie.HttpOnly = true; options.Cookie.IsEssential = true; });
 builder.Services.AddScoped<IStudentDashboardRepository, StudentDashboardRepository>();
 builder.Services.AddScoped<IStudentDashboardService, StudentDashboardService>();
+builder.Services.AddScoped<IQuizAttemptRepository, QuizAttemptRepository>();
+builder.Services.AddScoped<IQuizAttemptService, QuizAttemptService>();
+builder.Services.AddScoped<IFlashcardRepository, FlashcardRepository>();
+builder.Services.AddScoped<IFlashcardService, FlashcardService>();
+builder.Services.AddScoped<IAdaptiveLearningService, AdaptiveLearningService>();
+
+builder.Services.AddScoped<IStudentProfileRepository, StudentProfileRepository>();
+builder.Services.AddScoped<IStudentProfileService, StudentProfileService>();
+
+// Cấu hình Session
+builder.Services.AddHttpContextAccessor();
+builder.Services.AddDistributedMemoryCache();
+builder.Services.AddSession(options =>
+{
+    options.IdleTimeout = TimeSpan.FromHours(8);
+    options.Cookie.HttpOnly = true;
+    options.Cookie.IsEssential = true;
+});
 builder.Services
     .AddAuthentication(options =>
     {
         options.DefaultScheme = CookieAuthenticationDefaults.AuthenticationScheme;
         options.DefaultChallengeScheme = GoogleDefaults.AuthenticationScheme;
     })
-    .AddCookie()
-    .AddGoogle(options =>
-    {
-        options.ClientId = builder.Configuration["Authentication:Google:ClientId"]!;
-        options.ClientSecret = builder.Configuration["Authentication:Google:ClientSecret"]!;
-    });
+    .AddCookie();
+    // .AddGoogle(options =>
+    // {
+    //     options.ClientId = builder.Configuration["Authentication:Google:ClientId"]!;
+    //     options.ClientSecret = builder.Configuration["Authentication:Google:ClientSecret"]!;
+    // });
 // ===================================================================================
 
 var app = builder.Build();
 
-// Configure the HTTP request pipeline.
+// Cấu hình xử lý lỗi và bảo mật cho môi trường Production
 if (!app.Environment.IsDevelopment())
 {
     app.UseExceptionHandler("/Home/Error");
     app.UseHsts();
 }
 
+// Cấu hình pipeline xử lý request
 app.UseHttpsRedirection();
 app.UseStaticFiles();
 
@@ -55,20 +73,28 @@ app.UseSession();
 
 app.UseAuthentication();
 app.UseAuthorization();
+
+// Cấu hình route mặc định
 app.MapControllerRoute(
     name: "default",
     pattern: "{controller=Home}/{action=Index}/{id?}");
 
-// 2. Đoạn code tự động khởi tạo và cập nhật Database khi chạy ứng dụng [cite: 121]
+// Tự động cập nhật Database và seed dữ liệu khi khởi động ứng dụng
 using (var scope = app.Services.CreateScope())
 {
     var services = scope.ServiceProvider;
+
     try
     {
-        // Nhờ đã đăng ký ở trên nên hàm này sẽ không còn bị crash lỗi "No service" nữa
         var context = services.GetRequiredService<EnglishLearningOnlineSystem.Data.AppDbContext>();
+
         context.Database.Migrate();
-        EnglishLearningOnlineSystem.SeedData.DbInitializer.SeedAsync(context).GetAwaiter().GetResult();
+
+        EnglishLearningOnlineSystem.SeedData.DbInitializer
+            .SeedAsync(context)
+            .GetAwaiter()
+            .GetResult();
+
         Console.WriteLine("=== ĐÃ CẬP NHẬT DATABASE VÀ BẢNG THÀNH CÔNG ===");
     }
     catch (Exception ex)

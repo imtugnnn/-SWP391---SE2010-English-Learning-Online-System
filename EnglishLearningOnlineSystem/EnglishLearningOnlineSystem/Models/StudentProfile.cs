@@ -1,4 +1,4 @@
-﻿using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
 namespace EnglishLearningOnlineSystem.Models
@@ -25,5 +25,7 @@ namespace EnglishLearningOnlineSystem.Models
         public ICollection<Progress> LessonProgresses { get; set; }
         public ICollection<XpTransaction> XpTransactions { get; set; }
         public ICollection<TeacherFeedback> ReceivedFeedbacks { get; set; }
+        public ICollection<QuizAttempt> QuizAttempts { get; set; }
+        public ICollection<FlashcardSession> FlashcardSessions { get; set; }
     }
 }
