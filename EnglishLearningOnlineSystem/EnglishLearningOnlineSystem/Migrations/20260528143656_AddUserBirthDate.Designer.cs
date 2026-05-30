@@ -11,7 +11,7 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 namespace EnglishLearningOnlineSystem.Migrations
 {
-    [DbContext(typeof(WebDbContext))]
+    [DbContext(typeof(Models.WebDbContext))]
     [Migration("20260528143656_AddUserBirthDate")]
     partial class AddUserBirthDate
     {

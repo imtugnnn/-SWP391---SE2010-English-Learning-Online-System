@@ -9,9 +9,9 @@ namespace EnglishLearningOnlineSystem.Pages.Auth
 {
     public class RegisterModel : PageModel
     {
-        private readonly WebDbContext _context;
+        private readonly Models.WebDbContext _context;
 
-        public RegisterModel(WebDbContext context)
+        public RegisterModel(Models.WebDbContext context)
         {
             _context = context;
         }

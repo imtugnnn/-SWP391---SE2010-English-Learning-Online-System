@@ -12,4 +12,10 @@ public class User
     public bool IsActive { get; set; } = true;
     public int RoleId { get; set; }   // khóa ngoại
     public Role? Role { get; set; }   // navigation property
+
+    // Add this navigation property for the classes the user teaches
+    public ICollection<Class> TaughtClasses { get; set; }
+
+    // Add this property to fix the error:
+    public ICollection<TeacherFeedback> GivenFeedbacks { get; set; }
 }
