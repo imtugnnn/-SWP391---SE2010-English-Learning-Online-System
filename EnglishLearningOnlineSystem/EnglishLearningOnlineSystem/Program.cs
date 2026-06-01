@@ -1,15 +1,21 @@
-using EnglishLearningOnlineSystem.Models;
 using Microsoft.EntityFrameworkCore;
+using EnglishLearningOnlineSystem.Repositories.Implementations;
+using EnglishLearningOnlineSystem.Repositories.Interfaces;
+using EnglishLearningOnlineSystem.Services.Implementations;
+using EnglishLearningOnlineSystem.Services.Interfaces;
 
 var builder = WebApplication.CreateBuilder(args);
 
 // 1. Đăng ký các dịch vụ cơ bản của hệ thống
-builder.Services.AddRazorPages();
+builder.Services.AddControllersWithViews();
 
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
 
-builder.Services.AddDbContext<EnglishLearningOnlineSystem.Models.WebDbContext>(options =>
+builder.Services.AddDbContext<EnglishLearningOnlineSystem.Data.AppDbContext>(options =>
     options.UseSqlServer(connectionString));
+builder.Services.AddScoped<IUserRepository, UserRepository>();
+builder.Services.AddScoped<IRoleRepository, RoleRepository>();
+builder.Services.AddScoped<IAuthService, AuthService>();
 // ===================================================================================
 
 var app = builder.Build();
@@ -17,7 +23,7 @@ var app = builder.Build();
 // Configure the HTTP request pipeline.
 if (!app.Environment.IsDevelopment())
 {
-    app.UseExceptionHandler("/Error");
+    app.UseExceptionHandler("/Home/Error");
     app.UseHsts();
 }
 
@@ -25,7 +31,9 @@ app.UseHttpsRedirection();
 app.UseStaticFiles();
 app.UseRouting();
 app.UseAuthorization();
-app.MapRazorPages();
+app.MapControllerRoute(
+    name: "default",
+    pattern: "{controller=Home}/{action=Index}/{id?}");
 
 // 2. Đoạn code tự động khởi tạo và cập nhật Database khi chạy ứng dụng [cite: 121]
 using (var scope = app.Services.CreateScope())
@@ -34,7 +42,7 @@ using (var scope = app.Services.CreateScope())
     try
     {
         // Nhờ đã đăng ký ở trên nên hàm này sẽ không còn bị crash lỗi "No service" nữa
-        var context = services.GetRequiredService<EnglishLearningOnlineSystem.Models.WebDbContext>();
+        var context = services.GetRequiredService<EnglishLearningOnlineSystem.Data.AppDbContext>();
         context.Database.Migrate(); 
         Console.WriteLine("=== ĐÃ CẬP NHẬT DATABASE VÀ BẢNG THÀNH CÔNG ===");
     }
