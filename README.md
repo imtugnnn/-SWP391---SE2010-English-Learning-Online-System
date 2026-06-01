@@ -69,3 +69,22 @@ Bước 3: git add . git commit -m "feat: add function"
 Bước 4: git push origin feature/function-name
 
 Bước 5: Tạo Pull Request để merge vào develop
+
+## Cấu hình Database
+
+File `appsettings.Development.json` đã được thêm vào `.gitignore` để bảo mật thông tin kết nối database (Server, User ID, Password,...).
+
+Sau khi clone project, hãy tự tạo file `appsettings.Development.json` và cấu hình chuỗi kết nối phù hợp với máy theo đoạn sau:
+
+{
+  "DetailedErrors": true,
+  "Logging": {
+    "LogLevel": {
+      "Default": "Information",
+      "Microsoft.AspNetCore": "Warning"
+    }
+  },
+  "ConnectionStrings": {
+    "DefaultConnection": "TrustServerCertificate=True;Server=YOUR_INSTANCE;Database=EnglishLearningDB;User Id=YOUR_ID;Password=YOUR_PASSWORD;"
+  }
+}
