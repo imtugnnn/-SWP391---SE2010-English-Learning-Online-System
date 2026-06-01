@@ -1,3 +1,4 @@
+using EnglishLearningOnlineSystem.Repositories.Interfaces;
 using EnglishLearningOnlineSystem.Services.Interfaces;
 using EnglishLearningOnlineSystem.Services.Models;
 using EnglishLearningOnlineSystem.ViewModels;
@@ -9,10 +10,12 @@ namespace EnglishLearningOnlineSystem.Controllers;
 public class AuthController : Controller
 {
     private readonly IAuthService _authService;
+    private readonly IUserRepository _userRepository;
 
-    public AuthController(IAuthService authService)
+    public AuthController(IAuthService authService, IUserRepository userRepository)
     {
         _authService = authService;
+        _userRepository = userRepository;
     }
 
     [HttpGet("/login")]
@@ -32,9 +35,22 @@ public class AuthController : Controller
 
         var result = await _authService.LoginAsync(model);
 
-        return result.Succeeded
-            ? RedirectToAction(nameof(HomeController.Homepage), "Home")
-            : ViewWithErrors(model, result);
+        if (!result.Succeeded)
+        {
+            return ViewWithErrors(model, result);
+        }
+
+        var user = await _userRepository.FindByEmailAsync(model.Email.Trim());
+        if (user != null)
+        {
+            HttpContext.Session.SetString("UserId", user.Id.ToString());
+            HttpContext.Session.SetString("UserRole", user.RoleId.ToString());
+        }
+
+        // RoleId: 1=Student, 2=Admin, 3=Teacher, 4=Parent, 5=Content Manager
+        return user?.RoleId == 1
+            ? RedirectToAction(nameof(StudentController.Dashboard), "Student")
+            : RedirectToAction(nameof(HomeController.Homepage), "Home");
     }
 
     [HttpGet("/register")]
