@@ -16,6 +16,11 @@ builder.Services.AddDbContext<EnglishLearningOnlineSystem.Data.AppDbContext>(opt
 builder.Services.AddScoped<IUserRepository, UserRepository>();
 builder.Services.AddScoped<IRoleRepository, RoleRepository>();
 builder.Services.AddScoped<IAuthService, AuthService>();
+builder.Services.AddHttpContextAccessor();
+builder.Services.AddDistributedMemoryCache();
+builder.Services.AddSession(options => { options.IdleTimeout = TimeSpan.FromHours(8); options.Cookie.HttpOnly = true; options.Cookie.IsEssential = true; });
+builder.Services.AddScoped<IStudentDashboardRepository, StudentDashboardRepository>();
+builder.Services.AddScoped<IStudentDashboardService, StudentDashboardService>();
 // ===================================================================================
 
 var app = builder.Build();
@@ -30,6 +35,7 @@ if (!app.Environment.IsDevelopment())
 app.UseHttpsRedirection();
 app.UseStaticFiles();
 app.UseRouting();
+app.UseSession();
 app.UseAuthorization();
 app.MapControllerRoute(
     name: "default",
@@ -43,7 +49,8 @@ using (var scope = app.Services.CreateScope())
     {
         // Nhờ đã đăng ký ở trên nên hàm này sẽ không còn bị crash lỗi "No service" nữa
         var context = services.GetRequiredService<EnglishLearningOnlineSystem.Data.AppDbContext>();
-        context.Database.Migrate(); 
+        context.Database.Migrate();
+        EnglishLearningOnlineSystem.SeedData.DbInitializer.SeedAsync(context).GetAwaiter().GetResult();
         Console.WriteLine("=== ĐÃ CẬP NHẬT DATABASE VÀ BẢNG THÀNH CÔNG ===");
     }
     catch (Exception ex)
