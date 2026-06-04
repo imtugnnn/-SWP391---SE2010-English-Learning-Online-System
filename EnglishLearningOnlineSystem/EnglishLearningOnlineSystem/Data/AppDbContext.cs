@@ -1,4 +1,4 @@
-﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore;
 using EnglishLearningOnlineSystem.Models;
 
 namespace EnglishLearningOnlineSystem.Data;
@@ -32,6 +32,12 @@ public class AppDbContext : Microsoft.EntityFrameworkCore.DbContext
     public DbSet<Notification>? Notifications { get; set; }
     public DbSet<TeacherFeedback>? TeacherFeedbacks { get; set; }
     public DbSet<StudentBadge>? StudentBadgeJoin { get; set; } // alternative reference
+
+    // Quiz attempt tracking & Flashcard sessions
+    public DbSet<QuizAttempt> QuizAttempts { get; set; }
+    public DbSet<QuizAttemptAnswer> QuizAttemptAnswers { get; set; }
+    public DbSet<FlashcardSession> FlashcardSessions { get; set; }
+    public DbSet<FlashcardCardResult> FlashcardCardResults { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -109,6 +115,77 @@ public class AppDbContext : Microsoft.EntityFrameworkCore.DbContext
                 .WithMany(c => c.WeeklyAssignments)
                 .HasForeignKey(wa => wa.CourseId)
                 .OnDelete(DeleteBehavior.Restrict);
+        }
+        catch { }
+
+        try
+        {
+            modelBuilder.Entity<QuizAttempt>(eb =>
+            {
+                eb.HasOne(qa => qa.Student)
+                  .WithMany(sp => sp.QuizAttempts)
+                  .HasForeignKey(qa => qa.StudentId)
+                  .OnDelete(DeleteBehavior.Restrict);
+
+                eb.HasOne(qa => qa.Lesson)
+                  .WithMany()
+                  .HasForeignKey(qa => qa.LessonId)
+                  .OnDelete(DeleteBehavior.Restrict);
+
+                eb.HasOne(qa => qa.WeeklyAssignment)
+                  .WithMany()
+                  .HasForeignKey(qa => qa.WeeklyAssignmentId)
+                  .OnDelete(DeleteBehavior.SetNull);
+
+                eb.HasIndex(qa => new { qa.StudentId, qa.SubmittedAt });
+            });
+
+            modelBuilder.Entity<QuizAttemptAnswer>(eb =>
+            {
+                eb.HasOne(a => a.Attempt)
+                  .WithMany(qa => qa.Answers)
+                  .HasForeignKey(a => a.AttemptId)
+                  .OnDelete(DeleteBehavior.Cascade);
+
+                eb.HasOne(a => a.Quiz)
+                  .WithMany()
+                  .HasForeignKey(a => a.QuizId)
+                  .OnDelete(DeleteBehavior.Restrict);
+
+                eb.HasIndex(a => a.AttemptId);
+            });
+        }
+        catch { }
+
+        try
+        {
+            modelBuilder.Entity<FlashcardSession>(eb =>
+            {
+                eb.HasOne(fs => fs.Student)
+                  .WithMany(sp => sp.FlashcardSessions)
+                  .HasForeignKey(fs => fs.StudentId)
+                  .OnDelete(DeleteBehavior.Restrict);
+
+                eb.HasOne(fs => fs.Lesson)
+                  .WithMany()
+                  .HasForeignKey(fs => fs.LessonId)
+                  .OnDelete(DeleteBehavior.Restrict);
+
+                eb.HasIndex(fs => fs.StudentId);
+            });
+
+            modelBuilder.Entity<FlashcardCardResult>(eb =>
+            {
+                eb.HasOne(cr => cr.Session)
+                  .WithMany(fs => fs.CardResults)
+                  .HasForeignKey(cr => cr.SessionId)
+                  .OnDelete(DeleteBehavior.Cascade);
+
+                eb.HasOne(cr => cr.Vocabulary)
+                  .WithMany()
+                  .HasForeignKey(cr => cr.VocabularyId)
+                  .OnDelete(DeleteBehavior.Restrict);
+            });
         }
         catch { }
 

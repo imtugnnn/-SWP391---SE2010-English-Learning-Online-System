@@ -1,4 +1,4 @@
-﻿@model EnglishLearningOnlineSystem.ViewModels.StudentDashboardViewModel
+@model EnglishLearningOnlineSystem.ViewModels.StudentDashboardViewModel
 @{
     ViewData["Title"] = "Dashboard";
     ViewData["ActiveNav"] = "dashboard";
@@ -603,7 +603,6 @@
                 <div class="hero-xp-fill" style="width:@xpPct%"></div>
             </div>
         </div>
-    </div>
     <div class="hero-mascot">🦉</div>
 </div>
 
@@ -655,7 +654,28 @@
 
 <!-- Two column layout -->
 <div class="row g-4">
-    <div class="col-lg-7">
+        <!-- AI Recommended for You -->
+        @if (Model.Recommendations.Any())
+        {
+            <div class="section-hd">
+                <h3>Gợi ý học tập (AI) <span class="count-pill">@Model.Recommendations.Count</span></h3>
+            </div>
+            <div class="lesson-list">
+                @foreach (var rec in Model.Recommendations)
+                {
+                    <a href="@rec.ActionUrl" class="lesson-card" style="border-color: var(--sky); background: #f0f9ff;">
+                        <div class="lesson-dot" style="background: var(--sky)"></div>
+                        <div class="lesson-info">
+                            <div class="l-title">@rec.LessonTitle</div>
+                            <div class="l-meta">@rec.Reason</div>
+                        </div>
+                        <div class="lesson-right">
+                            <div class="l-xp">Thử ngay →</div>
+                        </div>
+                    </a>
+                }
+            </div>
+        }
 
         <!-- Assigned Lessons -->
         <div class="section-hd">
@@ -675,9 +695,9 @@
                         ? "Đã hoàn thành" : lesson.CompletionStatus is "In Progress" or "IN_PROGRESS"
                         ? "Đang học" : "Chưa bắt đầu";
                     var tagText = lesson.CompletionStatus is "Completed" or "COMPLETED"
-                        ? " Done" : lesson.CompletionStatus is "In Progress" or "IN_PROGRESS"
-                        ? " In progress" : " Not started";
-                    <a href="/student/lesson/@lesson.LessonId" class="lesson-card">
+                        ? " Hoàn thành" : lesson.CompletionStatus is "In Progress" or "IN_PROGRESS"
+                        ? " Đang học" : " Chưa làm";
+                    <a href="/student/lesson/@lesson.LessonId/quiz" class="lesson-card">
                         <div class="lesson-dot status-@lesson.CompletionStatus"></div>
                         <div class="lesson-info">
                             <div class="l-title">@lesson.Title</div>
@@ -686,7 +706,7 @@
                         </div>
                         <div class="lesson-right">
                             <div class="l-xp">+@lesson.XPReward XP</div>
-                            <div class="l-due">Due: @lesson.DueDate.ToString("dd/MM")</div>
+                            <div class="l-due">Hạn chót: @lesson.DueDate.ToString("dd/MM")</div>
                         </div>
                     </a>
                 }

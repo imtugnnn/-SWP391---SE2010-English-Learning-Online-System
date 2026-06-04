@@ -1,4 +1,4 @@
-﻿using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
 namespace EnglishLearningOnlineSystem.Models
@@ -16,6 +16,11 @@ namespace EnglishLearningOnlineSystem.Models
 
         [MaxLength(500)]
         public string ImageUrl { get; set; }
+
+        public string? ExampleSentence { get; set; }
+
+        [MaxLength(500)]
+        public string? AudioUrl { get; set; }
 
         public int LessonId { get; set; }
         [ForeignKey("LessonId")]

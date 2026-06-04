@@ -1,4 +1,4 @@
-﻿using EnglishLearningOnlineSystem.Data;
+using EnglishLearningOnlineSystem.Data;
 using EnglishLearningOnlineSystem.Services.Interfaces;
 using EnglishLearningOnlineSystem.ViewModels;
 using Microsoft.AspNetCore.Mvc;
@@ -16,6 +16,8 @@ public class StudentController : BaseStudentController
     private readonly IStudentCourseService _courseService;
     private readonly IStudentLessonService _lessonService;
     private readonly IStudentLessonDetailService _lessonDetailService;
+    private readonly IQuizAttemptService _quizService;
+    private readonly IFlashcardService _flashcardService;
     private readonly IWebHostEnvironment _env;
 
     // Khởi tạo các service và truyền DbContext cho BaseStudentController
@@ -26,6 +28,8 @@ public class StudentController : BaseStudentController
         IStudentCourseService courseService,
         IStudentLessonService lessonService,
         IStudentLessonDetailService lessonDetailService,
+        IQuizAttemptService quizService,
+        IFlashcardService flashcardService,
         IWebHostEnvironment env)
         : base(db)
     {
@@ -34,6 +38,8 @@ public class StudentController : BaseStudentController
         _courseService = courseService;
         _lessonService = lessonService;
         _lessonDetailService = lessonDetailService;
+        _quizService = quizService;
+        _flashcardService = flashcardService;
         _env = env;
     }
 
@@ -80,6 +86,109 @@ public class StudentController : BaseStudentController
 
         var vm = await _profileService.GetProfileAsync(userId.Value);
         if (vm == null) return RedirectToAction(nameof(Dashboard));
+
+        return View(vm);
+    }
+
+    // Quiz Flows
+
+    [HttpGet("/student/lesson/{lessonId}/quiz")]
+    public async Task<IActionResult> TakeQuiz(int lessonId)
+    {
+        var userId = GetCurrentUserId();
+        if (userId == null) return RedirectToAction("Login", "Auth");
+
+        var vm = await _quizService.GetQuizForLessonAsync(lessonId, userId.Value);
+        if (vm == null) return NotFound("Lesson or quizzes not found.");
+
+        return View(vm);
+    }
+
+    [HttpPost("/student/lesson/{lessonId}/quiz/submit")]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> SubmitQuizAttempt(int lessonId, QuizSubmitViewModel model)
+    {
+        var userId = GetCurrentUserId();
+        if (userId == null) return RedirectToAction("Login", "Auth");
+
+        if (lessonId != model.LessonId) return BadRequest("Lesson ID mismatch.");
+
+        var result = await _quizService.SubmitQuizAsync(userId.Value, model);
+        if (result == null) return BadRequest("Error submitting quiz.");
+
+        return RedirectToAction(nameof(QuizResult), new { attemptId = result.AttemptId });
+    }
+
+    [HttpGet("/student/quiz/result/{attemptId}")]
+    public async Task<IActionResult> QuizResult(int attemptId)
+    {
+        var userId = GetCurrentUserId();
+        if (userId == null) return RedirectToAction("Login", "Auth");
+
+        var vm = await _quizService.GetAttemptResultAsync(attemptId, userId.Value);
+        if (vm == null) return NotFound();
+
+        return View(vm);
+    }
+
+    [HttpGet("/student/history")]
+    public async Task<IActionResult> History(int? lessonId, string? from, string? to, string sort = "date")
+    {
+        var userId = GetCurrentUserId();
+        if (userId == null) return RedirectToAction("Login", "Auth");
+
+        var vm = await _quizService.GetStudentHistoryAsync(userId.Value, lessonId, from, to, sort);
+        return View(vm);
+    }
+
+    [HttpGet("/student/quiz/review/{attemptId}")]
+    public async Task<IActionResult> ReviewIncorrect(int attemptId, bool showAll = false)
+    {
+        var userId = GetCurrentUserId();
+        if (userId == null) return RedirectToAction("Login", "Auth");
+
+        var vm = await _quizService.GetIncorrectAnswersAsync(attemptId, userId.Value, showAll);
+        if (vm == null) return NotFound();
+
+        return View(vm);
+    }
+
+    // Flashcard Flows 
+
+    [HttpGet("/student/lesson/{lessonId}/flashcards")]
+    public async Task<IActionResult> Flashcards(int lessonId)
+    {
+        var userId = GetCurrentUserId();
+        if (userId == null) return RedirectToAction("Login", "Auth");
+
+        var vm = await _flashcardService.StartSessionAsync(lessonId, userId.Value);
+        if (vm == null) return NotFound("Vocabulary not found for this lesson.");
+
+        return View(vm);
+    }
+
+    [HttpPost("/student/lesson/{lessonId}/flashcards/submit")]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> SubmitFlashcards(int lessonId, FlashcardCompleteViewModel model)
+    {
+        var userId = GetCurrentUserId();
+        if (userId == null) return RedirectToAction("Login", "Auth");
+
+        if (lessonId != model.LessonId) return BadRequest("Lesson ID mismatch.");
+
+        await _flashcardService.CompleteSessionAsync(userId.Value, model);
+        
+        return Redirect($"/student/flashcards/result/{model.SessionId}");
+    }
+
+    [HttpGet("/student/flashcards/result/{sessionId}")]
+    public async Task<IActionResult> FlashcardResult(int sessionId)
+    {
+        var userId = GetCurrentUserId();
+        if (userId == null) return RedirectToAction("Login", "Auth");
+
+        var vm = await _flashcardService.GetSessionResultAsync(sessionId, userId.Value);
+        if (vm == null) return NotFound();
 
         return View(vm);
     }
@@ -196,6 +305,4 @@ public class StudentController : BaseStudentController
 
         return RedirectToAction(nameof(LessonDetail), new { lessonId });
     }
-
-
 }

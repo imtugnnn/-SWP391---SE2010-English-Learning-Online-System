@@ -1,0 +1,126 @@
+@model EnglishLearningOnlineSystem.ViewModels.ReviewIncorrectViewModel
+@{
+    ViewData["Title"] = "Xem lại câu sai";
+    Layout = "~/Views/Shared/_StudentLayout.cshtml";
+    ViewData["ActiveNav"] = "lessons";
+}
+
+@section Styles {
+    <style>
+        .review-container {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        .review-header {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+        .review-header h2 {
+            font-weight: 800;
+            color: var(--text);
+        }
+        .review-card {
+            background: var(--card);
+            border-radius: var(--radius);
+            padding: 25px;
+            margin-bottom: 25px;
+            box-shadow: var(--shadow);
+            border: 1px solid var(--border);
+            transition: transform 0.3s ease;
+        }
+        .review-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 20px rgba(14, 165, 233, 0.15);
+        }
+        .q-text {
+            font-size: 1.2rem;
+            font-weight: 700;
+            color: var(--text);
+            margin-bottom: 20px;
+            border-bottom: 1px dashed var(--border);
+            padding-bottom: 15px;
+        }
+        .answer-box {
+            border-radius: 12px;
+            padding: 15px;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+        }
+        .answer-box .icon {
+            font-size: 1.5rem;
+            margin-right: 15px;
+        }
+        .answer-box.wrong {
+            background: rgba(248, 113, 113, 0.1);
+            border: 1px solid var(--red);
+            color: #991b1b;
+        }
+        .answer-box.correct {
+            background: rgba(74, 222, 128, 0.1);
+            border: 1px solid var(--green);
+            color: #166534;
+        }
+        .answer-label {
+            font-weight: 700;
+            margin-bottom: 2px;
+            font-size: 0.85rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        .answer-text {
+            font-weight: 600;
+            font-size: 1.1rem;
+        }
+    </style>
+}
+
+<div class="review-container">
+    <div class="review-header">
+        <h2>Xem lại các lỗi sai </h2>
+        <p class="text-muted">Hãy ghi nhớ những lỗi này để đạt điểm tối đa lần sau!</p>
+    </div>
+
+    @if (Model.Items != null && Model.Items.Any())
+    {
+        int i = 1;
+        foreach (var item in Model.Items)
+        {
+            <div class="review-card">
+                <div class="q-text">
+                    <span class="badge bg-secondary rounded-pill me-2">Q@(i)</span> @item.Question
+                </div>
+                
+                <div class="answer-box wrong">
+                    <div class="icon"></div>
+                    <div>
+                        <div class="answer-label">Câu trả lời của bạn</div>
+                        <div class="answer-text">@(string.IsNullOrEmpty(item.YourAnswer) ? "(Không có câu trả lời)" : item.YourAnswer)</div>
+                    </div>
+                </div>
+
+                <div class="answer-box correct">
+                    <div class="icon"></div>
+                    <div>
+                        <div class="answer-label">Đáp án đúng</div>
+                        <div class="answer-text">@item.CorrectAnswer</div>
+                    </div>
+                </div>
+            </div>
+            i++;
+        }
+    }
+    else
+    {
+        <div class="text-center p-5 bg-white rounded shadow-sm border">
+            <h3 class="fw-bold text-success">Tuyệt vời!</h3>
+            <p>Bạn không làm sai câu nào trong bài này. </p>
+        </div>
+    }
+
+    <div class="text-center mt-4">
+        <a href="/student/lessons" class="btn btn-outline-primary fw-bold" style="border-radius: 20px; padding: 10px 30px;">
+            Quay lại Bài học
+        </a>
+    </div>
+</div>
