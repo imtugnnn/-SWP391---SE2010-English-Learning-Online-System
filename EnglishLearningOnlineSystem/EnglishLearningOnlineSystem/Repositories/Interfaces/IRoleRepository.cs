@@ -6,4 +6,5 @@ public interface IRoleRepository
 {
     Task<Role?> FindRegistrationRoleAsync(int roleId);
     Task<List<Role>> GetRegistrationRolesAsync();
+    Task<List<Role>> GetAllAsync();
 }
