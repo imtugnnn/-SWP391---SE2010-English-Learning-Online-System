@@ -30,6 +30,8 @@ builder.Services.AddScoped<IStudentLessonRepository, StudentLessonRepository>();
 builder.Services.AddScoped<IStudentLessonService, StudentLessonService>();
 builder.Services.AddScoped<IStudentLessonDetailRepository, StudentLessonDetailRepository>();
 builder.Services.AddScoped<IStudentLessonDetailService, StudentLessonDetailService>();
+builder.Services.AddScoped<IVocabularyRepository, VocabularyRepository>();
+builder.Services.AddScoped<IVocabularyService, VocabularyService>();
 
 
 // Cấu hình Session
