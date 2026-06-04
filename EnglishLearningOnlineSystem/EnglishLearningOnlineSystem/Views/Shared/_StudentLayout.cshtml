@@ -1,0 +1,333 @@
+@* =========================================================
+   _StudentLayout.cshtml  –  Layout dùng chung cho khu vực Student
+   Đặt tại: Views/Shared/_StudentLayout.cshtml
+   Dùng ở đầu mỗi view con:
+       @{ Layout = "_StudentLayout"; }
+   
+   ViewData cần thiết:
+       ViewData["Title"]       – tiêu đề trang (bắt buộc)
+       ViewData["ActiveNav"]   – tên mục active: "dashboard" | "courses" |
+                                 "lessons" | "vocabulary" | "minigames" |
+                                 "missions" | "badges" | "leaderboard" | "profile"
+   Model (tuỳ chọn, dùng cho topbar):
+       Truyền qua ViewBag hoặc IStudentLayoutViewModel:
+       ViewBag.Nickname, ViewBag.AvatarUrl, ViewBag.Level,
+       ViewBag.StreakDays, ViewBag.XP
+========================================================= *@
+@{
+    var activeNav  = ViewData["ActiveNav"]?.ToString() ?? "";
+    var nickname   = ViewBag.Nickname   as string ?? "Học sinh";
+    var avatarUrl  = ViewBag.AvatarUrl  as string ?? "/images/default-avatar.png";
+    var level      = ViewBag.Level      is int l ? l : 1;
+    var streakDays = ViewBag.StreakDays is int s ? s : 0;
+    var xp         = ViewBag.XP        is int x ? x : 0;
+
+    string Nav(string key) => activeNav == key ? "nav-item active" : "nav-item";
+}
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"] - EduLearn</title>
+
+    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+
+    @* ── CSS tokens & shared styles ── *@
+    <style>
+        /* ===== RESET & TOKENS ===== */
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+        :root {
+            /* Brand */
+            --sky:       #38bdf8;
+            --sky-d:     #0284c7;
+            --sky-dark:  #0369a1;
+            --green:     #4ade80;
+            --green-d:   #16a34a;
+            --yellow:    #fbbf24;
+            --orange:    #fb923c;
+            --pink:      #f472b6;
+            --purple:    #a78bfa;
+            --red:       #f87171;
+
+            /* Surface */
+            --bg:        #f0f9ff;
+            --card:      #ffffff;
+            --border:    #bae6fd;
+            --muted:     #64748b;
+            --text:      #1e3a5f;
+
+            /* Sidebar */
+            --sb-width:  230px;
+            --sb-grad:   linear-gradient(180deg, #0ea5e9 0%, #0369a1 100%);
+
+            /* Misc */
+            --radius:    18px;
+            --shadow:    0 4px 16px rgba(14,165,233,.13);
+        }
+
+        body {
+            font-family: 'Nunito', sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            min-height: 100vh;
+            display: flex;
+        }
+
+        /* ===== SIDEBAR ===== */
+        .sidebar {
+            width: var(--sb-width);
+            min-height: 100vh;
+            background: var(--sb-grad);
+            display: flex;
+            flex-direction: column;
+            flex-shrink: 0;
+            position: fixed;
+            top: 0; left: 0; bottom: 0;
+            z-index: 100;
+            box-shadow: 4px 0 20px rgba(14,165,233,.25);
+            transition: width .2s;
+        }
+
+        /* Logo */
+        .sb-logo {
+            padding: 24px 20px 18px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            border-bottom: 1px solid rgba(255,255,255,.18);
+            flex-shrink: 0;
+        }
+        .sb-logo-icon {
+            width: 42px; height: 42px;
+            background: #fff;
+            border-radius: 13px;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 1.5rem;
+            box-shadow: 0 4px 12px rgba(0,0,0,.14);
+            flex-shrink: 0;
+        }
+        .sb-logo-text { font-size: .95rem; font-weight: 900; color: #fff; line-height: 1.2; }
+        .sb-logo-text small { display: block; font-size: .68rem; font-weight: 600; opacity: .8; }
+
+        /* Avatar */
+        .sb-avatar-wrap {
+            padding: 18px 20px;
+            display: flex; align-items: center; gap: 12px;
+            border-bottom: 1px solid rgba(255,255,255,.18);
+            flex-shrink: 0;
+        }
+        .sb-avatar {
+            width: 46px; height: 46px;
+            border-radius: 50%;
+            border: 3px solid rgba(255,255,255,.45);
+            object-fit: cover;
+            flex-shrink: 0;
+        }
+        .sb-user-name  { font-weight: 800; color: #fff; font-size: .9rem; line-height: 1.2; }
+        .sb-user-level {
+            font-size: .68rem; color: rgba(255,255,255,.82);
+            background: rgba(255,255,255,.18);
+            padding: 1px 8px; border-radius: 99px;
+            display: inline-block; margin-top: 3px;
+        }
+
+        /* Nav */
+        .sb-nav { flex: 1; padding: 14px 10px; display: flex; flex-direction: column; gap: 3px; overflow-y: auto; }
+        .nav-item {
+            display: flex; align-items: center; gap: 11px;
+            padding: 10px 13px;
+            border-radius: 13px;
+            color: rgba(255,255,255,.85);
+            font-weight: 700; font-size: .88rem;
+            text-decoration: none;
+            transition: background .15s, transform .12s;
+            cursor: pointer;
+            border: none; background: none; width: 100%;
+        }
+        .nav-item:hover  { background: rgba(255,255,255,.17); color: #fff; transform: translateX(3px); }
+        .nav-item.active { background: #fff; color: var(--sky-d); box-shadow: 0 4px 12px rgba(0,0,0,.11); }
+        .nav-icon { font-size: 1.2rem; width: 26px; text-align: center; flex-shrink: 0; }
+        .nav-badge {
+            margin-left: auto;
+            background: var(--yellow); color: #78350f;
+            font-size: .62rem; font-weight: 900;
+            padding: 2px 7px; border-radius: 99px;
+        }
+
+        /* Footer */
+        .sb-footer { padding: 14px 10px; border-top: 1px solid rgba(255,255,255,.18); flex-shrink: 0; }
+
+        /* ===== MAIN WRAP ===== */
+        .main-wrap {
+            margin-left: var(--sb-width);
+            flex: 1;
+            display: flex; flex-direction: column;
+            min-height: 100vh;
+        }
+
+        /* Topbar */
+        .topbar {
+            background: #fff;
+            padding: 13px 28px;
+            display: flex; align-items: center; justify-content: space-between;
+            border-bottom: 2px solid var(--border);
+            position: sticky; top: 0; z-index: 50;
+            gap: 12px;
+        }
+        .topbar-title { font-size: 1.1rem; font-weight: 900; color: var(--text); }
+        .topbar-title span { color: var(--sky-d); }
+        .topbar-right { display: flex; align-items: center; gap: 12px; flex-shrink: 0; }
+
+        .topbar-pill {
+            border-radius: 99px; padding: 5px 13px;
+            font-size: .82rem; font-weight: 800;
+            display: flex; align-items: center; gap: 5px;
+        }
+        .pill-streak { background: #fff7ed; border: 2px solid #fed7aa; color: #c2410c; }
+        .pill-xp     { background: #fefce8; border: 2px solid #fde68a; color: #92400e; }
+        .topbar-bell {
+            width: 36px; height: 36px;
+            background: var(--bg); border: 2px solid var(--border);
+            border-radius: 50%;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 1rem; cursor: pointer;
+            text-decoration: none; transition: background .15s;
+            position: relative;
+        }
+        .topbar-bell:hover { background: var(--border); }
+        .bell-dot {
+            position: absolute; top: 3px; right: 3px;
+            width: 8px; height: 8px;
+            background: var(--red); border-radius: 50%;
+            border: 2px solid #fff;
+        }
+
+        /* Page content area */
+        .page-content { padding: 26px 28px; flex: 1; }
+
+        /* ===== RESPONSIVE ===== */
+        @@media (max-width: 992px) {
+            :root { --sb-width: 68px; }
+            .sb-logo-text,
+            .sb-avatar-wrap .sb-user-name,
+            .sb-avatar-wrap .sb-user-level,
+            .nav-item > span:not(.nav-icon),
+            .nav-badge { display: none !important; }
+            .sb-logo { padding: 18px 12px; justify-content: center; }
+            .sb-avatar-wrap { justify-content: center; padding: 14px 12px; }
+            .nav-item { justify-content: center; padding: 11px; }
+        }
+        @@media (max-width: 600px) {
+            .page-content { padding: 14px; }
+            .topbar { padding: 11px 14px; }
+        }
+    </style>
+
+    @* Cho phép từng trang thêm CSS riêng *@
+    @await RenderSectionAsync("Styles", required: false)
+</head>
+<body>
+
+@* ══════════════ SIDEBAR ══════════════  *@
+<aside class="sidebar">
+
+    @* Logo  *@
+    <div class="sb-logo">
+        <div class="sb-logo-icon">🦉</div>
+        <div class="sb-logo-text">
+            EduLearn
+            <small>English for Kids</small>
+        </div>
+    </div>
+
+    @* Avatar + thông tin học sinh  *@
+    <div class="sb-avatar-wrap">
+        <img src="@avatarUrl" alt="avatar" class="sb-avatar"
+             onerror="this.src='/images/default-avatar.png'" />
+        <div>
+            <div class="sb-user-name">@nickname</div>
+            <div class="sb-user-level">Cấp @level</div>
+        </div>
+    </div>
+
+    @* Menu điều hướng  *@
+    <nav class="sb-nav" aria-label="Menu học sinh">
+        <a href="/student/dashboard"   class="@Nav("dashboard")">
+            <span class="nav-icon"></span><span>Trang chủ</span>
+        </a>
+        <a href="/student/courses"     class="@Nav("courses")">
+            <span class="nav-icon"></span><span>Khoá học</span>
+        </a>
+        <a href="/student/lessons"     class="@Nav("lessons")">
+            <span class="nav-icon"></span><span>Bài học</span>
+            @if (ViewBag.PendingLessons is int p && p > 0)
+            {
+                <span class="nav-badge">@p</span>
+            }
+        </a>
+        <a href="/student/vocabulary"  class="@Nav("vocabulary")">
+            <span class="nav-icon"></span><span>Từ vựng</span>
+        </a>
+        <a href="/student/minigames"   class="@Nav("minigames")">
+            <span class="nav-icon"></span><span>Mini Game</span>
+        </a>
+        <a href="/student/missions"    class="@Nav("missions")">
+            <span class="nav-icon"></span><span>Nhiệm vụ</span>
+        </a>
+        <a href="/student/badges"      class="@Nav("badges")">
+            <span class="nav-icon"></span><span>Huy hiệu</span>
+        </a>
+        <a href="/student/leaderboard" class="@Nav("leaderboard")">
+            <span class="nav-icon"></span><span>Bảng xếp hạng</span>
+        </a>
+        <a href="/student/profile"     class="@Nav("profile")">
+            <span class="nav-icon"></span><span>Hồ sơ</span>
+        </a>
+    </nav>
+
+    @* Đăng xuất  *@
+    <div class="sb-footer">
+        <form asp-controller="Auth" asp-action="Logout" method="post">
+            @Html.AntiForgeryToken()
+            <button type="submit" class="nav-item">
+                <span class="nav-icon"></span><span>Đăng xuất</span>
+            </button>
+        </form>
+    </div>
+</aside>
+
+@* ══════════════ MAIN ══════════════  *@
+<div class="main-wrap">
+
+    @* Topbar  *@
+    <div class="topbar">
+        <div class="topbar-title">@(ViewData["Title"] ?? "EduLearn")</div>
+        <div class="topbar-right">
+            <div class="topbar-pill pill-streak"> @streakDays ngày</div>
+            <div class="topbar-pill pill-xp">⭐ @xp XP</div>
+            <a href="/student/notifications" class="topbar-bell" title="Thông báo">
+                
+                <span class="bell-dot"></span>
+            </a>
+        </div>
+    </div>
+
+    @* Nội dung trang  *@
+    <div class="page-content">
+        @RenderBody()
+    </div>
+
+</div>
+
+@* Scripts dùng chung  *@
+<script src="~/lib/jquery/dist/jquery.min.js"></script>
+<script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+
+@* Cho phép từng trang thêm script riêng *@
+@await RenderSectionAsync("Scripts", required: false)
+
+</body>
+</html>

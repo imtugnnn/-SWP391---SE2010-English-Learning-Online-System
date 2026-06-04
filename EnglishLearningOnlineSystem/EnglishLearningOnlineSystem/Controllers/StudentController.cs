@@ -1,53 +1,125 @@
-﻿using EnglishLearningOnlineSystem.Services.Interfaces;
+﻿using EnglishLearningOnlineSystem.Data;
+using EnglishLearningOnlineSystem.Services.Interfaces;
+using EnglishLearningOnlineSystem.ViewModels;
 using Microsoft.AspNetCore.Mvc;
 
 namespace EnglishLearningOnlineSystem.Controllers;
 
-public class StudentController : Controller
+/// <summary>
+/// Controller xử lý các chức năng dành cho học sinh như
+/// Dashboard, Onboarding và quản lý hồ sơ cá nhân.
+/// </summary>
+public class StudentController : BaseStudentController
 {
     private readonly IStudentDashboardService _dashboardService;
+    private readonly IStudentProfileService _profileService;
+    private readonly IWebHostEnvironment _env;
 
-    public StudentController(IStudentDashboardService dashboardService)
+    // Khởi tạo các service và truyền DbContext cho BaseStudentController
+    public StudentController(
+        AppDbContext db,
+        IStudentDashboardService dashboardService,
+        IStudentProfileService profileService,
+        IWebHostEnvironment env)
+        : base(db)
     {
         _dashboardService = dashboardService;
+        _profileService = profileService;
+        _env = env;
     }
 
+    // Lấy UserId của người dùng hiện tại từ Session
+    private int? GetCurrentUserId()
+    {
+        var raw = HttpContext.Session.GetString("UserId");
+        return int.TryParse(raw, out var id) ? id : null;
+    }
+
+    // Hiển thị trang Dashboard của học sinh
     [HttpGet("/student/dashboard")]
     public async Task<IActionResult> Dashboard()
     {
         var userId = GetCurrentUserId();
-        if (userId == null)
-            return RedirectToAction("Login", "Auth");
+        if (userId == null) return RedirectToAction("Login", "Auth");
 
         var vm = await _dashboardService.GetDashboardAsync(userId.Value);
-
-        // StudentProfile chưa được tạo → hiển thị trang tạm thay vì redirect login
         if (vm == null)
-            return Content($"[Debug] Login OK. UserId = {userId}. StudentProfile chưa có trong DB. Cần seed data hoặc tạo profile.");
+            return Content($"[Debug] Login OK. UserId = {userId}. StudentProfile chưa có trong DB.");
 
+        // Chuyển sang trang onboarding nếu đăng nhập lần đầu
         if (vm.IsFirstLogin)
             return RedirectToAction(nameof(Onboarding));
 
         return View(vm);
     }
 
+    // Hiển thị trang onboarding
     [HttpGet("/student/onboarding")]
-    public IActionResult Onboarding()
-    {
-        return View();
-    }
+    public IActionResult Onboarding() => View();
 
+    // Hoàn tất onboarding
     [HttpPost("/student/onboarding/complete")]
     [ValidateAntiForgeryToken]
-    public IActionResult OnboardingComplete()
+    public IActionResult OnboardingComplete() => RedirectToAction(nameof(Dashboard));
+
+    // Hiển thị hồ sơ học sinh
+    [HttpGet("/student/profile")]
+    public async Task<IActionResult> Profile()
     {
-        return RedirectToAction(nameof(Dashboard));
+        var userId = GetCurrentUserId();
+        if (userId == null) return RedirectToAction("Login", "Auth");
+
+        var vm = await _profileService.GetProfileAsync(userId.Value);
+        if (vm == null) return RedirectToAction(nameof(Dashboard));
+
+        return View(vm);
     }
 
-    private int? GetCurrentUserId()
+    // Cập nhật thông tin hồ sơ học sinh
+    [HttpPost("/student/profile")]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> Profile(StudentProfileViewModel model)
     {
-        var raw = HttpContext.Session.GetString("UserId");
-        if (int.TryParse(raw, out var id)) return id;
-        return null;
+        var userId = GetCurrentUserId();
+        if (userId == null) return RedirectToAction("Login", "Auth");
+
+        // Kiểm tra nickname hợp lệ
+        if (string.IsNullOrWhiteSpace(model.NewNickname))
+        {
+            model.ErrorMessage = "Nickname cannot be empty.";
+
+            var fresh = await _profileService.GetProfileAsync(userId.Value);
+            if (fresh != null)
+            {
+                model.AvatarUrl = fresh.AvatarUrl;
+                model.Level = fresh.Level;
+                model.XP = fresh.XP;
+                model.CurrentStreakDays = fresh.CurrentStreakDays;
+                model.Username = fresh.Username;
+                model.Email = fresh.Email;
+                model.BirthDate = fresh.BirthDate;
+            }
+
+            return View(model);
+        }
+
+        var ok = await _profileService.UpdateProfileAsync(
+            userId.Value,
+            model.NewNickname,
+            model.AvatarFile,
+            _env);
+
+        var vm = await _profileService.GetProfileAsync(userId.Value);
+        if (vm == null) return RedirectToAction(nameof(Dashboard));
+
+        // Hiển thị kết quả cập nhật
+        vm.SuccessMessage = ok
+            ? "Profile updated successfully!"
+            : "Update failed. Please try again.";
+
+        if (!ok)
+            vm.ErrorMessage = vm.SuccessMessage;
+
+        return View(vm);
     }
 }
