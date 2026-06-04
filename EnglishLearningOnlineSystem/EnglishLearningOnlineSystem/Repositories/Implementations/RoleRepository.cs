@@ -21,6 +21,14 @@ public class RoleRepository : IRoleRepository
             (role.Name == "Student" || role.Name == "Parent"));
     }
 
+    public Task<List<Role>> GetAllAsync()
+    {
+        return _context.Roles
+           .AsNoTracking()
+           .OrderBy(r => r.Name)
+           .ToListAsync();
+    }
+
     public Task<List<Role>> GetRegistrationRolesAsync()
     {
         return _context.Roles

@@ -42,6 +42,33 @@ public class UserRepository : IUserRepository
         await _context.SaveChangesAsync();
     }
 
+    public Task<List<User>> GetAllAsync()
+    {
+        return _context.Users
+            .Include(u => u.Role)
+            .AsNoTracking()
+            .ToListAsync();
+    }
+
+    public Task<User?> GetByIdAsync(int id)
+    {
+        return _context.Users
+            .Include(u => u.Role)
+            .FirstOrDefaultAsync(u => u.Id == id);
+    }
+
+    public async Task UpdateAsync(User user)
+    {
+        _context.Users.Update(user);
+        await _context.SaveChangesAsync();
+    }
+
+    public async Task DeleteAsync(User user)
+    {
+        _context.Users.Remove(user);
+        await _context.SaveChangesAsync();
+    }
+
     public async Task AddStudentProfileAsync(StudentProfile studentProfile)
     {
         _context.StudentProfiles!.Add(studentProfile);
