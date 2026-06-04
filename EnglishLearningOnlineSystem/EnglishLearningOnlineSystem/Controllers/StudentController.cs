@@ -16,6 +16,7 @@ public class StudentController : BaseStudentController
     private readonly IStudentCourseService _courseService;
     private readonly IStudentLessonService _lessonService;
     private readonly IStudentLessonDetailService _lessonDetailService;
+    private readonly IVocabularyService _vocabularyService;
     private readonly IQuizAttemptService _quizService;
     private readonly IFlashcardService _flashcardService;
     private readonly IWebHostEnvironment _env;
@@ -28,6 +29,7 @@ public class StudentController : BaseStudentController
         IStudentCourseService courseService,
         IStudentLessonService lessonService,
         IStudentLessonDetailService lessonDetailService,
+        IVocabularyService vocabularyService,
         IQuizAttemptService quizService,
         IFlashcardService flashcardService,
         IWebHostEnvironment env)
@@ -38,6 +40,7 @@ public class StudentController : BaseStudentController
         _courseService = courseService;
         _lessonService = lessonService;
         _lessonDetailService = lessonDetailService;
+        _vocabularyService = vocabularyService;
         _quizService = quizService;
         _flashcardService = flashcardService;
         _env = env;
@@ -305,4 +308,18 @@ public class StudentController : BaseStudentController
 
         return RedirectToAction(nameof(LessonDetail), new { lessonId });
     }
+
+    // Hiển thị danh sách từ vựng của một bài học
+    [HttpGet("/student/lesson/{lessonId:int}/vocabulary")]
+    public async Task<IActionResult> Vocabulary(int lessonId)
+    {
+        var userId = GetCurrentUserId();
+        if (userId == null) return RedirectToAction("Login", "Auth");
+
+        var vm = await _vocabularyService.GetVocabularyAsync(lessonId);
+        if (vm == null) return NotFound();
+
+        return View(vm);
+    }
+
 }

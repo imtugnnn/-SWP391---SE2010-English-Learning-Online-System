@@ -1,0 +1,779 @@
+@model EnglishLearningOnlineSystem.ViewModels.VocabularyViewModel
+@{
+    ViewData["Title"] = "Từ vựng - " + Model.LessonTitle;
+    ViewData["ActiveNav"] = "lessons";
+    Layout = "_StudentLayout";
+    var totalWords = Model.Words.Count;
+}
+
+@section Styles {
+    <style>
+        /* Back button in topbar — injected via ViewData trick; we place it above page-content */
+        .vocab-back {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            font-size: .85rem;
+            font-weight: 800;
+            color: var(--sky-d);
+            text-decoration: none;
+            padding: 6px 14px;
+            border-radius: 10px;
+            background: #e0f2fe;
+            transition: background .15s;
+            margin-bottom: 20px;
+        }
+
+            .vocab-back:hover {
+                background: var(--border);
+                color: var(--sky-d);
+            }
+
+        /* Mode switcher */
+        .mode-bar {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 24px;
+            flex-wrap: wrap;
+        }
+
+        .mode-btn {
+            padding: 9px 20px;
+            border-radius: 99px;
+            border: 2px solid var(--border);
+            background: var(--card);
+            font-family: 'Nunito', sans-serif;
+            font-size: .85rem;
+            font-weight: 800;
+            color: var(--muted);
+            cursor: pointer;
+            transition: all .15s;
+        }
+
+            .mode-btn:hover {
+                border-color: var(--sky);
+                color: var(--sky-d);
+            }
+
+            .mode-btn.active {
+                background: var(--sky-d);
+                border-color: var(--sky-d);
+                color: #fff;
+                box-shadow: 0 4px 12px rgba(2,132,199,.25);
+            }
+
+        /* Shared dot bar */
+        .dot-bar {
+            display: flex;
+            gap: 6px;
+            justify-content: center;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+
+        .dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background: #e2e8f0;
+        }
+
+            .dot.ok {
+                background: var(--green);
+            }
+
+            .dot.bad {
+                background: var(--red);
+            }
+
+        /* ── FLASHCARD ── */
+        #mode-flashcard {
+            display: block;
+        }
+
+        #mode-grid {
+            display: none;
+        }
+
+        #mode-quiz {
+            display: none;
+        }
+
+        .flashcard-wrap {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 24px;
+        }
+
+        .fc-progress-row {
+            width: 100%;
+            max-width: 600px;
+            display: flex;
+            align-items: center;
+            gap: 14px;
+        }
+
+        .fc-prog-bar {
+            flex: 1;
+            height: 10px;
+            background: #e2e8f0;
+            border-radius: 99px;
+            overflow: hidden;
+        }
+
+        .fc-prog-fill {
+            height: 100%;
+            background: linear-gradient(90deg, var(--sky), #6366f1);
+            border-radius: 99px;
+            transition: width .4s;
+        }
+
+        .fc-count {
+            font-size: .82rem;
+            font-weight: 800;
+            color: var(--muted);
+            white-space: nowrap;
+        }
+
+        .flashcard-scene {
+            width: 100%;
+            max-width: 480px;
+            height: 300px;
+            perspective: 1200px;
+            cursor: pointer;
+        }
+
+        .flashcard-inner {
+            width: 100%;
+            height: 100%;
+            position: relative;
+            transform-style: preserve-3d;
+            transition: transform .55s cubic-bezier(.4,0,.2,1);
+        }
+
+        .flashcard-scene.flipped .flashcard-inner {
+            transform: rotateY(180deg);
+        }
+
+        .flashcard-face {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            backface-visibility: hidden;
+            border-radius: 24px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 14px;
+            padding: 28px;
+            box-shadow: 0 12px 40px rgba(14,165,233,.18);
+        }
+
+        .fc-front {
+            background: linear-gradient(135deg,#0ea5e9,#6366f1);
+            color: #fff;
+        }
+
+        .fc-back {
+            background: linear-gradient(135deg,#f0fdf4,#dcfce7);
+            color: var(--text);
+            transform: rotateY(180deg);
+            border: 3px solid #86efac;
+        }
+
+        .fc-word {
+            font-size: 2.2rem;
+            font-weight: 900;
+            text-align: center;
+        }
+
+        .fc-hint {
+            font-size: .8rem;
+            opacity: .8;
+            font-weight: 700;
+        }
+
+        .fc-meaning {
+            font-size: 1.4rem;
+            font-weight: 900;
+            color: #15803d;
+            text-align: center;
+        }
+
+        .fc-word-sm {
+            font-size: .95rem;
+            font-weight: 800;
+            color: var(--muted);
+        }
+
+        .fc-img {
+            width: 90px;
+            height: 90px;
+            object-fit: contain;
+            border-radius: 14px;
+            background: rgba(255,255,255,.2);
+        }
+
+        .fc-img-back {
+            width: 90px;
+            height: 90px;
+            object-fit: contain;
+            border-radius: 14px;
+            background: #f0fdf4;
+        }
+
+        .fc-nav {
+            display: flex;
+            gap: 12px;
+            align-items: center;
+        }
+
+        .fc-btn {
+            width: 48px;
+            height: 48px;
+            border-radius: 50%;
+            background: var(--card);
+            border: 2px solid var(--border);
+            font-size: 1.2rem;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: background .15s, transform .12s;
+            box-shadow: var(--shadow);
+        }
+
+            .fc-btn:hover {
+                background: var(--border);
+                transform: scale(1.1);
+            }
+
+            .fc-btn:disabled {
+                opacity: .35;
+                cursor: not-allowed;
+                transform: none;
+            }
+
+        .fc-flip-hint {
+            font-size: .78rem;
+            color: var(--muted);
+            font-weight: 700;
+        }
+
+        .fc-known-row {
+            display: flex;
+            gap: 10px;
+        }
+
+        .btn-known {
+            padding: 10px 24px;
+            border-radius: 12px;
+            border: none;
+            font-family: 'Nunito', sans-serif;
+            font-size: .88rem;
+            font-weight: 900;
+            cursor: pointer;
+            transition: all .15s;
+        }
+
+            .btn-known.yes {
+                background: #dcfce7;
+                color: #15803d;
+                border: 2px solid #86efac;
+            }
+
+                .btn-known.yes:hover {
+                    background: #bbf7d0;
+                }
+
+            .btn-known.no {
+                background: #fee2e2;
+                color: #dc2626;
+                border: 2px solid #fca5a5;
+            }
+
+                .btn-known.no:hover {
+                    background: #fecaca;
+                }
+
+        /* Completion banner */
+        .complete-banner {
+            background: linear-gradient(135deg,#dcfce7,#bbf7d0);
+            border: 2px solid #86efac;
+            border-radius: var(--radius);
+            padding: 28px;
+            text-align: center;
+            margin-bottom: 20px;
+            display: none;
+        }
+
+            .complete-banner.show {
+                display: block;
+                animation: fadeIn .5s ease;
+            }
+
+            .complete-banner h3 {
+                font-size: 1.2rem;
+                font-weight: 900;
+                color: #15803d;
+            }
+
+            .complete-banner p {
+                font-size: .85rem;
+                color: #166534;
+                margin-top: 4px;
+            }
+
+        @@keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(-10px)
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0)
+            }
+        }
+
+        /* ── GRID ── */
+        .vocab-grid-mode {
+            display: grid;
+            grid-template-columns: repeat(auto-fill,minmax(200px,1fr));
+            gap: 16px;
+        }
+
+        .vg-card {
+            background: var(--card);
+            border: 2px solid var(--border);
+            border-radius: var(--radius);
+            overflow: hidden;
+            box-shadow: var(--shadow);
+            transition: transform .15s, border-color .15s;
+        }
+
+            .vg-card:hover {
+                transform: translateY(-3px);
+                border-color: var(--sky);
+            }
+
+        .vg-img-wrap {
+            height: 120px;
+            background: #f0f9ff;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 3rem;
+        }
+
+            .vg-img-wrap img {
+                width: 100%;
+                height: 100%;
+                object-fit: contain;
+                padding: 8px;
+            }
+
+        .vg-body {
+            padding: 14px;
+        }
+
+        .vg-word {
+            font-size: 1.1rem;
+            font-weight: 900;
+            color: var(--text);
+            margin-bottom: 4px;
+        }
+
+        .vg-meaning {
+            font-size: .82rem;
+            font-weight: 700;
+            color: var(--muted);
+        }
+
+        .vg-audio-btn {
+            margin-top: 10px;
+            width: 100%;
+            padding: 7px;
+            border-radius: 10px;
+            border: 2px solid var(--border);
+            background: var(--bg);
+            font-family: 'Nunito', sans-serif;
+            font-size: .78rem;
+            font-weight: 800;
+            color: var(--sky-d);
+            cursor: pointer;
+            transition: background .15s;
+        }
+
+            .vg-audio-btn:hover {
+                background: var(--border);
+            }
+
+        /* ── MINI QUIZ ── */
+        .mq-wrap {
+            max-width: 560px;
+            margin: 0 auto;
+        }
+
+        .mq-card {
+            background: var(--card);
+            border: 2px solid var(--border);
+            border-radius: var(--radius);
+            padding: 28px;
+            box-shadow: var(--shadow);
+        }
+
+        .mq-question {
+            font-size: 1.1rem;
+            font-weight: 900;
+            color: var(--text);
+            margin-bottom: 6px;
+            text-align: center;
+        }
+
+        .mq-sub {
+            font-size: .8rem;
+            color: var(--muted);
+            font-weight: 700;
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        .mq-img {
+            width: 100px;
+            height: 100px;
+            object-fit: contain;
+            border-radius: 14px;
+            background: #f0f9ff;
+            margin: 0 auto 16px;
+            display: block;
+        }
+
+        .mq-options {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin-bottom: 16px;
+        }
+
+        .mq-opt {
+            padding: 12px 16px;
+            border-radius: 12px;
+            border: 2px solid var(--border);
+            background: var(--bg);
+            font-family: 'Nunito', sans-serif;
+            font-size: .9rem;
+            font-weight: 800;
+            cursor: pointer;
+            transition: all .15s;
+            text-align: center;
+        }
+
+            .mq-opt:hover {
+                border-color: var(--sky);
+                background: #e0f2fe;
+            }
+
+            .mq-opt.correct {
+                border-color: #16a34a;
+                background: #dcfce7;
+                color: #15803d;
+            }
+
+            .mq-opt.wrong {
+                border-color: #dc2626;
+                background: #fee2e2;
+                color: #dc2626;
+            }
+
+        .mq-result {
+            text-align: center;
+            font-size: .95rem;
+            font-weight: 900;
+            padding: 10px;
+            border-radius: 12px;
+            margin-bottom: 16px;
+        }
+
+            .mq-result.ok {
+                background: #dcfce7;
+                color: #15803d;
+            }
+
+            .mq-result.bad {
+                background: #fee2e2;
+                color: #dc2626;
+            }
+
+        .btn-next-q {
+            width: 100%;
+            padding: 12px;
+            border-radius: 12px;
+            border: none;
+            background: linear-gradient(135deg,#0ea5e9,#6366f1);
+            color: #fff;
+            font-family: 'Nunito', sans-serif;
+            font-size: .95rem;
+            font-weight: 900;
+            cursor: pointer;
+            transition: opacity .15s;
+        }
+
+            .btn-next-q:hover {
+                opacity: .9;
+            }
+
+        @@media (max-width: 992px) {
+            .mq-options {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+}
+
+<!-- Back link -->
+<a href="/student/lesson/@Model.LessonId" class="vocab-back">← Quay lại bài học</a>
+
+@if (!Model.Words.Any())
+{
+    <div style="text-align:center;padding:60px 20px;color:var(--muted);">
+        <p style="font-size:.95rem;font-weight:700">Bài học này chưa có từ vựng.</p>
+    </div>
+}
+else
+{
+    <!-- Mode switcher -->
+    <div class="mode-bar">
+        <button class="mode-btn active" onclick="switchMode('flashcard', this)">Flashcard</button>
+        <button class="mode-btn" onclick="switchMode('grid', this)">Xem tất cả</button>
+        <button class="mode-btn" onclick="switchMode('quiz', this)">Luyện tập</button>
+    </div>
+
+    <!-- Completion banner -->
+    <div class="complete-banner" id="completeBanner">
+        <h3>Hoàn thành! Bạn đã học hết @totalWords từ!</h3>
+        <p>Tiếp tục luyện tập để ghi nhớ tốt hơn nhé!</p>
+    </div>
+
+    <!-- MODE 1: FLASHCARD -->
+    <div id="mode-flashcard">
+        <div class="flashcard-wrap">
+            <div class="fc-progress-row">
+                <div class="fc-prog-bar"><div class="fc-prog-fill" id="fcProgFill" style="width:0%"></div></div>
+                <div class="fc-count"><span id="fcCurrent">1</span>/@totalWords</div>
+            </div>
+
+            <div class="dot-bar" id="fcDots">
+                @for (int i = 0; i < totalWords; i++)
+                {
+                    <div class="dot" id="dot-@i"></div>
+                }
+            </div>
+
+            <div class="flashcard-scene" id="flashcard" onclick="flipCard()">
+                <div class="flashcard-inner">
+                    <div class="flashcard-face fc-front">
+                        <div id="fc-img-front"></div>
+                        <div class="fc-word" id="fcWord"></div>
+                        <div class="fc-hint">Nhấn để xem nghĩa</div>
+                    </div>
+                    <div class="flashcard-face fc-back">
+                        <div id="fc-img-back"></div>
+                        <div class="fc-meaning" id="fcMeaning"></div>
+                        <div class="fc-word-sm" id="fcWordBack"></div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="fc-known-row" id="fcKnownRow" style="display:none">
+                <button class="btn-known no" onclick="markCard(false)">Chưa nhớ</button>
+                <button class="btn-known yes" onclick="markCard(true)">Đã nhớ</button>
+            </div>
+
+            <div class="fc-nav">
+                <button class="fc-btn" id="btnPrev" onclick="prevCard()" disabled>◀</button>
+                <span class="fc-flip-hint">Nhấn vào thẻ để lật</span>
+                <button class="fc-btn" id="btnNext" onclick="nextCard()">▶</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODE 2: GRID -->
+    <div id="mode-grid">
+        <div class="vocab-grid-mode">
+            @foreach (var w in Model.Words)
+            {
+                <div class="vg-card">
+                    <div class="vg-img-wrap">
+                        @if (!string.IsNullOrEmpty(w.ImageUrl))
+                        {
+                            <img src="@w.ImageUrl" alt="@w.Word" onerror="this.parentElement.innerHTML=''" />
+                        }
+                    </div>
+                    <div class="vg-body">
+                        <div class="vg-word">@w.Word</div>
+                        <div class="vg-meaning">@w.Meaning</div>
+                        @if (!string.IsNullOrEmpty(w.AudioUrl))
+                        {
+                            <button class="vg-audio-btn" onclick="playAudio('@w.AudioUrl')">Nghe phát âm</button>
+                        }
+                    </div>
+                </div>
+            }
+        </div>
+    </div>
+
+    <!-- MODE 3: MINI QUIZ -->
+    <div id="mode-quiz">
+        <div class="mq-wrap">
+            <div class="dot-bar" id="mqDots">
+                @for (int i = 0; i < totalWords; i++)
+                {
+                    <div class="dot" id="mqdot-@i"></div>
+                }
+            </div>
+            <div class="mq-card" id="mqCard">
+                <div class="mq-question" id="mqQuestion"></div>
+                <div class="mq-sub">Chọn nghĩa đúng của từ trên</div>
+                <div class="mq-options" id="mqOptions"></div>
+                <div class="mq-result" id="mqResult" style="display:none"></div>
+                <button class="btn-next-q" id="mqNextBtn" onclick="nextMQ()" style="display:none">Câu tiếp theo →</button>
+            </div>
+        </div>
+    </div>
+}
+
+@section Scripts {
+    <script>
+        const words = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.Words.Select(w => new
+            {
+                word = w.Word,
+                meaning = w.Meaning,
+                imageUrl = w.ImageUrl,
+                audioUrl = w.AudioUrl
+        })));
+
+        // Mode switcher
+        function switchMode(mode, btn) {
+            document.querySelectorAll('.mode-btn').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            document.getElementById('mode-flashcard').style.display = mode === 'flashcard' ? 'block' : 'none';
+            document.getElementById('mode-grid').style.display      = mode === 'grid'      ? 'block' : 'none';
+            document.getElementById('mode-quiz').style.display      = mode === 'quiz'      ? 'block' : 'none';
+            if (mode === 'flashcard') initFlashcard();
+            if (mode === 'quiz')      initMQ();
+        }
+
+        // ── FLASHCARD ──────────────────────────────────────────────────────────────
+        let fcIdx = 0, fcFlipped = false, fcResults = [];
+
+        function initFlashcard() {
+            fcIdx = 0; fcFlipped = false; fcResults = new Array(words.length).fill(null);
+            showCard();
+        }
+
+        function showCard() {
+            const w = words[fcIdx];
+            document.getElementById('fcWord').textContent     = w.word;
+            document.getElementById('fcMeaning').textContent  = w.meaning;
+            document.getElementById('fcWordBack').textContent = w.word;
+
+            const fImg = document.getElementById('fc-img-front');
+            const bImg = document.getElementById('fc-img-back');
+            if (w.imageUrl) {
+                fImg.innerHTML = `<img src="${w.imageUrl}" class="fc-img" onerror="this.style.display='none'" />`;
+                bImg.innerHTML = `<img src="${w.imageUrl}" class="fc-img-back" onerror="this.style.display='none'" />`;
+            } else { fImg.innerHTML = ''; bImg.innerHTML = ''; }
+
+            document.getElementById('flashcard').classList.remove('flipped');
+            fcFlipped = false;
+            document.getElementById('fcKnownRow').style.display = 'none';
+
+            const pct = Math.round((fcIdx / words.length) * 100);
+            document.getElementById('fcProgFill').style.width  = pct + '%';
+            document.getElementById('fcCurrent').textContent   = fcIdx + 1;
+            document.getElementById('btnPrev').disabled = fcIdx === 0;
+            document.getElementById('btnNext').disabled = fcIdx === words.length - 1;
+        }
+
+        function flipCard() {
+            document.getElementById('flashcard').classList.toggle('flipped');
+            fcFlipped = !fcFlipped;
+            document.getElementById('fcKnownRow').style.display = fcFlipped ? 'flex' : 'none';
+        }
+
+        function markCard(known) {
+            fcResults[fcIdx] = known;
+            const dot = document.getElementById('dot-' + fcIdx);
+            if (dot) dot.className = 'dot ' + (known ? 'ok' : 'bad');
+            if (fcIdx < words.length - 1) { fcIdx++; showCard(); }
+            else {
+                document.getElementById('fcProgFill').style.width = '100%';
+                document.getElementById('completeBanner').classList.add('show');
+            }
+        }
+
+        function nextCard() { if (fcIdx < words.length - 1) { fcIdx++; showCard(); } }
+        function prevCard() { if (fcIdx > 0) { fcIdx--; showCard(); } }
+
+        // ── MINI QUIZ ──────────────────────────────────────────────────────────────
+        let mqIdx = 0, mqAnswered = false, mqOrder = [];
+
+        function initMQ() {
+            mqIdx = 0; mqAnswered = false;
+            mqOrder = [...Array(words.length).keys()].sort(() => Math.random() - .5);
+            showMQ();
+        }
+
+        function showMQ() {
+            if (mqIdx >= mqOrder.length) {
+                document.getElementById('mqCard').innerHTML =
+                    '<div style="text-align:center;padding:32px"><h3 style="font-weight:900;margin-top:12px">Hoàn thành luyện tập!</h3></div>';
+                return;
+            }
+            mqAnswered = false;
+            const w = words[mqOrder[mqIdx]];
+            document.getElementById('mqQuestion').textContent   = w.word;
+            document.getElementById('mqResult').style.display   = 'none';
+            document.getElementById('mqNextBtn').style.display  = 'none';
+
+            const others = words.filter((_, i) => i !== mqOrder[mqIdx]);
+            const wrong  = others.sort(() => Math.random() - .5).slice(0, 3);
+            const opts   = [...wrong.map(x => x.meaning), w.meaning].sort(() => Math.random() - .5);
+
+            document.getElementById('mqOptions').innerHTML = opts.map(opt =>
+                `<button class="mq-opt" onclick="checkMQ(this,'${escHtml(opt)}','${escHtml(w.meaning)}')">${opt}</button>`
+            ).join('');
+        }
+
+        function checkMQ(btn, chosen, correct) {
+            if (mqAnswered) return;
+            mqAnswered = true;
+            const isOk = chosen === correct;
+            btn.classList.add(isOk ? 'correct' : 'wrong');
+            if (!isOk) {
+                document.querySelectorAll('.mq-opt').forEach(b => {
+                    if (b.textContent === correct) b.classList.add('correct');
+                });
+            }
+            document.querySelectorAll('.mq-opt').forEach(b => b.style.pointerEvents = 'none');
+
+            const dot = document.getElementById('mqdot-' + mqIdx);
+            if (dot) dot.className = 'dot ' + (isOk ? 'ok' : 'bad');
+
+            const res = document.getElementById('mqResult');
+            res.className   = 'mq-result ' + (isOk ? 'ok' : 'bad');
+            res.textContent = isOk ? 'Đúng rồi!' : `Đáp án đúng: ${correct}`;
+            res.style.display  = 'block';
+            document.getElementById('mqNextBtn').style.display = 'block';
+        }
+
+        function nextMQ() { mqIdx++; showMQ(); }
+        function escHtml(s) { return s.replace(/'/g, "\\'"); }
+        function playAudio(url) { if (url) new Audio(url).play().catch(() => {}); }
+
+        if (words.length > 0) initFlashcard();
+    </script>
+}
