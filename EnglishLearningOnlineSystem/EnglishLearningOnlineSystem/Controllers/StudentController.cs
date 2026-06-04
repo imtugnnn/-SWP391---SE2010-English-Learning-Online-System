@@ -14,6 +14,7 @@ public class StudentController : BaseStudentController
     private readonly IStudentDashboardService _dashboardService;
     private readonly IStudentProfileService _profileService;
     private readonly IStudentCourseService _courseService;
+    private readonly IStudentLessonService _lessonService;
     private readonly IWebHostEnvironment _env;
 
     // Khởi tạo các service và truyền DbContext cho BaseStudentController
@@ -22,12 +23,14 @@ public class StudentController : BaseStudentController
         IStudentDashboardService dashboardService,
         IStudentProfileService profileService,
         IStudentCourseService courseService,
+        IStudentLessonService lessonService,
         IWebHostEnvironment env)
         : base(db)
     {
         _dashboardService = dashboardService;
         _profileService = profileService;
         _courseService = courseService;
+        _lessonService = lessonService;
         _env = env;
     }
 
@@ -135,6 +138,17 @@ public class StudentController : BaseStudentController
         if (userId == null) return RedirectToAction("Login", "Auth");
 
         var vm = await _courseService.GetCourseListAsync(userId.Value, keyword, grade);
+        return View(vm);
+    }
+
+    // Hiển thị danh sách bài học được giao cho học sinh
+    [HttpGet("/student/lessons")]
+    public async Task<IActionResult> Lessons(string status = "")
+    {
+        var userId = GetCurrentUserId();
+        if (userId == null) return RedirectToAction("Login", "Auth");
+
+        var vm = await _lessonService.GetAssignedLessonsAsync(userId.Value, status);
         return View(vm);
     }
 
