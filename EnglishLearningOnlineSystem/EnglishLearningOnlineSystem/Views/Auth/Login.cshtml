@@ -14,30 +14,31 @@
     <link rel="stylesheet" href="~/css/auth.css" asp-append-version="true" />
 </head>
 <body>
-    <div class="login-container">
-        <div class="login-title">
-            ELS Learning <br />
-            System
+<div class="login-container">
+    <div class="login-title">
+        ELS Learning <br />
+        System
+    </div>
+
+    <form asp-action="Login" method="post">
+        <div asp-validation-summary="ModelOnly" class="text-danger validation-summary"></div>
+
+        <div class="form-group">
+            <input type="email" class="form-input" placeholder="Nhập Email" asp-for="Email" />
+            <span asp-validation-for="Email" class="text-danger"></span>
         </div>
 
-        <form asp-action="Login" method="post">
-            <div asp-validation-summary="ModelOnly" class="text-danger validation-summary"></div>
+        <div class="form-group">
+            <input type="password" class="form-input" placeholder="Nhập Password" asp-for="Password" />
+            <span asp-validation-for="Password" class="text-danger"></span>
+        </div>
 
-            <div class="form-group">
-                <input type="email" class="form-input" placeholder="Enter Email" asp-for="Email" />
-                <span asp-validation-for="Email" class="text-danger"></span>
-            </div>
+        <button type="submit" class="btn-login">Đăng nhập</button>
+        <a class="btn-google" asp-action="GoogleLogin">Đăng nhập với Google</a>
+        <a class="register-link" asp-action="Register">Chưa có tài khoản? Đăng ký ngay</a>
+    </form>
+</div>
 
-            <div class="form-group">
-                <input type="password" class="form-input" placeholder="Enter Password" asp-for="Password" />
-                <span asp-validation-for="Password" class="text-danger"></span>
-            </div>
-
-            <button type="submit" class="btn-login">Login</button>
-            <a class="btn-google" asp-action="GoogleLogin">Login with Google</a>
-            <a class="register-link" asp-action="Register">Don't have an account? Register</a>
-        </form>
-    </div>
 
     <partial name="_ValidationScriptsPartial" />
 </body>

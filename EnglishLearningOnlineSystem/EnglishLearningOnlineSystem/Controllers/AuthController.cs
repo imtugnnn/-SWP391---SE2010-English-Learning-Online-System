@@ -50,10 +50,7 @@ public class AuthController : Controller
             HttpContext.Session.SetString("UserRole", user.RoleId.ToString());
         }
 
-        // RoleId: 1=Student, 2=Admin, 3=Teacher, 4=Parent, 5=Content Manager
-        return user?.RoleId == 1
-            ? RedirectToAction(nameof(StudentController.Dashboard), "Student")
-            : RedirectToAction(nameof(HomeController.Homepage), "Home");
+        return RedirectByRole(user);
     }
 
     [HttpGet("/login/google")]
@@ -79,19 +76,82 @@ public class AuthController : Controller
 
         var displayName = User.FindFirstValue(ClaimTypes.Name);
         var avatarUrl = User.FindFirstValue("urn:google:picture") ?? User.FindFirstValue("picture");
+        var existingUser = await _userRepository.FindByEmailAsync(email);
+        if (existingUser == null)
+        {
+            HttpContext.Session.SetString("PendingGoogleEmail", email.Trim());
+            HttpContext.Session.SetString("PendingGoogleName", displayName ?? string.Empty);
+            HttpContext.Session.SetString("PendingGoogleAvatar", avatarUrl ?? string.Empty);
+
+            return RedirectToAction(nameof(CompleteGoogleLogin));
+        }
+
         var (result, user) = await _authService.LoginWithGoogleAsync(email, displayName, avatarUrl);
 
         if (!result.Succeeded || user == null)
         {
-            return ViewWithErrors(new LoginViewModel { Email = email }, result);
+            return ViewWithErrors(new LoginViewModel
+            {
+                Email = email
+            }, result);
         }
 
         HttpContext.Session.SetString("UserId", user.Id.ToString());
         HttpContext.Session.SetString("UserRole", user.RoleId.ToString());
 
-        return user.RoleId == 1
-            ? RedirectToAction(nameof(StudentController.Dashboard), "Student")
-            : RedirectToAction(nameof(HomeController.Homepage), "Home");
+        return RedirectByRole(user);
+    }
+
+    [HttpGet("/login/google-complete")]
+    public async Task<IActionResult> CompleteGoogleLogin()
+    {
+        var email = HttpContext.Session.GetString("PendingGoogleEmail");
+        if (string.IsNullOrWhiteSpace(email))
+        {
+            return RedirectToAction(nameof(Login));
+        }
+
+        return View("GoogleComplete", new GoogleLoginCompletionViewModel
+        {
+            Email = email,
+            RoleOptions = await LoadRoleOptionsAsync()
+        });
+    }
+
+    [HttpPost("/login/google-complete")]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> CompleteGoogleLogin(GoogleLoginCompletionViewModel model)
+    {
+        var email = HttpContext.Session.GetString("PendingGoogleEmail");
+        if (string.IsNullOrWhiteSpace(email))
+        {
+            return RedirectToAction(nameof(Login));
+        }
+
+        model.Email = email;
+        model.RoleOptions = await LoadRoleOptionsAsync();
+
+        if (!ModelState.IsValid)
+        {
+            return View("GoogleComplete", model);
+        }
+
+        var displayName = HttpContext.Session.GetString("PendingGoogleName");
+        var avatarUrl = HttpContext.Session.GetString("PendingGoogleAvatar");
+        var (result, user) = await _authService.CompleteGoogleLoginAsync(model, displayName, avatarUrl);
+
+        if (!result.Succeeded || user == null)
+        {
+            return ViewWithErrors("GoogleComplete", model, result);
+        }
+
+        HttpContext.Session.Remove("PendingGoogleEmail");
+        HttpContext.Session.Remove("PendingGoogleName");
+        HttpContext.Session.Remove("PendingGoogleAvatar");
+        HttpContext.Session.SetString("UserId", user.Id.ToString());
+        HttpContext.Session.SetString("UserRole", user.RoleId.ToString());
+
+        return RedirectByRole(user);
     }
 
     [HttpGet("/register")]
@@ -142,5 +202,25 @@ public class AuthController : Controller
         }
 
         return View(model);
+    }
+
+    private IActionResult ViewWithErrors<TModel>(string viewName, TModel model, AuthServiceResult result)
+    {
+        foreach (var error in result.Errors)
+        {
+            ModelState.AddModelError(error.Key, error.Value);
+        }
+
+        return View(viewName, model);
+    }
+
+    private IActionResult RedirectByRole(Models.User? user)
+    {
+        return user?.RoleId switch
+        {
+            1 => RedirectToAction(nameof(StudentController.Dashboard), "Student"),
+            2 => RedirectToAction(nameof(AdminController.Dashboard), "Admin"),
+            _ => RedirectToAction(nameof(HomeController.Homepage), "Home")
+        };
     }
 }
