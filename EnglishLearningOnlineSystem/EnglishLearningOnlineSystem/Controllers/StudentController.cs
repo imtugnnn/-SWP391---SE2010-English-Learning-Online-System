@@ -15,6 +15,7 @@ public class StudentController : BaseStudentController
     private readonly IStudentProfileService _profileService;
     private readonly IStudentCourseService _courseService;
     private readonly IStudentLessonService _lessonService;
+    private readonly IStudentLessonDetailService _lessonDetailService;
     private readonly IWebHostEnvironment _env;
 
     // Khởi tạo các service và truyền DbContext cho BaseStudentController
@@ -24,6 +25,7 @@ public class StudentController : BaseStudentController
         IStudentProfileService profileService,
         IStudentCourseService courseService,
         IStudentLessonService lessonService,
+        IStudentLessonDetailService lessonDetailService,
         IWebHostEnvironment env)
         : base(db)
     {
@@ -31,6 +33,7 @@ public class StudentController : BaseStudentController
         _profileService = profileService;
         _courseService = courseService;
         _lessonService = lessonService;
+        _lessonDetailService = lessonDetailService;
         _env = env;
     }
 
@@ -151,5 +154,48 @@ public class StudentController : BaseStudentController
         var vm = await _lessonService.GetAssignedLessonsAsync(userId.Value, status);
         return View(vm);
     }
+
+    // Hiển thị chi tiết bài học và nội dung học tập
+    [HttpGet("/student/lesson/{lessonId:int}")]
+    public async Task<IActionResult> LessonDetail(int lessonId)
+    {
+        var userId = GetCurrentUserId();
+        if (userId == null) return RedirectToAction("Login", "Auth");
+
+        var vm = await _lessonDetailService.GetLessonDetailAsync(userId.Value, lessonId);
+        if (vm == null) return NotFound();
+
+        return View(vm);
+    }
+
+    // Nộp bài quiz và lưu kết quả làm bài của học sinh
+    [HttpPost("/student/lesson/{lessonId:int}/submit")]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> SubmitQuiz(int lessonId, IFormCollection form)
+    {
+        var userId = GetCurrentUserId();
+        if (userId == null) return RedirectToAction("Login", "Auth");
+
+        // Thu thập các đáp án được gửi từ form
+        var answers = new Dictionary<int, string>();
+
+        foreach (var key in form.Keys.Where(k => k.StartsWith("quiz_")))
+        {
+            if (int.TryParse(key.Replace("quiz_", ""), out var qId))
+                answers[qId] = form[key].ToString();
+        }
+
+        var (ok, message) = await _lessonDetailService.SubmitQuizAsync(
+            userId.Value,
+            lessonId,
+            answers);
+
+        // Lưu kết quả để hiển thị sau khi redirect
+        TempData["QuizResult"] = message;
+        TempData["QuizOk"] = ok.ToString();
+
+        return RedirectToAction(nameof(LessonDetail), new { lessonId });
+    }
+
 
 }
