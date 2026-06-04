@@ -13,11 +13,16 @@ namespace EnglishLearningOnlineSystem.Controllers;
 public class AuthController : Controller
 {
     private readonly IAuthService _authService;
+    private readonly IPasswordResetService _passwordResetService;
     private readonly IUserRepository _userRepository;
 
-    public AuthController(IAuthService authService, IUserRepository userRepository)
+    public AuthController(
+        IAuthService authService,
+        IPasswordResetService passwordResetService,
+        IUserRepository userRepository)
     {
         _authService = authService;
+        _passwordResetService = passwordResetService;
         _userRepository = userRepository;
     }
 
@@ -179,6 +184,71 @@ public class AuthController : Controller
         return result.Succeeded
             ? RedirectToAction(nameof(Login))
             : ViewWithErrors(model, result);
+    }
+
+    [HttpGet("/forgot-password")]
+    public IActionResult ForgotPassword()
+    {
+        return View(new ForgotPasswordViewModel());
+    }
+
+    [HttpPost("/forgot-password")]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> ForgotPassword(ForgotPasswordViewModel model)
+    {
+        if (!ModelState.IsValid)
+        {
+            return View(model);
+        }
+
+        try
+        {
+            await _passwordResetService.RequestPasswordResetAsync(model, token =>
+                Url.Action(nameof(ResetPassword), "Auth", new { token }, Request.Scheme)!);
+        }
+        catch (InvalidOperationException ex)
+        {
+            ModelState.AddModelError(string.Empty, ex.Message);
+            return View(model);
+        }
+        catch
+        {
+            ModelState.AddModelError(string.Empty, "Could not send the password reset email. Please check SMTP settings and try again.");
+            return View(model);
+        }
+
+        ViewBag.Message = "If this email exists, a password reset link has been sent.";
+        return View(new ForgotPasswordViewModel());
+    }
+
+    [HttpGet("/reset-password")]
+    public IActionResult ResetPassword(string token)
+    {
+        if (string.IsNullOrWhiteSpace(token))
+        {
+            return RedirectToAction(nameof(Login));
+        }
+
+        return View(new ResetPasswordViewModel { Token = token });
+    }
+
+    [HttpPost("/reset-password")]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> ResetPassword(ResetPasswordViewModel model)
+    {
+        if (!ModelState.IsValid)
+        {
+            return View(model);
+        }
+
+        var result = await _passwordResetService.ResetPasswordAsync(model);
+        if (!result.Succeeded)
+        {
+            return ViewWithErrors(model, result);
+        }
+
+        TempData["Message"] = "Your password has been reset. Please log in with your new password.";
+        return RedirectToAction(nameof(Login));
     }
 
     private async Task<List<SelectListItem>> LoadRoleOptionsAsync()
