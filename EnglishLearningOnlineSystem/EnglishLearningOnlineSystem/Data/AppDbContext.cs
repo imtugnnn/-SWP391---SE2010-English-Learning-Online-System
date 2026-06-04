@@ -12,6 +12,7 @@ public class AppDbContext : Microsoft.EntityFrameworkCore.DbContext
     // Core user & role tables (existing)
     public DbSet<User> Users { get; set; }
     public DbSet<Role> Roles { get; set; }
+    public DbSet<PasswordResetToken> PasswordResetTokens { get; set; }
 
     // Optional additional domain tables (add if corresponding model classes exist)
     public DbSet<StudentProfile>? StudentProfiles { get; set; }
@@ -87,6 +88,21 @@ public class AppDbContext : Microsoft.EntityFrameworkCore.DbContext
                 .WithMany(u => u.TaughtClasses)
                 .HasForeignKey(c => c.TeacherId)
                 .OnDelete(DeleteBehavior.SetNull);
+        }
+        catch { }
+
+        try
+        {
+            modelBuilder.Entity<PasswordResetToken>(eb =>
+            {
+                eb.HasIndex(t => t.Token).IsUnique();
+                eb.HasIndex(t => t.UserId);
+
+                eb.HasOne(t => t.User)
+                  .WithMany()
+                  .HasForeignKey(t => t.UserId)
+                  .OnDelete(DeleteBehavior.Cascade);
+            });
         }
         catch { }
 
