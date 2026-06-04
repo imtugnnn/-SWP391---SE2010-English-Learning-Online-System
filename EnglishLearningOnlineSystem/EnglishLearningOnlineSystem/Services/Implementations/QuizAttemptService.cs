@@ -5,6 +5,11 @@ using EnglishLearningOnlineSystem.ViewModels;
 
 namespace EnglishLearningOnlineSystem.Services.Implementations;
 
+/// <summary>
+/// Service phụ trách toàn bộ luồng nghiệp vụ của bài kiểm tra (Quiz).
+/// Bao gồm việc lấy danh sách câu hỏi, chấm điểm nộp bài (submit),
+/// thưởng điểm kinh nghiệm (XP) nếu đạt, và lấy lịch sử/xem lại lỗi sai.
+/// </summary>
 public class QuizAttemptService : IQuizAttemptService
 {
     private readonly IQuizAttemptRepository _quizRepo;
@@ -59,6 +64,7 @@ public class QuizAttemptService : IQuizAttemptService
             submitData.Answers.TryGetValue(quiz.QuizId, out var selectedAns);
             selectedAns ??= string.Empty;
 
+            // So sánh đáp án học sinh chọn với đáp án đúng (không phân biệt hoa/thường)
             bool isCorrect = selectedAns.Trim().Equals(quiz.CorrectAnswer.Trim(), StringComparison.OrdinalIgnoreCase);
             if (isCorrect) correctCount++;
 
@@ -70,6 +76,7 @@ public class QuizAttemptService : IQuizAttemptService
             });
         }
 
+        // Tính điểm theo thang phần trăm (0-100)
         int score = (int)Math.Round((double)correctCount / totalQuestions * 100);
         var startedAt = new DateTime(1970, 1, 1, 0, 0, 0, DateTimeKind.Utc).AddTicks(submitData.StartedAtTicks);
         int timeSpentSec = (int)(DateTime.UtcNow - startedAt).TotalSeconds;
@@ -79,6 +86,8 @@ public class QuizAttemptService : IQuizAttemptService
         bool isFirstCompletion = existingProgress == null || existingProgress.CompletionStatus != "Completed";
         bool alreadyAwardedXp = existingProgress != null && existingProgress.XPEarned > 0;
         
+        // Theo quy tắc nghiệp vụ BR-14: Học sinh chỉ được thưởng XP 1 lần duy nhất 
+        // cho mỗi bài học khi đạt điểm >= 50%. Các lần làm lại (re-attempt) không được cộng thêm.
         bool willAwardXp = !alreadyAwardedXp && score >= 50;
         int xpEarned = willAwardXp ? lesson.XPReward : 0;
 
@@ -101,6 +110,7 @@ public class QuizAttemptService : IQuizAttemptService
 
         if (existingProgress == null)
         {
+            // Lần nộp bài đầu tiên: Ghi nhận tiến độ mới
             var progress = new Progress
             {
                 StudentId = studentId,
@@ -115,6 +125,7 @@ public class QuizAttemptService : IQuizAttemptService
         }
         else
         {
+            // Đã từng làm bài này: Cập nhật lại điểm cao nhất (nếu có) và trạng thái
             if (score > existingProgress.QuizScore)
             {
                 existingProgress.QuizScore = score;

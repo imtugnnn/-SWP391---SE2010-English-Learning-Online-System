@@ -5,6 +5,11 @@ using EnglishLearningOnlineSystem.ViewModels;
 
 namespace EnglishLearningOnlineSystem.Services.Implementations;
 
+/// <summary>
+/// Service phụ trách tính năng Luyện tập Flashcard (Từ vựng).
+/// Xử lý logic tạo phiên học mới, trộn từ vựng ngẫu nhiên, lưu kết quả tự đánh giá
+/// của học sinh ("Đã biết"/"Chưa biết") và tính toán kết quả cuối phiên.
+/// </summary>
 public class FlashcardService : IFlashcardService
 {
     private readonly IFlashcardRepository _flashcardRepo;
@@ -24,6 +29,7 @@ public class FlashcardService : IFlashcardService
         var vocabularies = await _flashcardRepo.GetVocabularyByLessonAsync(lessonId);
         if (!vocabularies.Any()) return null;
 
+        // Bắt đầu một phiên luyện tập (Session) mới cho học sinh
         var session = new FlashcardSession
         {
             StudentId = studentId,
@@ -59,6 +65,7 @@ public class FlashcardService : IFlashcardService
         var session = await _flashcardRepo.GetSessionAsync(completeData.SessionId, studentId);
         if (session == null || session.CompletedAt.HasValue) return;
 
+        // Lưu kết quả đánh giá từng thẻ flashcard ("KnewIt": đã thuộc hay chưa)
         var results = completeData.Results.Select(r => new FlashcardCardResult
         {
             SessionId = completeData.SessionId,
