@@ -24,6 +24,9 @@ builder.Services.AddScoped<IStudentDashboardRepository, StudentDashboardReposito
 builder.Services.AddScoped<IStudentDashboardService, StudentDashboardService>();
 builder.Services.AddScoped<IStudentProfileRepository, StudentProfileRepository>();
 builder.Services.AddScoped<IStudentProfileService, StudentProfileService>();
+builder.Services.AddScoped<IStudentCourseRepository, StudentCourseRepository>();
+builder.Services.AddScoped<IStudentCourseService, StudentCourseService>();
+
 
 // Cấu hình Session
 builder.Services.AddHttpContextAccessor();

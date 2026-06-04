@@ -1,0 +1,381 @@
+@model EnglishLearningOnlineSystem.ViewModels.CourseListViewModel
+@{
+    ViewData["Title"] = "Khoá học";
+    ViewData["ActiveNav"] = "courses";
+    Layout = "_StudentLayout";
+}
+
+@section Styles {
+    <style>
+        /* ── Filter bar ── */
+        .filter-bar {
+            background: var(--card);
+            border-radius: var(--radius);
+            padding: 18px 24px;
+            border: 2px solid var(--border);
+            box-shadow: var(--shadow);
+            margin-bottom: 24px;
+            display: flex;
+            gap: 14px;
+            align-items: flex-end;
+            flex-wrap: wrap;
+        }
+
+        .filter-group {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            flex: 1;
+            min-width: 180px;
+        }
+
+        .filter-label {
+            font-size: .75rem;
+            font-weight: 800;
+            color: var(--muted);
+            text-transform: uppercase;
+            letter-spacing: .05em;
+        }
+
+        .filter-input {
+            padding: 10px 14px;
+            border: 2px solid var(--border);
+            border-radius: 12px;
+            font-family: 'Nunito', sans-serif;
+            font-size: .88rem;
+            font-weight: 700;
+            color: var(--text);
+            background: var(--bg);
+            outline: none;
+            transition: border-color .15s;
+        }
+
+            .filter-input:focus {
+                border-color: var(--sky);
+                background: #fff;
+            }
+
+        .btn-filter {
+            background: linear-gradient(135deg,#0ea5e9,#6366f1);
+            color: #fff;
+            border: none;
+            border-radius: 12px;
+            padding: 10px 24px;
+            font-family: 'Nunito', sans-serif;
+            font-size: .88rem;
+            font-weight: 900;
+            cursor: pointer;
+            transition: opacity .15s, transform .12s;
+            box-shadow: 0 4px 12px rgba(14,165,233,.3);
+            white-space: nowrap;
+        }
+
+            .btn-filter:hover {
+                opacity: .9;
+                transform: translateY(-1px);
+            }
+
+        .btn-reset {
+            background: #f1f5f9;
+            color: var(--muted);
+            border: 2px solid var(--border);
+            border-radius: 12px;
+            padding: 10px 18px;
+            font-family: 'Nunito', sans-serif;
+            font-size: .88rem;
+            font-weight: 800;
+            cursor: pointer;
+            transition: background .15s;
+            white-space: nowrap;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+        }
+
+            .btn-reset:hover {
+                background: var(--border);
+                color: var(--text);
+            }
+
+        /* ── Results ── */
+        .results-info {
+            font-size: .85rem;
+            font-weight: 700;
+            color: var(--muted);
+            margin-bottom: 16px;
+        }
+
+            .results-info span {
+                color: var(--sky-d);
+                font-weight: 900;
+            }
+
+        /* ── Course grid ── */
+        .course-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill,minmax(280px,1fr));
+            gap: 18px;
+            margin-bottom: 32px;
+        }
+
+        .course-card {
+            background: var(--card);
+            border-radius: var(--radius);
+            border: 2px solid var(--border);
+            box-shadow: var(--shadow);
+            overflow: hidden;
+            text-decoration: none;
+            color: inherit;
+            transition: transform .15s, box-shadow .15s, border-color .15s;
+            display: flex;
+            flex-direction: column;
+        }
+
+            .course-card:hover {
+                transform: translateY(-4px);
+                box-shadow: 0 10px 28px rgba(14,165,233,.18);
+                border-color: var(--sky);
+                color: inherit;
+            }
+
+            .course-card.enrolled {
+                border-color: #86efac;
+            }
+
+        .course-thumb {
+            height: 130px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 4rem;
+            position: relative;
+            overflow: hidden;
+        }
+
+            .course-thumb.grade-1 {
+                background: linear-gradient(135deg,#fde68a,#fbbf24);
+            }
+
+            .course-thumb.grade-2 {
+                background: linear-gradient(135deg,#bfdbfe,#60a5fa);
+            }
+
+            .course-thumb.grade-3 {
+                background: linear-gradient(135deg,#bbf7d0,#4ade80);
+            }
+
+            .course-thumb.grade-4 {
+                background: linear-gradient(135deg,#ddd6fe,#a78bfa);
+            }
+
+            .course-thumb.grade-5 {
+                background: linear-gradient(135deg,#fecdd3,#f472b6);
+            }
+
+            .course-thumb.grade-other {
+                background: linear-gradient(135deg,#e0f2fe,#38bdf8);
+            }
+
+        .enrolled-badge {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background: #16a34a;
+            color: #fff;
+            font-size: .65rem;
+            font-weight: 900;
+            padding: 3px 10px;
+            border-radius: 99px;
+            box-shadow: 0 2px 6px rgba(0,0,0,.15);
+        }
+
+        .course-body {
+            padding: 18px;
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .course-name {
+            font-size: 1rem;
+            font-weight: 900;
+            color: var(--text);
+            line-height: 1.3;
+        }
+
+        .course-meta {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            flex-wrap: wrap;
+            margin-top: 4px;
+        }
+
+        .grade-tag {
+            background: #e0f2fe;
+            color: var(--sky-d);
+            font-size: .7rem;
+            font-weight: 900;
+            padding: 2px 10px;
+            border-radius: 99px;
+        }
+
+        .lesson-count {
+            font-size: .75rem;
+            font-weight: 700;
+            color: var(--muted);
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .course-footer {
+            padding: 12px 18px;
+            border-top: 1px solid #f1f5f9;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .btn-go {
+            background: var(--sky-d);
+            color: #fff;
+            border: none;
+            border-radius: 10px;
+            padding: 7px 16px;
+            font-family: 'Nunito', sans-serif;
+            font-size: .8rem;
+            font-weight: 900;
+            cursor: pointer;
+            text-decoration: none;
+            transition: background .15s;
+        }
+
+            .btn-go:hover {
+                background: #0369a1;
+                color: #fff;
+            }
+
+            .btn-go.enrolled-btn {
+                background: #16a34a;
+            }
+
+                .btn-go.enrolled-btn:hover {
+                    background: #15803d;
+                }
+
+        /* ── Empty state ── */
+        .empty-box {
+            background: var(--card);
+            border: 2px dashed var(--border);
+            border-radius: var(--radius);
+            padding: 60px 20px;
+            text-align: center;
+            color: var(--muted);
+        }
+
+            .empty-box .e-icon {
+                font-size: 3rem;
+                margin-bottom: 12px;
+            }
+
+            .empty-box p {
+                font-size: .95rem;
+                font-weight: 700;
+            }
+    </style>
+}
+
+<!-- Filter bar -->
+<form method="get" action="/student/courses">
+    <div class="filter-bar">
+        <div class="filter-group">
+            <span class="filter-label"> Tìm kiếm</span>
+            <input name="keyword" value="@Model.Keyword" class="filter-input" placeholder="Nhập tên khoá học..." />
+        </div>
+        <div class="filter-group" style="max-width:180px">
+            <span class="filter-label"> Khối lớp</span>
+            <select name="grade" class="filter-input">
+                <option value="">Tất cả khối</option>
+                @foreach (var g in Model.Grades)
+                {
+                    <option value="@g" selected="@(Model.Grade == g ? "selected" : null)">Lớp @g</option>
+                }
+            </select>
+        </div>
+        <button type="submit" class="btn-filter"> Tìm</button>
+        <a href="/student/courses" class="btn-reset"> Xoá lọc</a>
+    </div>
+</form>
+
+<!-- Results info -->
+<div class="results-info">
+    Tìm thấy <span>@Model.Courses.Count</span> khoá học
+    @if (!string.IsNullOrEmpty(Model.Keyword))
+    {
+        <text>cho "<span>@Model.Keyword</span>"</text>
+    }
+    @if (!string.IsNullOrEmpty(Model.Grade))
+    {
+        <text>· Lớp <span>@Model.Grade</span></text>
+    }
+</div>
+
+@if (!Model.Courses.Any())
+{
+    <div class="empty-box">
+        <div class="e-icon"></div>
+        <p>Không tìm thấy khoá học nào.</p>
+    </div>
+}
+else
+{
+    <div class="course-grid">
+        @foreach (var c in Model.Courses)
+        {
+            var thumbClass = c.GradeLevel switch
+            {
+                "1" => "grade-1",
+                "2" => "grade-2",
+                "3" => "grade-3",
+                "4" => "grade-4",
+                "5" => "grade-5",
+                _ => "grade-other"
+            };
+            var emoji = c.GradeLevel switch
+            {
+                "1" => "",
+                "2" => "",
+                "3" => "",
+                "4" => "",
+                "5" => "",
+                _ => ""
+            };
+            <a href="/student/courses/@c.CourseId" class="course-card @(c.IsEnrolled ? "enrolled" : "")">
+                <div class="course-thumb @thumbClass">
+                    @emoji
+                    @if (c.IsEnrolled)
+                    {
+                        <span class="enrolled-badge"> Đang học</span>
+                    }
+                </div>
+                <div class="course-body">
+                    <div class="course-name">@c.CourseName</div>
+                    <div class="course-meta">
+                        <span class="grade-tag">Lớp @c.GradeLevel</span>
+                        <span class="lesson-count"> @c.LessonCount bài học</span>
+                    </div>
+                </div>
+                <div class="course-footer">
+                    <span style="font-size:.75rem;font-weight:700;color:var(--muted)">
+                        @(c.IsEnrolled ? "Đang tham gia" : "Khám phá ngay")
+                    </span>
+                    <span class="btn-go @(c.IsEnrolled ? "enrolled-btn" : "")">
+                        @(c.IsEnrolled ? "Vào học →" : "Xem →")
+                    </span>
+                </div>
+            </a>
+        }
+    </div>
+}
