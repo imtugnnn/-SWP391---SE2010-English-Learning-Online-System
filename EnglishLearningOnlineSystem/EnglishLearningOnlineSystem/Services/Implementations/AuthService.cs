@@ -40,6 +40,67 @@ public class AuthService : IAuthService
         return AuthServiceResult.Success();
     }
 
+    public async Task<(AuthServiceResult Result, User? User)> LoginWithGoogleAsync(string email, string? displayName, string? avatarUrl)
+    {
+        var normalizedEmail = email.Trim().ToLower();
+        var user = await _userRepository.FindByEmailAsync(normalizedEmail);
+
+        if (user != null)
+        {
+            if (!user.IsActive)
+            {
+                return (AuthServiceResult.Failure((string.Empty, "Your account is inactive. Please contact support.")), null);
+            }
+
+            await EnsureStudentProfileAsync(user, displayName, avatarUrl);
+            return (AuthServiceResult.Success(), user);
+        }
+
+        return (AuthServiceResult.Failure((string.Empty, "Please complete your Google account setup.")), null);
+    }
+
+    public async Task<(AuthServiceResult Result, User? User)> CompleteGoogleLoginAsync(GoogleLoginCompletionViewModel model, string? displayName, string? avatarUrl)
+    {
+        var username = model.Username.Trim();
+        var email = model.Email.Trim().ToLower();
+        var errors = new List<(string Field, string Message)>();
+
+        if (await _roleRepository.FindRegistrationRoleAsync(model.RoleId) == null)
+        {
+            errors.Add((nameof(model.RoleId), "Please choose Student or Parent."));
+        }
+
+        if (await _userRepository.UsernameExistsAsync(username))
+        {
+            errors.Add((nameof(model.Username), "Username is already taken."));
+        }
+
+        if (await _userRepository.EmailExistsAsync(email))
+        {
+            errors.Add((nameof(model.Email), "Email is already registered. Please use the normal Google login button."));
+        }
+
+        if (errors.Count > 0)
+        {
+            return (AuthServiceResult.Failure(errors.ToArray()), null);
+        }
+
+        var user = new User
+        {
+            Username = username,
+            Email = email,
+            Password = BCrypt.Net.BCrypt.HashPassword(model.Password),
+            BirthDate = model.BirthDate,
+            IsActive = true,
+            RoleId = model.RoleId
+        };
+
+        await _userRepository.AddAsync(user);
+        await EnsureStudentProfileAsync(user, string.IsNullOrWhiteSpace(displayName) ? username : displayName, avatarUrl);
+
+        return (AuthServiceResult.Success(), user);
+    }
+
     public async Task<AuthServiceResult> RegisterAsync(RegisterViewModel model)
     {
         var username = model.Username.Trim();
@@ -85,4 +146,26 @@ public class AuthService : IAuthService
     {
         return _roleRepository.GetRegistrationRolesAsync();
     }
+
+    private async Task EnsureStudentProfileAsync(User user, string? displayName, string? avatarUrl)
+    {
+        if (user.RoleId != 1 || await _userRepository.FindStudentProfileAsync(user.Id) != null)
+        {
+            return;
+        }
+
+        var trimmedAvatarUrl = avatarUrl?.Trim();
+
+        await _userRepository.AddStudentProfileAsync(new StudentProfile
+        {
+            StudentId = user.Id,
+            Nickname = string.IsNullOrWhiteSpace(displayName) ? user.Username : displayName.Trim(),
+            AvatarUrl = string.IsNullOrWhiteSpace(trimmedAvatarUrl) ? "/images/default-avatar.png" : trimmedAvatarUrl[..Math.Min(trimmedAvatarUrl.Length, 500)],
+            Level = 1,
+            XP = 0,
+            CurrentStreakDays = 0,
+            LastActiveDate = null
+        });
+    }
+
 }

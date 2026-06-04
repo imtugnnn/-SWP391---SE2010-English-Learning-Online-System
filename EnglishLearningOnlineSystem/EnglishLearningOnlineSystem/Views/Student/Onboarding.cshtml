@@ -1,0 +1,304 @@
+@{
+    ViewData["Title"] = "Chào mừng!";
+    Layout = null;
+}
+
+<style>
+    /* ── Page background ── */
+    body {
+        background: var(--bg, #f0f9ff);
+    }
+
+    .onboarding-shell {
+        min-height: 100vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 32px 16px;
+        background: linear-gradient(135deg, #e0f2fe 0%, #f0f9ff 60%, #e0f2fe 100%);
+        position: relative;
+        overflow: hidden;
+    }
+
+        /* Decorative blobs */
+        .onboarding-shell::before,
+        .onboarding-shell::after {
+            content: "";
+            position: absolute;
+            border-radius: 50%;
+            filter: blur(72px);
+            opacity: .35;
+            pointer-events: none;
+        }
+
+        .onboarding-shell::before {
+            width: 420px;
+            height: 420px;
+            background: #38bdf8;
+            top: -120px;
+            left: -120px;
+        }
+
+        .onboarding-shell::after {
+            width: 340px;
+            height: 340px;
+            background: #0ea5e9;
+            bottom: -100px;
+            right: -80px;
+        }
+
+    /* ── Card ── */
+    .ob-card {
+        position: relative;
+        z-index: 1;
+        width: 100%;
+        max-width: 520px;
+        background: #ffffff;
+        border-radius: 28px;
+        box-shadow: 0 20px 60px rgba(14,165,233,.16), 0 2px 8px rgba(14,165,233,.08);
+        border: 1.5px solid #bae6fd;
+        overflow: hidden;
+    }
+
+    /* Coloured top stripe */
+    .ob-card-stripe {
+        height: 6px;
+        background: linear-gradient(90deg, #0ea5e9 0%, #38bdf8 50%, #7dd3fc 100%);
+    }
+
+    .ob-card-body {
+        padding: 44px 44px 40px;
+    }
+
+    /* ── Step badge ── */
+    .ob-step-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        background: #e0f2fe;
+        color: #0369a1;
+        font-size: .72rem;
+        font-weight: 800;
+        letter-spacing: .06em;
+        text-transform: uppercase;
+        padding: 4px 12px;
+        border-radius: 99px;
+        margin-bottom: 20px;
+    }
+
+    .ob-step-badge-dot {
+        width: 6px;
+        height: 6px;
+        border-radius: 50%;
+        background: #0ea5e9;
+    }
+
+    /* ── Heading ── */
+    .ob-card-body h2 {
+        font-size: 1.65rem;
+        font-weight: 900;
+        color: #1e3a5f;
+        line-height: 1.25;
+        margin-bottom: 12px;
+    }
+
+        .ob-card-body h2 span {
+            color: #0284c7;
+        }
+
+    .ob-card-body p {
+        color: #64748b;
+        font-size: .95rem;
+        line-height: 1.7;
+        margin-bottom: 0;
+    }
+
+    /* ── Feature grid ── */
+    .feature-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 12px;
+        margin-top: 24px;
+        margin-bottom: 4px;
+    }
+
+    .feature-card {
+        background: #f0f9ff;
+        border: 1.5px solid #bae6fd;
+        border-radius: 16px;
+        padding: 18px 16px;
+        transition: border-color .2s, box-shadow .2s, transform .15s;
+    }
+
+        .feature-card:hover {
+            border-color: #38bdf8;
+            box-shadow: 0 4px 16px rgba(14,165,233,.13);
+            transform: translateY(-2px);
+        }
+
+    .feature-label {
+        font-size: .78rem;
+        font-weight: 900;
+        color: #0369a1;
+        letter-spacing: .04em;
+        text-transform: uppercase;
+        margin-bottom: 5px;
+    }
+
+    .feature-desc {
+        font-size: .83rem;
+        color: #475569;
+        line-height: 1.5;
+    }
+
+    /* ── Progress dots ── */
+    .ob-dots {
+        display: flex;
+        justify-content: center;
+        gap: 8px;
+        margin-top: 32px;
+        margin-bottom: 24px;
+    }
+
+    .ob-dot {
+        width: 8px;
+        height: 8px;
+        border-radius: 99px;
+        background: #bae6fd;
+        transition: width .3s, background .3s;
+    }
+
+        .ob-dot.active {
+            width: 24px;
+            background: linear-gradient(90deg, #0ea5e9, #38bdf8);
+        }
+
+    /* ── CTA button ── */
+    .btn-ob {
+        display: block;
+        width: 100%;
+        padding: 15px 24px;
+        border-radius: 14px;
+        background: linear-gradient(135deg, #0ea5e9 0%, #38bdf8 100%);
+        color: #fff;
+        font-family: 'Nunito', sans-serif;
+        font-size: 1rem;
+        font-weight: 800;
+        border: none;
+        cursor: pointer;
+        box-shadow: 0 6px 20px rgba(14,165,233,.32);
+        transition: opacity .2s, transform .15s, box-shadow .2s;
+        letter-spacing: .01em;
+        text-align: center;
+        text-decoration: none;
+    }
+
+        .btn-ob:hover {
+            opacity: .92;
+            transform: translateY(-2px);
+            box-shadow: 0 10px 28px rgba(14,165,233,.38);
+            color: #fff;
+        }
+
+        .btn-ob:active {
+            transform: translateY(0);
+        }
+
+    /* ── Divider ── */
+    .ob-divider {
+        height: 1px;
+        background: #e0f2fe;
+        margin: 28px 0 24px;
+    }
+
+    /* ── Step transitions ── */
+    .ob-step {
+        display: none;
+        animation: obFadeUp .32s ease;
+    }
+
+        .ob-step.active {
+            display: block;
+        }
+
+
+    }
+</style>
+
+<div class="onboarding-shell">
+    <div class="ob-card">
+        <div class="ob-card-stripe"></div>
+        <div class="ob-card-body">
+
+            <div class="ob-step active" data-step="1">
+                <div class="ob-step-badge"><span class="ob-step-badge-dot"></span>Bước 1 / 3</div>
+                <h2>Chào mừng đến với<br><span>EduLearn!</span></h2>
+                <p>Chúng tôi rất vui được đồng hành cùng bạn trên hành trình học tiếng Anh. Hãy để chúng tôi giới thiệu nhanh những tính năng dành cho bạn.</p>
+                <div class="ob-divider"></div>
+                <div class="ob-dots">
+                    <div class="ob-dot active"></div>
+                    <div class="ob-dot"></div>
+                    <div class="ob-dot"></div>
+                </div>
+                <button class="btn-ob" onclick="nextStep(2)">Tiếp theo</button>
+            </div>
+
+            <div class="ob-step" data-step="2">
+                <div class="ob-step-badge"><span class="ob-step-badge-dot"></span>Bước 2 / 3</div>
+                <h2>Những tính năng<br><span>chờ bạn khám phá</span></h2>
+                <div class="feature-grid">
+                    <div class="feature-card">
+                        <div class="feature-label">Bài học</div>
+                        <div class="feature-desc">Học từ vựng và luyện tập theo bài được giáo viên giao.</div>
+                    </div>
+                    <div class="feature-card">
+                        <div class="feature-label">Mini Game</div>
+                        <div class="feature-desc">Luyện tập vui nhộn với các trò chơi tiếng Anh.</div>
+                    </div>
+                    <div class="feature-card">
+                        <div class="feature-label">Streak</div>
+                        <div class="feature-desc">Học mỗi ngày để giữ chuỗi ngày liên tiếp!</div>
+                    </div>
+                    <div class="feature-card">
+                        <div class="feature-label">Huy hiệu</div>
+                        <div class="feature-desc">Nhận huy hiệu thành tích khi đạt cột mốc.</div>
+                    </div>
+                </div>
+                <div class="ob-divider"></div>
+                <div class="ob-dots">
+                    <div class="ob-dot"></div>
+                    <div class="ob-dot active"></div>
+                    <div class="ob-dot"></div>
+                </div>
+                <button class="btn-ob" onclick="nextStep(3)">Tiếp theo</button>
+            </div>
+
+            <div class="ob-step" data-step="3">
+                <div class="ob-step-badge"><span class="ob-step-badge-dot"></span>Bước 3 / 3</div>
+                <h2>Sẵn sàng<br><span>bắt đầu rồi!</span></h2>
+                <p>Dashboard của bạn sẽ hiển thị bài học được giao, nhiệm vụ hôm nay và tiến độ học tập. Chúc bạn học vui và đạt nhiều thành tích!</p>
+                <div class="ob-divider"></div>
+                <div class="ob-dots">
+                    <div class="ob-dot"></div>
+                    <div class="ob-dot"></div>
+                    <div class="ob-dot active"></div>
+                </div>
+                <form asp-action="OnboardingComplete" asp-controller="Student" method="post">
+                    @Html.AntiForgeryToken()
+                    <button type="submit" class="btn-ob">Vào Dashboard</button>
+                </form>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+<script src="~/lib/jquery/dist/jquery.min.js"></script>
+<script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+    function nextStep(step) {
+    document.querySelectorAll('.ob-step').forEach(el => el.classList.remove('active'));
+    const next = document.querySelector('[data-step="' + step + '"]');
+    if (next) next.classList.add('active');
+    }
+</script>

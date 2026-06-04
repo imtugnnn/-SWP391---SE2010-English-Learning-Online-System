@@ -116,13 +116,17 @@ body {
 }
 
 .btn-google {
+    display: block;
     width: 100%;
     padding: 18px;
     border-radius: 18px;
     border: 1px solid #dcdcdc;
     background: white;
+    color: #111827;
     font-size: 20px;
     font-weight: 600;
+    text-align: center;
+    text-decoration: none;
     cursor: pointer;
     transition: 0.3s;
 }
