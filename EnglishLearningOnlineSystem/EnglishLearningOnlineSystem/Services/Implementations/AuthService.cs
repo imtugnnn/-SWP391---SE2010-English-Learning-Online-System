@@ -40,6 +40,37 @@ public class AuthService : IAuthService
         return AuthServiceResult.Success();
     }
 
+    public async Task<(AuthServiceResult Result, User? User)> LoginWithGoogleAsync(string email, string? displayName, string? avatarUrl)
+    {
+        var normalizedEmail = email.Trim().ToLower();
+        var user = await _userRepository.FindByEmailAsync(normalizedEmail);
+
+        if (user != null)
+        {
+            if (!user.IsActive)
+            {
+                return (AuthServiceResult.Failure((string.Empty, "Your account is inactive. Please contact support.")), null);
+            }
+
+            await EnsureStudentProfileAsync(user, displayName, avatarUrl);
+            return (AuthServiceResult.Success(), user);
+        }
+
+        user = new User
+        {
+            Username = await GenerateUniqueUsernameAsync(normalizedEmail),
+            Email = normalizedEmail,
+            Password = BCrypt.Net.BCrypt.HashPassword(Guid.NewGuid().ToString("N")),
+            IsActive = true,
+            RoleId = 1
+        };
+
+        await _userRepository.AddAsync(user);
+        await EnsureStudentProfileAsync(user, displayName, avatarUrl);
+
+        return (AuthServiceResult.Success(), user);
+    }
+
     public async Task<AuthServiceResult> RegisterAsync(RegisterViewModel model)
     {
         var username = model.Username.Trim();
@@ -84,5 +115,44 @@ public class AuthService : IAuthService
     public Task<List<Role>> GetRegistrationRolesAsync()
     {
         return _roleRepository.GetRegistrationRolesAsync();
+    }
+
+    private async Task EnsureStudentProfileAsync(User user, string? displayName, string? avatarUrl)
+    {
+        if (user.RoleId != 1 || await _userRepository.FindStudentProfileAsync(user.Id) != null)
+        {
+            return;
+        }
+
+        var trimmedAvatarUrl = avatarUrl?.Trim();
+
+        await _userRepository.AddStudentProfileAsync(new StudentProfile
+        {
+            StudentId = user.Id,
+            Nickname = string.IsNullOrWhiteSpace(displayName) ? user.Username : displayName.Trim(),
+            AvatarUrl = string.IsNullOrWhiteSpace(trimmedAvatarUrl) ? "/images/default-avatar.png" : trimmedAvatarUrl[..Math.Min(trimmedAvatarUrl.Length, 500)],
+            Level = 1,
+            XP = 0,
+            CurrentStreakDays = 0,
+            LastActiveDate = null
+        });
+    }
+
+    private async Task<string> GenerateUniqueUsernameAsync(string email)
+    {
+        var baseUsername = email.Split('@')[0].Trim();
+        if (string.IsNullOrWhiteSpace(baseUsername))
+        {
+            baseUsername = "googleuser";
+        }
+
+        var username = baseUsername;
+        var suffix = 1;
+        while (await _userRepository.UsernameExistsAsync(username))
+        {
+            username = $"{baseUsername}{suffix++}";
+        }
+
+        return username;
     }
 }

@@ -16,7 +16,13 @@ public class UserRepository : IUserRepository
 
     public Task<User?> FindByEmailAsync(string email)
     {
-        return _context.Users.FirstOrDefaultAsync(user => user.Email == email);
+        var normalizedEmail = email.Trim().ToLower();
+        return _context.Users.FirstOrDefaultAsync(user => user.Email.ToLower() == normalizedEmail);
+    }
+
+    public Task<StudentProfile?> FindStudentProfileAsync(int userId)
+    {
+        return _context.StudentProfiles!.FirstOrDefaultAsync(profile => profile.StudentId == userId);
     }
 
     public Task<bool> UsernameExistsAsync(string username)
@@ -26,12 +32,19 @@ public class UserRepository : IUserRepository
 
     public Task<bool> EmailExistsAsync(string email)
     {
-        return _context.Users.AnyAsync(user => user.Email == email);
+        var normalizedEmail = email.Trim().ToLower();
+        return _context.Users.AnyAsync(user => user.Email.ToLower() == normalizedEmail);
     }
 
     public async Task AddAsync(User user)
     {
         _context.Users.Add(user);
+        await _context.SaveChangesAsync();
+    }
+
+    public async Task AddStudentProfileAsync(StudentProfile studentProfile)
+    {
+        _context.StudentProfiles!.Add(studentProfile);
         await _context.SaveChangesAsync();
     }
 }
