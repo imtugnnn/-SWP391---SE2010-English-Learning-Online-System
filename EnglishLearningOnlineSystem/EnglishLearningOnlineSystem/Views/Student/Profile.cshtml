@@ -1,0 +1,397 @@
+@model EnglishLearningOnlineSystem.ViewModels.StudentProfileViewModel
+@{
+    ViewData["Title"] = "My Profile";
+    ViewData["ActiveNav"] = "profile";
+    Layout = "_StudentLayout";
+}
+
+@section Styles {
+    <style>
+        /* ── Profile grid ── */
+        .profile-grid {
+            display: grid;
+            grid-template-columns: 300px 1fr;
+            gap: 24px;
+        }
+
+        /* ── Left: profile card ── */
+        .profile-card {
+            background: var(--card);
+            border-radius: var(--radius);
+            border: 2px solid var(--border);
+            box-shadow: var(--shadow);
+            padding: 28px 24px;
+            text-align: center;
+        }
+
+        .avatar-wrap {
+            position: relative;
+            display: inline-block;
+            margin-bottom: 16px;
+        }
+
+        .avatar-img {
+            width: 110px;
+            height: 110px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 4px solid var(--sky);
+            box-shadow: 0 4px 16px rgba(14,165,233,.25);
+        }
+
+        .profile-name {
+            font-size: 1.3rem;
+            font-weight: 900;
+            color: var(--text);
+            margin-bottom: 4px;
+        }
+
+        .profile-username {
+            font-size: .85rem;
+            color: var(--muted);
+            font-weight: 600;
+            margin-bottom: 16px;
+        }
+
+        .level-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            background: linear-gradient(135deg,#0ea5e9,#6366f1);
+            color: #fff;
+            font-size: .8rem;
+            font-weight: 900;
+            padding: 5px 14px;
+            border-radius: 99px;
+            margin-bottom: 20px;
+        }
+
+        .stat-row {
+            display: flex;
+            justify-content: space-around;
+            padding: 16px 0;
+            border-top: 2px solid var(--border);
+            border-bottom: 2px solid var(--border);
+            margin-bottom: 20px;
+            gap: 8px;
+        }
+
+        .stat-item .s-val {
+            font-size: 1.4rem;
+            font-weight: 900;
+        }
+
+        .stat-item .s-lbl {
+            font-size: .7rem;
+            color: var(--muted);
+            font-weight: 700;
+            margin-top: 2px;
+        }
+
+        .stat-item:nth-child(1) .s-val {
+            color: #ea580c;
+        }
+
+        .stat-item:nth-child(2) .s-val {
+            color: #d97706;
+        }
+
+        .stat-item:nth-child(3) .s-val {
+            color: #7c3aed;
+        }
+
+        .info-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 9px 0;
+            border-bottom: 1px solid #f1f5f9;
+            font-size: .85rem;
+        }
+
+            .info-item:last-child {
+                border-bottom: none;
+            }
+
+            .info-item .i-icon {
+                font-size: 1.1rem;
+                width: 24px;
+                text-align: center;
+                flex-shrink: 0;
+            }
+
+            .info-item .i-val {
+                font-weight: 700;
+                color: var(--text);
+            }
+
+            .info-item .i-lbl {
+                font-size: .72rem;
+                color: var(--muted);
+                margin-top: 1px;
+            }
+
+        /* ── Right: edit card ── */
+        .edit-card {
+            background: var(--card);
+            border-radius: var(--radius);
+            border: 2px solid var(--border);
+            box-shadow: var(--shadow);
+            padding: 28px;
+        }
+
+            .edit-card h4 {
+                font-size: 1rem;
+                font-weight: 900;
+                color: var(--text);
+                margin-bottom: 20px;
+                display: flex;
+                align-items: center;
+                gap: 8px;
+            }
+
+        .form-group {
+            margin-bottom: 18px;
+        }
+
+        .form-label {
+            font-size: .8rem;
+            font-weight: 800;
+            color: var(--muted);
+            text-transform: uppercase;
+            letter-spacing: .05em;
+            margin-bottom: 6px;
+            display: block;
+        }
+
+        .form-control-custom {
+            width: 100%;
+            padding: 10px 14px;
+            border: 2px solid var(--border);
+            border-radius: 12px;
+            font-family: 'Nunito', sans-serif;
+            font-size: .9rem;
+            font-weight: 700;
+            color: var(--text);
+            background: var(--bg);
+            transition: border-color .15s, box-shadow .15s;
+            outline: none;
+        }
+
+            .form-control-custom:focus {
+                border-color: var(--sky);
+                box-shadow: 0 0 0 3px rgba(56,189,248,.15);
+            }
+
+            .form-control-custom:disabled {
+                opacity: .6;
+                cursor: not-allowed;
+            }
+
+        .btn-save {
+            background: linear-gradient(135deg,#0ea5e9,#6366f1);
+            color: #fff;
+            border: none;
+            border-radius: 12px;
+            padding: 11px 28px;
+            font-family: 'Nunito', sans-serif;
+            font-size: .9rem;
+            font-weight: 800;
+            cursor: pointer;
+            transition: opacity .15s, transform .12s;
+        }
+
+            .btn-save:hover {
+                opacity: .9;
+                transform: translateY(-1px);
+            }
+
+        .alert-success-custom {
+            background: #f0fdf4;
+            border: 2px solid #bbf7d0;
+            border-radius: 12px;
+            padding: 12px 16px;
+            color: #15803d;
+            font-weight: 700;
+            font-size: .88rem;
+            margin-bottom: 18px;
+        }
+
+        .alert-error-custom {
+            background: #fef2f2;
+            border: 2px solid #fecaca;
+            border-radius: 12px;
+            padding: 12px 16px;
+            color: #dc2626;
+            font-weight: 700;
+            font-size: .88rem;
+            margin-bottom: 18px;
+        }
+
+        .avatar-preview-wrap {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            margin-bottom: 18px;
+        }
+
+        .avatar-preview {
+            width: 72px;
+            height: 72px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 3px solid var(--border);
+        }
+
+        .avatar-upload-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            background: var(--bg);
+            border: 2px solid var(--border);
+            border-radius: 12px;
+            padding: 8px 16px;
+            font-family: 'Nunito', sans-serif;
+            font-size: .82rem;
+            font-weight: 800;
+            color: var(--sky-d);
+            cursor: pointer;
+            transition: border-color .15s;
+        }
+
+            .avatar-upload-btn:hover {
+                border-color: var(--sky);
+            }
+
+        @@media (max-width: 992px) {
+            .profile-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+}
+
+<div class="profile-grid">
+
+    <!-- LEFT: Profile card -->
+    <div>
+        <div class="profile-card">
+            <div class="avatar-wrap">
+                <img id="avatarDisplay" src="@Model.AvatarUrl" alt="avatar" class="avatar-img"
+                     onerror="this.src='/images/default-avatar.png'" />
+            </div>
+            <div class="profile-name">@Model.Nickname</div>
+            <div class="profile-username">@@@Model.Username</div>
+            <div class="level-badge"> Level @Model.Level</div>
+
+            <div class="stat-row">
+                <div class="stat-item">
+                    <div class="s-val"> @Model.CurrentStreakDays</div>
+                    <div class="s-lbl">Streak</div>
+                </div>
+                <div class="stat-item">
+                    <div class="s-val">@Model.XP</div>
+                    <div class="s-lbl">Total XP</div>
+                </div>
+                <div class="stat-item">
+                    <div class="s-val">@Model.Level</div>
+                    <div class="s-lbl">Level</div>
+                </div>
+            </div>
+
+            <div class="info-item">
+                <div class="i-icon">✉</div>
+                <div>
+                    <div class="i-val">@Model.Email</div>
+                    <div class="i-lbl">Email</div>
+                </div>
+            </div>
+            @if (Model.BirthDate.HasValue)
+            {
+                <div class="info-item">
+                    <div class="i-icon"></div>
+                    <div>
+                        <div class="i-val">@Model.BirthDate.Value.ToString("dd/MM/yyyy")</div>
+                        <div class="i-lbl">Date of Birth</div>
+                    </div>
+                </div>
+            }
+        </div>
+    </div>
+
+    <!-- RIGHT: Edit form -->
+    <div>
+        <div class="edit-card">
+            <h4> Edit Profile</h4>
+
+            @if (!string.IsNullOrEmpty(Model.SuccessMessage))
+            {
+                <div class="alert-success-custom"> @Model.SuccessMessage</div>
+            }
+            @if (!string.IsNullOrEmpty(Model.ErrorMessage))
+            {
+                <div class="alert-error-custom"> @Model.ErrorMessage</div>
+            }
+
+            <form method="post" enctype="multipart/form-data">
+                @Html.AntiForgeryToken()
+
+                <!-- Avatar upload -->
+                <div class="form-group">
+                    <label class="form-label">Profile Photo</label>
+                    <div class="avatar-preview-wrap">
+                        <img id="avatarPreview" src="@Model.AvatarUrl" alt="preview" class="avatar-preview"
+                             onerror="this.src='/images/default-avatar.png'" />
+                        <label class="avatar-upload-btn" for="avatarFileInput">
+                             Choose photo
+                        </label>
+                        <input type="file" id="avatarFileInput" name="AvatarFile"
+                               accept="image/jpeg,image/png,image/gif,image/webp"
+                               onchange="previewAvatar(event)"
+                               style="display:none" />
+                    </div>
+                </div>
+
+                <!-- Nickname -->
+                <div class="form-group">
+                    <label class="form-label" for="nicknameInput">Nickname</label>
+                    <input type="text" id="nicknameInput" name="NewNickname"
+                           class="form-control-custom" value="@Model.NewNickname"
+                           maxlength="50" placeholder="Your display name" required />
+                </div>
+
+                <!-- Read-only fields -->
+                <div class="form-group">
+                    <label class="form-label">Username</label>
+                    <input type="text" class="form-control-custom" value="@Model.Username" disabled />
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Email</label>
+                    <input type="text" class="form-control-custom" value="@Model.Email" disabled />
+                </div>
+                @if (Model.BirthDate.HasValue)
+                {
+                    <div class="form-group">
+                        <label class="form-label">Date of Birth</label>
+                        <input type="text" class="form-control-custom"
+                               value="@Model.BirthDate.Value.ToString("dd/MM/yyyy")" disabled />
+                    </div>
+                }
+
+                <button type="submit" class="btn-save"> Save Changes</button>
+            </form>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        function previewAvatar(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+            const url = URL.createObjectURL(file);
+            document.getElementById('avatarPreview').src = url;
+            document.getElementById('avatarDisplay').src = url;
+        }
+    </script>
+}
