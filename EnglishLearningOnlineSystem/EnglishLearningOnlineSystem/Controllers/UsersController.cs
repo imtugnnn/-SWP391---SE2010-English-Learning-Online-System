@@ -1,145 +1,110 @@
-﻿using EnglishLearningOnlineSystem.Data;
-using EnglishLearningOnlineSystem.Models;
+﻿using EnglishLearningOnlineSystem.Models;
+using EnglishLearningOnlineSystem.Services.Interfaces;
+using EnglishLearningOnlineSystem.ViewModels;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
-using Microsoft.EntityFrameworkCore;
 
 namespace EnglishLearningOnlineSystem.Controllers
 {
     public class UsersController : Controller
     {
-        private readonly AppDbContext _context;
+        private readonly IUserService _userService;
+        private readonly IRoleService _roleService;
 
-        public UsersController(AppDbContext context)
+        public UsersController(IUserService userService, IRoleService roleService)
         {
-            _context = context;
+            _userService = userService;
+            _roleService = roleService;
         }
 
-        // GET: Users
         public async Task<IActionResult> Index()
         {
-            var users = _context.Users
-                .Include(u => u.Role)
-                .AsNoTracking();
-
-            return View(await users.ToListAsync());
+            var result = await _userService.GetAllAsync();
+            if (!result.Succeeded)
+            {
+                ModelState.AddModelError("", result.ErrorMessage ?? "Cannot load users.");
+                return View(new List<User>());
+            }
+            return View(result.Data!);
         }
 
-        // GET: Users/Details/5
-        public async Task<IActionResult> Details(int? id)
-        {
-            if (id == null) return NotFound();
-
-            var user = await _context.Users
-                .Include(u => u.Role)
-                .AsNoTracking()
-                .FirstOrDefaultAsync(m => m.Id == id);
-
-            if (user == null) return NotFound();
-
-            return View(user);
-        }
-
-        // GET: Users/Create
         public async Task<IActionResult> Create()
         {
             await PopulateRolesDropDownList();
-            return View();
+            return View(new UserCreateViewModel { IsActive = true });
         }
 
-        // POST: Users/Create
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create([Bind("Id,Username,Email,Password,BirthDate,IsActive,RoleId")] User user)
+        public async Task<IActionResult> Create(UserCreateViewModel vm)
         {
             if (!ModelState.IsValid)
             {
-                await PopulateRolesDropDownList(user.RoleId);
-                return View(user);
+                await PopulateRolesDropDownList(vm.RoleId);
+                return View(vm);
             }
 
-            _context.Add(user);
-            await _context.SaveChangesAsync();
+            var result = await _userService.CreateAsync(vm);
+            if (!result.Succeeded)
+            {
+                ModelState.AddModelError("", result.ErrorMessage ?? "Create user failed.");
+                await PopulateRolesDropDownList(vm.RoleId);
+                return View(vm);
+            }
+
             return RedirectToAction(nameof(Index));
         }
 
-        // GET: Users/Edit/5
         public async Task<IActionResult> Edit(int? id)
         {
             if (id == null) return NotFound();
 
-            var user = await _context.Users.FindAsync(id);
-            if (user == null) return NotFound();
+            var result = await _userService.GetByIdAsync(id.Value);
+            if (!result.Succeeded || result.Data == null) return NotFound();
 
-            await PopulateRolesDropDownList(user.RoleId);
-            return View(user);
+            var u = result.Data;
+
+            var vm = new UserEditViewModel
+            {
+                Id = u.Id,
+                Username = u.Username,
+                Email = u.Email,
+                BirthDate = u.BirthDate,
+                IsActive = u.IsActive,
+                RoleId = u.RoleId,
+                Password = null
+            };
+
+            await PopulateRolesDropDownList(vm.RoleId);
+            return View(vm);
         }
 
-        // POST: Users/Edit/5
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(int id, [Bind("Id,Username,Email,Password,BirthDate,IsActive,RoleId")] User user)
+        public async Task<IActionResult> Edit(int id, UserEditViewModel vm)
         {
-            if (id != user.Id) return NotFound();
+            if (id != vm.Id) return NotFound();
 
             if (!ModelState.IsValid)
             {
-                await PopulateRolesDropDownList(user.RoleId);
-                return View(user);
+                await PopulateRolesDropDownList(vm.RoleId);
+                return View(vm);
             }
 
-            try
+            var result = await _userService.UpdateAsync(vm);
+            if (!result.Succeeded)
             {
-                _context.Update(user);
-                await _context.SaveChangesAsync();
-            }
-            catch (DbUpdateConcurrencyException)
-            {
-                if (!UserExists(user.Id)) return NotFound();
-                throw;
+                ModelState.AddModelError("", result.ErrorMessage ?? "Update user failed.");
+                await PopulateRolesDropDownList(vm.RoleId);
+                return View(vm);
             }
 
             return RedirectToAction(nameof(Index));
         }
-
-        // GET: Users/Delete/5
-        public async Task<IActionResult> Delete(int? id)
-        {
-            if (id == null) return NotFound();
-
-            var user = await _context.Users
-                .Include(u => u.Role)
-                .AsNoTracking()
-                .FirstOrDefaultAsync(m => m.Id == id);
-
-            if (user == null) return NotFound();
-
-            return View(user);
-        }
-
-        // POST: Users/Delete/5
-        [HttpPost, ActionName("Delete")]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> DeleteConfirmed(int id)
-        {
-            var user = await _context.Users.FindAsync(id);
-            if (user != null)
-            {
-                _context.Users.Remove(user);
-                await _context.SaveChangesAsync();
-            }
-            return RedirectToAction(nameof(Index));
-        }
-
-        private bool UserExists(int id) => _context.Users.Any(e => e.Id == id);
 
         private async Task PopulateRolesDropDownList(object? selectedRole = null)
         {
-            var roles = await _context.Roles
-                .AsNoTracking()
-                .OrderBy(r => r.Name)
-                .ToListAsync();
-
+            var roles = await _roleService.GetAllAsync();
             ViewBag.RoleId = new SelectList(roles, "Id", "Name", selectedRole);
         }
     }
