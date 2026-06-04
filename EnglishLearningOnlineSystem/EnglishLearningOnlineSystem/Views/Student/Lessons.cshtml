@@ -1,0 +1,349 @@
+@model EnglishLearningOnlineSystem.ViewModels.AssignedLessonListViewModel
+@{
+    ViewData["Title"] = "Bài học";
+    ViewData["ActiveNav"] = "lessons";
+    Layout = "_StudentLayout";
+
+    var total = Model.Lessons.Count;
+    var completed = Model.Lessons.Count(l => l.CompletionStatus == "Completed");
+    var inProg = Model.Lessons.Count(l => l.CompletionStatus == "In Progress");
+    var overdue = Model.Lessons.Count(l => l.IsOverdue);
+}
+
+@section Styles {
+    <style>
+        /* Summary row */
+        .summary-row {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 24px;
+            flex-wrap: wrap;
+        }
+
+        .sum-chip {
+            background: var(--card);
+            border: 2px solid var(--border);
+            border-radius: 14px;
+            padding: 12px 18px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            box-shadow: var(--shadow);
+            flex: 1;
+            min-width: 120px;
+        }
+
+            .sum-chip .s-val {
+                font-size: 1.2rem;
+                font-weight: 900;
+                color: var(--text);
+            }
+
+            .sum-chip .s-lbl {
+                font-size: .72rem;
+                font-weight: 700;
+                color: var(--muted);
+            }
+
+        /* Filter tabs */
+        .filter-tabs {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 24px;
+            flex-wrap: wrap;
+        }
+
+        .tab-btn {
+            padding: 8px 20px;
+            border-radius: 99px;
+            border: 2px solid var(--border);
+            background: var(--card);
+            font-family: 'Nunito', sans-serif;
+            font-size: .82rem;
+            font-weight: 800;
+            color: var(--muted);
+            cursor: pointer;
+            text-decoration: none;
+            transition: all .15s;
+        }
+
+            .tab-btn:hover {
+                border-color: var(--sky);
+                color: var(--sky-d);
+            }
+
+            .tab-btn.active {
+                background: var(--sky-d);
+                border-color: var(--sky-d);
+                color: #fff;
+                box-shadow: 0 4px 12px rgba(2,132,199,.25);
+            }
+
+        /* Lesson list */
+        .lesson-list {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .lesson-card {
+            background: var(--card);
+            border: 2px solid var(--border);
+            border-radius: var(--radius);
+            padding: 18px 22px;
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            text-decoration: none;
+            color: inherit;
+            box-shadow: var(--shadow);
+            transition: transform .15s, border-color .15s, box-shadow .15s;
+        }
+
+            .lesson-card:hover {
+                transform: translateX(5px);
+                border-color: var(--sky);
+                box-shadow: 0 6px 20px rgba(14,165,233,.18);
+                color: inherit;
+            }
+
+            .lesson-card.overdue {
+                border-color: #fca5a5;
+                background: #fff8f8;
+            }
+
+            .lesson-card.completed {
+                border-color: #86efac;
+            }
+
+        /* Status indicator */
+        .status-bar {
+            width: 5px;
+            align-self: stretch;
+            border-radius: 99px;
+            flex-shrink: 0;
+        }
+
+        .sb-not-started {
+            background: #e2e8f0;
+        }
+
+        .sb-in-progress {
+            background: var(--yellow);
+        }
+
+        .sb-completed {
+            background: var(--green);
+        }
+
+        .sb-overdue {
+            background: var(--red);
+        }
+
+        /* Content */
+        .lesson-info {
+            flex: 1;
+        }
+
+        .lesson-title {
+            font-size: 1rem;
+            font-weight: 900;
+            color: var(--text);
+            margin-bottom: 6px;
+        }
+
+        .lesson-meta {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+
+        .meta-tag {
+            font-size: .72rem;
+            font-weight: 800;
+            padding: 2px 10px;
+            border-radius: 99px;
+        }
+
+        .tag-course {
+            background: #e0f2fe;
+            color: var(--sky-d);
+        }
+
+        .tag-topic {
+            background: #f3e8ff;
+            color: #7c3aed;
+        }
+
+        .tag-time {
+            background: #f0fdf4;
+            color: #16a34a;
+        }
+
+        .tag-overdue {
+            background: #fee2e2;
+            color: #dc2626;
+        }
+
+        /* Right side */
+        .lesson-right {
+            text-align: right;
+            flex-shrink: 0;
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+            align-items: flex-end;
+        }
+
+        .xp-badge {
+            background: #fef9c3;
+            border: 1.5px solid #fde68a;
+            color: #92400e;
+            font-size: .78rem;
+            font-weight: 900;
+            padding: 3px 12px;
+            border-radius: 99px;
+        }
+
+        .due-text {
+            font-size: .72rem;
+            font-weight: 700;
+            color: var(--muted);
+        }
+
+            .due-text.overdue-text {
+                color: #dc2626;
+            }
+
+        .status-pill {
+            font-size: .68rem;
+            font-weight: 900;
+            padding: 2px 10px;
+            border-radius: 99px;
+        }
+
+        .pill-done {
+            background: #dcfce7;
+            color: #15803d;
+        }
+
+        .pill-doing {
+            background: #fef9c3;
+            color: #a16207;
+        }
+
+        .pill-pending {
+            background: #f1f5f9;
+            color: #475569;
+        }
+
+        .pill-overdue {
+            background: #fee2e2;
+            color: #dc2626;
+        }
+
+        .score-pill {
+            font-size: .75rem;
+            font-weight: 900;
+            padding: 3px 12px;
+            border-radius: 99px;
+        }
+
+        .score-high {
+            background: #dcfce7;
+            color: #15803d;
+        }
+
+        .score-mid {
+            background: #fef9c3;
+            color: #a16207;
+        }
+
+        .score-low {
+            background: #fee2e2;
+            color: #dc2626;
+        }
+
+        /* Empty */
+        .empty-box {
+            background: var(--card);
+            border: 2px dashed var(--border);
+            border-radius: var(--radius);
+            padding: 60px 20px;
+            text-align: center;
+            color: var(--muted);
+        }
+
+            .empty-box p {
+                font-size: .95rem;
+                font-weight: 700;
+            }
+    </style>
+}
+
+<!-- Summary -->
+<div class="summary-row">
+    <div class="sum-chip"><div><div class="s-val">@total</div><div class="s-lbl">Tổng bài</div></div></div>
+    <div class="sum-chip"><div><div class="s-val">@completed</div><div class="s-lbl">Hoàn thành</div></div></div>
+    <div class="sum-chip"><div><div class="s-val">@inProg</div><div class="s-lbl">Đang học</div></div></div>
+    <div class="sum-chip"><div><div class="s-val">@overdue</div><div class="s-lbl">Quá hạn</div></div></div>
+</div>
+
+<!-- Filter tabs -->
+<div class="filter-tabs">
+    <a href="/student/lessons" class="tab-btn @(Model.FilterStatus == "" ? "active" : "")">Tất cả (@total)</a>
+    <a href="/student/lessons?status=NOT_STARTED" class="tab-btn @(Model.FilterStatus == "NOT_STARTED" ? "active" : "")">Chưa học</a>
+    <a href="/student/lessons?status=In Progress" class="tab-btn @(Model.FilterStatus == "In Progress" ? "active" : "")">Đang học</a>
+    <a href="/student/lessons?status=Completed" class="tab-btn @(Model.FilterStatus == "Completed" ? "active" : "")">Hoàn thành</a>
+</div>
+
+<!-- List -->
+@if (!Model.Lessons.Any())
+{
+    <div class="empty-box"><p>Không có bài học nào.</p></div>
+}
+else
+{
+    <div class="lesson-list">
+        @foreach (var l in Model.Lessons)
+        {
+            var cardClass = l.CompletionStatus == "Completed" ? "completed" : l.IsOverdue ? "overdue" : "";
+            var sbClass = l.CompletionStatus == "Completed" ? "sb-completed" : l.IsOverdue ? "sb-overdue" : l.CompletionStatus == "In Progress" ? "sb-in-progress" : "sb-not-started";
+            var pillClass = l.CompletionStatus == "Completed" ? "pill-done" : l.IsOverdue ? "pill-overdue" : l.CompletionStatus == "In Progress" ? "pill-doing" : "pill-pending";
+            var pillText = l.CompletionStatus == "Completed" ? "Hoàn thành" : l.IsOverdue ? "Quá hạn" : l.CompletionStatus == "In Progress" ? "Đang học" : "Chưa học";
+            var scoreClass = l.QuizScore >= 80 ? "score-high" : l.QuizScore >= 50 ? "score-mid" : "score-low";
+
+            <a href="/student/lesson/@l.LessonId" class="lesson-card @cardClass">
+                <div class="status-bar @sbClass"></div>
+                <div class="lesson-info">
+                    <div class="lesson-title">@l.Title</div>
+                    <div class="lesson-meta">
+                        @if (!string.IsNullOrEmpty(l.CourseName))
+                        {
+                            <span class="meta-tag tag-course">@l.CourseName</span>
+                        }
+                        @if (!string.IsNullOrEmpty(l.Topic))
+                        {
+                            <span class="meta-tag tag-topic">@l.Topic</span>
+                        }
+                        <span class="meta-tag tag-time">@l.EstimatedMinutes phút</span>
+                        @if (l.IsOverdue)
+                        {
+                            <span class="meta-tag tag-overdue">Quá hạn</span>
+                        }
+                    </div>
+                </div>
+                <div class="lesson-right">
+                    <span class="xp-badge">+@l.XPReward XP</span>
+                    <span class="due-text @(l.IsOverdue ? "overdue-text" : "")">Hạn: @l.DueDate.ToString("dd/MM/yyyy")</span>
+                    <span class="status-pill @pillClass">@pillText</span>
+                    @if (l.CompletionStatus == "Completed")
+                    {
+                        <span class="score-pill @scoreClass">@l.QuizScore%</span>
+                    }
+                </div>
+            </a>
+        }
+    </div>
+}
