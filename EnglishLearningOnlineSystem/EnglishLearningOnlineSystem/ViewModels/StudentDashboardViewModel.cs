@@ -1,4 +1,4 @@
-﻿namespace EnglishLearningOnlineSystem.ViewModels;
+namespace EnglishLearningOnlineSystem.ViewModels;
 
 public class StudentDashboardViewModel
 {
@@ -22,6 +22,9 @@ public class StudentDashboardViewModel
 
     // Badges earned
     public List<BadgeSummary> RecentBadges { get; set; } = new();
+
+    // Adaptive Learning
+    public List<LessonRecommendation> Recommendations { get; set; } = new();
 
     // Stats
     public int TotalLessonsCompleted { get; set; }

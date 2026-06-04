@@ -33,6 +33,11 @@ builder.Services.AddScoped<IStudentLessonDetailService, StudentLessonDetailServi
 builder.Services.AddScoped<IVocabularyRepository, VocabularyRepository>();
 builder.Services.AddScoped<IVocabularyService, VocabularyService>();
 
+builder.Services.AddScoped<IQuizAttemptRepository, QuizAttemptRepository>();
+builder.Services.AddScoped<IQuizAttemptService, QuizAttemptService>();
+builder.Services.AddScoped<IFlashcardRepository, FlashcardRepository>();
+builder.Services.AddScoped<IFlashcardService, FlashcardService>();
+builder.Services.AddScoped<IAdaptiveLearningService, AdaptiveLearningService>();
 
 // Cấu hình Session
 builder.Services.AddHttpContextAccessor();
@@ -49,12 +54,12 @@ builder.Services
         options.DefaultScheme = CookieAuthenticationDefaults.AuthenticationScheme;
         options.DefaultChallengeScheme = GoogleDefaults.AuthenticationScheme;
     })
-    .AddCookie()
-    .AddGoogle(options =>
-    {
-        options.ClientId = builder.Configuration["Authentication:Google:ClientId"]!;
-        options.ClientSecret = builder.Configuration["Authentication:Google:ClientSecret"]!;
-    });
+    .AddCookie();
+    // .AddGoogle(options =>
+    // {
+    //     options.ClientId = builder.Configuration["Authentication:Google:ClientId"]!;
+    //     options.ClientSecret = builder.Configuration["Authentication:Google:ClientSecret"]!;
+    // });
 // ===================================================================================
 
 var app = builder.Build();

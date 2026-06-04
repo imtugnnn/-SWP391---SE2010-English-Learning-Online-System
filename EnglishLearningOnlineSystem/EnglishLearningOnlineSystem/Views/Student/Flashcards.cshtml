@@ -1,0 +1,277 @@
+@model EnglishLearningOnlineSystem.ViewModels.FlashcardPracticeViewModel
+@{
+    ViewData["Title"] = "Ôn tập Flashcard";
+    Layout = "~/Views/Shared/_StudentLayout.cshtml";
+    ViewData["ActiveNav"] = "vocabulary";
+}
+
+@section Styles {
+    <style>
+        .flashcard-container {
+            max-width: 600px;
+            margin: 40px auto;
+            perspective: 1000px;
+        }
+        .progress-indicator {
+            text-align: center;
+            font-weight: 800;
+            color: var(--muted);
+            margin-bottom: 20px;
+            font-size: 1.2rem;
+        }
+        .flashcard {
+            width: 100%;
+            height: 400px;
+            position: relative;
+            transform-style: preserve-3d;
+            transition: transform 0.6s cubic-bezier(0.4, 0.2, 0.2, 1);
+            cursor: pointer;
+            margin-bottom: 30px;
+        }
+        .flashcard.is-flipped {
+            transform: rotateY(180deg);
+        }
+        .flashcard-face {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            backface-visibility: hidden;
+            border-radius: 24px;
+            box-shadow: 0 10px 30px rgba(14, 165, 233, 0.2);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 30px;
+            text-align: center;
+            background: white;
+            border: 2px solid var(--border);
+        }
+        .flashcard-front {
+            background: linear-gradient(135deg, #ffffff, #f0f9ff);
+        }
+        .flashcard-back {
+            transform: rotateY(180deg);
+            background: linear-gradient(135deg, #f0f9ff, #ffffff);
+        }
+        .word {
+            font-size: 3rem;
+            font-weight: 900;
+            color: var(--sky-d);
+            margin-bottom: 20px;
+        }
+        .meaning {
+            font-size: 2rem;
+            font-weight: 800;
+            color: var(--green-d);
+            margin-bottom: 15px;
+        }
+        .example {
+            font-size: 1.2rem;
+            color: var(--text);
+            font-style: italic;
+            margin-top: 20px;
+            padding: 15px;
+            background: rgba(14, 165, 233, 0.05);
+            border-radius: 12px;
+            width: 100%;
+        }
+        .fc-image {
+            max-width: 150px;
+            max-height: 150px;
+            border-radius: 12px;
+            margin-bottom: 20px;
+            object-fit: cover;
+        }
+        .btn-audio {
+            background: var(--sky);
+            color: white;
+            border: none;
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            font-size: 1.2rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.2s;
+            box-shadow: 0 4px 10px rgba(56, 189, 248, 0.4);
+        }
+        .btn-audio:hover {
+            transform: scale(1.1);
+            background: var(--sky-d);
+        }
+        .action-buttons {
+            display: flex;
+            gap: 20px;
+            justify-content: center;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.3s;
+        }
+        .action-buttons.show {
+            opacity: 1;
+            pointer-events: auto;
+        }
+        .btn-action {
+            flex: 1;
+            padding: 15px;
+            font-size: 1.2rem;
+            font-weight: 800;
+            border: none;
+            border-radius: 16px;
+            color: white;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .btn-know {
+            background: #22c55e;
+            border-bottom: 4px solid #16a34a;
+        }
+        .btn-know:hover { filter: brightness(1.05); transform: translateY(-2px); border-bottom-width: 6px; margin-top: -2px; }
+        .btn-know:active { transform: translateY(4px); border-bottom-width: 0; margin-top: 4px; }
+        .btn-dontknow {
+            background: #ef4444;
+            border-bottom: 4px solid #dc2626;
+        }
+        .btn-dontknow:hover { filter: brightness(1.05); transform: translateY(-2px); border-bottom-width: 6px; margin-top: -2px; }
+        .btn-dontknow:active { transform: translateY(4px); border-bottom-width: 0; margin-top: 4px; }
+        
+        .card-wrapper {
+            display: none;
+        }
+        .card-wrapper.active {
+            display: block;
+            animation: slideInRight 0.4s ease-out;
+        }
+        @@keyframes slideInRight {
+            from { opacity: 0; transform: translateX(50px); }
+            to { opacity: 1; transform: translateX(0); }
+        }
+        
+        .flip-hint {
+            position: absolute;
+            bottom: 20px;
+            color: var(--muted);
+            font-size: 0.9rem;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+    </style>
+}
+
+<div class="flashcard-container">
+    <div class="progress-indicator">
+        Thẻ số <span id="currentIdx">1</span> / @(Model.Cards?.Count ?? 0)
+    </div>
+
+    <form id="flashcard-form" method="post" action="/student/lesson/@Model.LessonId/flashcards/submit">
+        @Html.AntiForgeryToken()
+        <input type="hidden" name="SessionId" value="@Model.SessionId" />
+        <input type="hidden" name="LessonId" value="@Model.LessonId" />
+        <div id="results-container"></div>
+    </form>
+
+    @if (Model.Cards != null && Model.Cards.Any())
+    {
+        int index = 0;
+        foreach (var card in Model.Cards)
+        {
+            <div class="card-wrapper @(index == 0 ? "active" : "")" data-index="@index" data-id="@card.VocabularyId">
+                <div class="flashcard" onclick="flipCard(this)">
+                    <div class="flashcard-face flashcard-front">
+                        <div class="word">@card.Word</div>
+                        <button type="button" class="btn-audio" onclick="playAudio(event, '@card.Word')">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" viewBox="0 0 16 16">
+                              <path d="M11.536 14.01A8.47 8.47 0 0 0 14.026 8a8.47 8.47 0 0 0-2.49-6.01l-.708.707A7.48 7.48 0 0 1 13.025 8c0 2.071-.84 3.946-2.197 5.303z"/>
+                              <path d="M10.121 12.596A6.48 6.48 0 0 0 12.025 8a6.48 6.48 0 0 0-1.904-4.596l-.707.707A5.48 5.48 0 0 1 11.025 8a5.48 5.48 0 0 1-1.61 3.89z"/>
+                              <path d="M8.707 11.182A4.5 4.5 0 0 0 10.025 8a4.5 4.5 0 0 0-1.318-3.182L8 5.525A3.5 3.5 0 0 1 9.025 8 3.5 3.5 0 0 1 8 10.475zM6.717 3.55A.5.5 0 0 1 7 4v8a.5.5 0 0 1-.812.39L3.825 10.5H1.5A.5.5 0 0 1 1 10V6a.5.5 0 0 1 .5-.5h2.325l2.363-1.89a.5.5 0 0 1 .529-.06"/>
+                            </svg>
+                        </button>
+                        <div class="flip-hint"> Bấm để lật</div>
+                    </div>
+                    <div class="flashcard-face flashcard-back">
+                        @if (!string.IsNullOrEmpty(card.ImageUrl))
+                        {
+                            <img src="@card.ImageUrl" class="fc-image" alt="@card.Word" />
+                        }
+                        <div class="meaning">@card.Meaning</div>
+                        @if (!string.IsNullOrEmpty(card.ExampleSentence))
+                        {
+                            <div class="example">"@card.ExampleSentence"</div>
+                        }
+                    </div>
+                </div>
+            </div>
+            index++;
+        }
+        
+        <div class="action-buttons" id="action-buttons">
+            <button type="button" class="btn-action btn-dontknow" onclick="recordAnswer(false)">Chưa thuộc </button>
+            <button type="button" class="btn-action btn-know" onclick="recordAnswer(true)">Đã thuộc </button>
+        </div>
+    }
+    else
+    {
+        <div class="text-center p-5 bg-white rounded-4 shadow-sm border">
+            <h4>Không có thẻ từ vựng nào trong bài học này.</h4>
+        </div>
+    }
+</div>
+
+@section Scripts {
+    <script>
+        const totalCards = @(Model.Cards?.Count ?? 0);
+        let currentIndex = 0;
+        let resultIndex = 0;
+
+        function flipCard(el) {
+            el.classList.toggle('is-flipped');
+            // Show action buttons when flipped for the first time
+            if(el.classList.contains('is-flipped')) {
+                document.getElementById('action-buttons').classList.add('show');
+            }
+        }
+
+        function playAudio(event, text) {
+            event.stopPropagation(); // prevent card flip
+            if ('speechSynthesis' in window) {
+                const utterance = new SpeechSynthesisUtterance(text);
+                utterance.lang = 'en-US';
+                window.speechSynthesis.speak(utterance);
+            }
+        }
+
+        function recordAnswer(knewIt) {
+            const currentWrapper = document.querySelector(`.card-wrapper[data-index="${currentIndex}"]`);
+            if (!currentWrapper) return;
+
+            const vocabId = currentWrapper.getAttribute('data-id');
+            const resultsContainer = document.getElementById('results-container');
+
+            // Append hidden inputs
+            resultsContainer.innerHTML += `
+                <input type="hidden" name="Results[${resultIndex}].VocabularyId" value="${vocabId}" />
+                <input type="hidden" name="Results[${resultIndex}].KnewIt" value="${knewIt}" />
+            `;
+            resultIndex++;
+
+            // Move to next card
+            currentWrapper.classList.remove('active');
+            document.getElementById('action-buttons').classList.remove('show');
+            
+            currentIndex++;
+            if (currentIndex < totalCards) {
+                const nextWrapper = document.querySelector(`.card-wrapper[data-index="${currentIndex}"]`);
+                if (nextWrapper) nextWrapper.classList.add('active');
+                document.getElementById('currentIdx').innerText = currentIndex + 1;
+            } else {
+                // Submit form
+                document.getElementById('flashcard-form').submit();
+            }
+        }
+    </script>
+}

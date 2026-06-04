@@ -1,4 +1,4 @@
-﻿using EnglishLearningOnlineSystem.Models;
+using EnglishLearningOnlineSystem.Models;
 using EnglishLearningOnlineSystem.Repositories.Interfaces;
 using EnglishLearningOnlineSystem.Services.Interfaces;
 using EnglishLearningOnlineSystem.ViewModels;
@@ -8,13 +8,17 @@ namespace EnglishLearningOnlineSystem.Services.Implementations;
 public class StudentDashboardService : IStudentDashboardService
 {
     private readonly IStudentDashboardRepository _repo;
+    private readonly IAdaptiveLearningService _adaptiveService;
 
     // XP thresholds per level — chỉnh lại cho khớp LevelConfig table của bạn
     private static readonly int[] XpThresholds = { 0, 100, 250, 500, 900, 1400, 2100, 3000, 4200, 6000 };
 
-    public StudentDashboardService(IStudentDashboardRepository repo)
+    public StudentDashboardService(
+        IStudentDashboardRepository repo,
+        IAdaptiveLearningService adaptiveService)
     {
         _repo = repo;
+        _adaptiveService = adaptiveService;
     }
 
     public async Task<StudentDashboardViewModel?> GetDashboardAsync(int userId)
@@ -33,6 +37,7 @@ public class StudentDashboardService : IStudentDashboardService
         var todayMissions = await _repo.GetTodayMissionsAsync(profile.StudentId);
         var recentBadges = await _repo.GetRecentBadgesAsync(profile.StudentId);
         var totalCompleted = await _repo.GetTotalLessonsCompletedAsync(profile.StudentId);
+        var recommendations = await _adaptiveService.GetSuggestionsAsync(profile.StudentId);
 
         return new StudentDashboardViewModel
         {
@@ -46,6 +51,7 @@ public class StudentDashboardService : IStudentDashboardService
             TotalLessonsCompleted = totalCompleted,
             TotalXPEarned = profile.XP,
             IsFirstLogin = profile.LastActiveDate == null,
+            Recommendations = recommendations,
 
             AssignedLessons = assignedLessons.Select(wa => new AssignedLessonSummary
             {
