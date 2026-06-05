@@ -5,6 +5,9 @@
 # Chặn TẤT CẢ thư mục .vs và .idea ở bất kỳ cấp độ lồng nào (Thêm **/ vào trước)
 **/.vs/
 **/.idea/
+.vs/
+*.db
+CopilotIndices/ 
 
 # Các file và thư mục sinh ra khi Build project
 **/[Bb]in/
