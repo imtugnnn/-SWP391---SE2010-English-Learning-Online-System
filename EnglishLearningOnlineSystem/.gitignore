@@ -1,21 +1,20 @@
 ## =======================================================================
-## Visual Studio & .NET Core GitIgnore Template (Bản sửa lỗi lồng thư mục)
+## Visual Studio & .NET Core GitIgnore Template (Chuẩn cho nhánh MAIN)
 ## =======================================================================
 
-# Chặn TẤT CẢ thư mục .vs và .idea ở bất kỳ cấp độ lồng nào (Thêm **/ vào trước)
+# Chặn triệt để thư mục cấu hình Visual Studio và file rác của GitHub Copilot
 **/.vs/
 **/.idea/
-.vs/
-*.db
-CopilotIndices/ 
+**/*.db
+**/CopilotIndices/ 
 
-# Các file và thư mục sinh ra khi Build project
+# Các file và thư mục tự động sinh ra khi Build project (.NET)
 **/[Bb]in/
 **/[Oo]bj/
 **/[Log]/
 **/[Ll]ogs/
 
-# Các cài đặt cá nhân và file tạm của dự án
+# Các cài đặt cá nhân và file tạm của người code (Không share lên nhóm)
 **/*.user
 **/*.userosscache
 **/*.sln.docstates
@@ -29,8 +28,7 @@ CopilotIndices/
 project.lock.json
 project.fragment.lock.json
 
-# File cấu hình chứa thông tin nhạy cảm
-**/appsettings.json
+# CHỈ CHẶN các file cấu hình môi trường Local (ĐỂ LẠI appsettings.json gốc cho cả nhóm)
 **/appsettings.Development.json
 **/appsettings.Local.json
 **/*.secrets.json
