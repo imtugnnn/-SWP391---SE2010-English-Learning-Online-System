@@ -27,6 +27,7 @@ project.lock.json
 project.fragment.lock.json
 
 # File cấu hình chứa thông tin nhạy cảm
+EnglishLearningOnlineSystem/appsettings.json
 **/appsettings.Development.json
 **/appsettings.Local.json
 **/*.secrets.json
