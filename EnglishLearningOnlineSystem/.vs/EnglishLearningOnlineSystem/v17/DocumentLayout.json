@@ -3,6 +3,10 @@
   "WorkspaceRootPath": "D:\\FU\\SWP391\\Final Project\\Su26\\-SWP391---SE2010-English-Learning-Online-System\\EnglishLearningOnlineSystem\\",
   "Documents": [
     {
+      "AbsoluteMoniker": "D:0:0:{8E845CD8-C9F1-4B0B-88AC-A0991C0AC155}|EnglishLearningOnlineSystem\\EnglishLearningOnlineSystem.csproj|d:\\fu\\swp391\\final project\\su26\\-swp391---se2010-english-learning-online-system\\englishlearningonlinesystem\\englishlearningonlinesystem\\views\\users\\create.cshtml||{40D31677-CBC0-4297-A9EF-89D907823A98}",
+      "RelativeMoniker": "D:0:0:{8E845CD8-C9F1-4B0B-88AC-A0991C0AC155}|EnglishLearningOnlineSystem\\EnglishLearningOnlineSystem.csproj|solutionrelative:englishlearningonlinesystem\\views\\users\\create.cshtml||{40D31677-CBC0-4297-A9EF-89D907823A98}"
+    },
+    {
       "AbsoluteMoniker": "D:0:0:{8E845CD8-C9F1-4B0B-88AC-A0991C0AC155}|EnglishLearningOnlineSystem\\EnglishLearningOnlineSystem.csproj|d:\\fu\\swp391\\final project\\su26\\-swp391---se2010-english-learning-online-system\\englishlearningonlinesystem\\englishlearningonlinesystem\\views\\users\\index.cshtml||{40D31677-CBC0-4297-A9EF-89D907823A98}",
       "RelativeMoniker": "D:0:0:{8E845CD8-C9F1-4B0B-88AC-A0991C0AC155}|EnglishLearningOnlineSystem\\EnglishLearningOnlineSystem.csproj|solutionrelative:englishlearningonlinesystem\\views\\users\\index.cshtml||{40D31677-CBC0-4297-A9EF-89D907823A98}"
     },
@@ -11,16 +15,12 @@
       "RelativeMoniker": "D:0:0:{8E845CD8-C9F1-4B0B-88AC-A0991C0AC155}|EnglishLearningOnlineSystem\\EnglishLearningOnlineSystem.csproj|solutionrelative:englishlearningonlinesystem\\views\\users\\edit.cshtml||{40D31677-CBC0-4297-A9EF-89D907823A98}"
     },
     {
-      "AbsoluteMoniker": "D:0:0:{8E845CD8-C9F1-4B0B-88AC-A0991C0AC155}|EnglishLearningOnlineSystem\\EnglishLearningOnlineSystem.csproj|d:\\fu\\swp391\\final project\\su26\\-swp391---se2010-english-learning-online-system\\englishlearningonlinesystem\\englishlearningonlinesystem\\views\\users\\details.cshtml||{40D31677-CBC0-4297-A9EF-89D907823A98}",
-      "RelativeMoniker": "D:0:0:{8E845CD8-C9F1-4B0B-88AC-A0991C0AC155}|EnglishLearningOnlineSystem\\EnglishLearningOnlineSystem.csproj|solutionrelative:englishlearningonlinesystem\\views\\users\\details.cshtml||{40D31677-CBC0-4297-A9EF-89D907823A98}"
-    },
-    {
       "AbsoluteMoniker": "D:0:0:{8E845CD8-C9F1-4B0B-88AC-A0991C0AC155}|EnglishLearningOnlineSystem\\EnglishLearningOnlineSystem.csproj|d:\\fu\\swp391\\final project\\su26\\-swp391---se2010-english-learning-online-system\\englishlearningonlinesystem\\englishlearningonlinesystem\\views\\users\\delete.cshtml||{40D31677-CBC0-4297-A9EF-89D907823A98}",
       "RelativeMoniker": "D:0:0:{8E845CD8-C9F1-4B0B-88AC-A0991C0AC155}|EnglishLearningOnlineSystem\\EnglishLearningOnlineSystem.csproj|solutionrelative:englishlearningonlinesystem\\views\\users\\delete.cshtml||{40D31677-CBC0-4297-A9EF-89D907823A98}"
     },
     {
-      "AbsoluteMoniker": "D:0:0:{8E845CD8-C9F1-4B0B-88AC-A0991C0AC155}|EnglishLearningOnlineSystem\\EnglishLearningOnlineSystem.csproj|d:\\fu\\swp391\\final project\\su26\\-swp391---se2010-english-learning-online-system\\englishlearningonlinesystem\\englishlearningonlinesystem\\views\\users\\create.cshtml||{40D31677-CBC0-4297-A9EF-89D907823A98}",
-      "RelativeMoniker": "D:0:0:{8E845CD8-C9F1-4B0B-88AC-A0991C0AC155}|EnglishLearningOnlineSystem\\EnglishLearningOnlineSystem.csproj|solutionrelative:englishlearningonlinesystem\\views\\users\\create.cshtml||{40D31677-CBC0-4297-A9EF-89D907823A98}"
+      "AbsoluteMoniker": "D:0:0:{8E845CD8-C9F1-4B0B-88AC-A0991C0AC155}|EnglishLearningOnlineSystem\\EnglishLearningOnlineSystem.csproj|d:\\fu\\swp391\\final project\\su26\\-swp391---se2010-english-learning-online-system\\englishlearningonlinesystem\\englishlearningonlinesystem\\views\\users\\details.cshtml||{40D31677-CBC0-4297-A9EF-89D907823A98}",
+      "RelativeMoniker": "D:0:0:{8E845CD8-C9F1-4B0B-88AC-A0991C0AC155}|EnglishLearningOnlineSystem\\EnglishLearningOnlineSystem.csproj|solutionrelative:englishlearningonlinesystem\\views\\users\\details.cshtml||{40D31677-CBC0-4297-A9EF-89D907823A98}"
     },
     {
       "AbsoluteMoniker": "D:0:0:{8E845CD8-C9F1-4B0B-88AC-A0991C0AC155}|EnglishLearningOnlineSystem\\EnglishLearningOnlineSystem.csproj|d:\\fu\\swp391\\final project\\su26\\-swp391---se2010-english-learning-online-system\\englishlearningonlinesystem\\englishlearningonlinesystem\\controllers\\userscontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
@@ -102,7 +102,7 @@
       "DocumentGroups": [
         {
           "DockedWidth": 200,
-          "SelectedChildIndex": 3,
+          "SelectedChildIndex": 5,
           "Children": [
             {
               "$type": "Bookmark",
@@ -118,15 +118,15 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 0,
+              "DocumentIndex": 1,
               "Title": "Index.cshtml",
               "DocumentMoniker": "D:\\FU\\SWP391\\Final Project\\Su26\\-SWP391---SE2010-English-Learning-Online-System\\EnglishLearningOnlineSystem\\EnglishLearningOnlineSystem\\Views\\Users\\Index.cshtml",
               "RelativeDocumentMoniker": "EnglishLearningOnlineSystem\\Views\\Users\\Index.cshtml",
               "ToolTip": "D:\\FU\\SWP391\\Final Project\\Su26\\-SWP391---SE2010-English-Learning-Online-System\\EnglishLearningOnlineSystem\\EnglishLearningOnlineSystem\\Views\\Users\\Index.cshtml",
               "RelativeToolTip": "EnglishLearningOnlineSystem\\Views\\Users\\Index.cshtml",
-              "ViewState": "AgIAAAIAAAAAAAAAAAAswBMAAAAbAAAAAAAAAA==",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000759|",
-              "WhenOpened": "2026-06-04T15:38:47.379Z",
+              "WhenOpened": "2026-06-05T01:01:01.25Z",
               "EditorCaption": ""
             },
             {
@@ -144,20 +144,20 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 4,
+              "DocumentIndex": 0,
               "Title": "Create.cshtml",
               "DocumentMoniker": "D:\\FU\\SWP391\\Final Project\\Su26\\-SWP391---SE2010-English-Learning-Online-System\\EnglishLearningOnlineSystem\\EnglishLearningOnlineSystem\\Views\\Users\\Create.cshtml",
               "RelativeDocumentMoniker": "EnglishLearningOnlineSystem\\Views\\Users\\Create.cshtml",
               "ToolTip": "D:\\FU\\SWP391\\Final Project\\Su26\\-SWP391---SE2010-English-Learning-Online-System\\EnglishLearningOnlineSystem\\EnglishLearningOnlineSystem\\Views\\Users\\Create.cshtml",
               "RelativeToolTip": "EnglishLearningOnlineSystem\\Views\\Users\\Create.cshtml",
-              "ViewState": "AgIAAA8AAAAAAAAAAAAswDkAAAABAAAAAAAAAA==",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAADkAAAABAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000759|",
               "WhenOpened": "2026-06-04T12:19:04.712Z",
               "EditorCaption": ""
             },
             {
               "$type": "Document",
-              "DocumentIndex": 2,
+              "DocumentIndex": 4,
               "Title": "Details.cshtml",
               "DocumentMoniker": "D:\\FU\\SWP391\\Final Project\\Su26\\-SWP391---SE2010-English-Learning-Online-System\\EnglishLearningOnlineSystem\\EnglishLearningOnlineSystem\\Views\\Users\\Details.cshtml",
               "RelativeDocumentMoniker": "EnglishLearningOnlineSystem\\Views\\Users\\Details.cshtml",
@@ -165,12 +165,11 @@
               "RelativeToolTip": "EnglishLearningOnlineSystem\\Views\\Users\\Details.cshtml",
               "ViewState": "AgIAAAAAAAAAAAAAAAAAACEAAAAGAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000759|",
-              "WhenOpened": "2026-06-04T13:44:25.991Z",
-              "EditorCaption": ""
+              "WhenOpened": "2026-06-04T13:44:25.991Z"
             },
             {
               "$type": "Document",
-              "DocumentIndex": 1,
+              "DocumentIndex": 2,
               "Title": "Edit.cshtml",
               "DocumentMoniker": "D:\\FU\\SWP391\\Final Project\\Su26\\-SWP391---SE2010-English-Learning-Online-System\\EnglishLearningOnlineSystem\\EnglishLearningOnlineSystem\\Views\\Users\\Edit.cshtml",
               "RelativeDocumentMoniker": "EnglishLearningOnlineSystem\\Views\\Users\\Edit.cshtml",
@@ -191,8 +190,7 @@
               "RelativeToolTip": "EnglishLearningOnlineSystem\\Controllers\\UsersController.cs",
               "ViewState": "AgIAAAAAAAAAAAAAAAAAAA0AAAAUAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2026-06-04T12:37:13.74Z",
-              "EditorCaption": ""
+              "WhenOpened": "2026-06-04T12:37:13.74Z"
             },
             {
               "$type": "Document",
@@ -204,8 +202,7 @@
               "RelativeToolTip": "EnglishLearningOnlineSystem\\Services\\Interfaces\\IUserService.cs",
               "ViewState": "AgIAAAAAAAAAAAAAAAAAAA4AAAABAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2026-06-04T13:51:34.952Z",
-              "EditorCaption": ""
+              "WhenOpened": "2026-06-04T13:51:34.952Z"
             },
             {
               "$type": "Document",
@@ -217,8 +214,7 @@
               "RelativeToolTip": "EnglishLearningOnlineSystem\\ViewModels\\UserEditViewModel.cs",
               "ViewState": "AgIAAAAAAAAAAAAAAAAAAA4AAAAyAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2026-06-04T13:43:29.318Z",
-              "EditorCaption": ""
+              "WhenOpened": "2026-06-04T13:43:29.318Z"
             },
             {
               "$type": "Document",
@@ -230,8 +226,7 @@
               "RelativeToolTip": "EnglishLearningOnlineSystem\\Services\\Implementations\\UserService.cs",
               "ViewState": "AgIAADIAAAAAAAAAAAAswFoAAAABAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2026-06-04T14:03:27.654Z",
-              "EditorCaption": ""
+              "WhenOpened": "2026-06-04T14:03:27.654Z"
             },
             {
               "$type": "Document",
@@ -243,8 +238,7 @@
               "RelativeToolTip": "EnglishLearningOnlineSystem\\ViewModels\\UserCreateViewModel.cs",
               "ViewState": "AgIAAAAAAAAAAAAAAAAAAAkAAAA5AAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2026-06-04T13:40:36.455Z",
-              "EditorCaption": ""
+              "WhenOpened": "2026-06-04T13:40:36.455Z"
             },
             {
               "$type": "Document",
@@ -256,8 +250,7 @@
               "RelativeToolTip": "EnglishLearningOnlineSystem\\Program.cs",
               "ViewState": "AgIAAAAAAAAAAAAAAAAAABMAAAA4AAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2026-06-04T12:53:02.882Z",
-              "EditorCaption": ""
+              "WhenOpened": "2026-06-04T12:53:02.882Z"
             },
             {
               "$type": "Document",
@@ -269,8 +262,7 @@
               "RelativeToolTip": "EnglishLearningOnlineSystem\\Services\\Implementations\\RoleService.cs",
               "ViewState": "AgIAAAAAAAAAAAAAAAAAABAAAAABAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2026-06-04T15:04:38.883Z",
-              "EditorCaption": ""
+              "WhenOpened": "2026-06-04T15:04:38.883Z"
             },
             {
               "$type": "Document",
@@ -282,8 +274,7 @@
               "RelativeToolTip": "EnglishLearningOnlineSystem\\Services\\Interfaces\\IRoleService.cs",
               "ViewState": "AgIAAAAAAAAAAAAAAAAAAAcAAAABAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2026-06-04T15:04:21.858Z",
-              "EditorCaption": ""
+              "WhenOpened": "2026-06-04T15:04:21.858Z"
             },
             {
               "$type": "Document",
@@ -295,8 +286,7 @@
               "RelativeToolTip": "EnglishLearningOnlineSystem\\ViewModels\\ErrorViewModel.cs",
               "ViewState": "AgIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2026-06-04T14:51:50.612Z",
-              "EditorCaption": ""
+              "WhenOpened": "2026-06-04T14:51:50.612Z"
             },
             {
               "$type": "Document",
@@ -308,8 +298,7 @@
               "RelativeToolTip": "EnglishLearningOnlineSystem\\ViewModels\\LoginViewModel.cs",
               "ViewState": "AgIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2026-06-04T14:51:49.832Z",
-              "EditorCaption": ""
+              "WhenOpened": "2026-06-04T14:51:49.832Z"
             },
             {
               "$type": "Document",
@@ -321,8 +310,7 @@
               "RelativeToolTip": "EnglishLearningOnlineSystem\\Repositories\\Implementations\\RoleRepository.cs",
               "ViewState": "AgIAAAAAAAAAAAAAAAAAABwAAAAaAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2026-06-04T14:40:39.731Z",
-              "EditorCaption": ""
+              "WhenOpened": "2026-06-04T14:40:39.731Z"
             },
             {
               "$type": "Document",
@@ -334,8 +322,7 @@
               "RelativeToolTip": "EnglishLearningOnlineSystem\\Repositories\\Interfaces\\IRoleRepository.cs",
               "ViewState": "AgIAAAAAAAAAAAAAAAAAAAgAAAAjAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2026-06-04T14:41:05.723Z",
-              "EditorCaption": ""
+              "WhenOpened": "2026-06-04T14:41:05.723Z"
             },
             {
               "$type": "Document",
@@ -347,8 +334,7 @@
               "RelativeToolTip": "EnglishLearningOnlineSystem\\Repositories\\Implementations\\UserRepository.cs",
               "ViewState": "AgIAAB8AAAAAAAAAAAAkwD4AAAAFAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2026-06-04T12:21:38.503Z",
-              "EditorCaption": ""
+              "WhenOpened": "2026-06-04T12:21:38.503Z"
             },
             {
               "$type": "Document",
@@ -360,8 +346,7 @@
               "RelativeToolTip": "EnglishLearningOnlineSystem\\Repositories\\Interfaces\\IUserRepository.cs",
               "ViewState": "AgIAAAAAAAAAAAAAAAAAAA0AAAAgAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2026-06-04T14:23:44.782Z",
-              "EditorCaption": ""
+              "WhenOpened": "2026-06-04T14:23:44.782Z"
             },
             {
               "$type": "Document",
@@ -373,8 +358,7 @@
               "RelativeToolTip": "EnglishLearningOnlineSystem\\Services\\Models\\UserServiceResult.cs",
               "ViewState": "AgIAAAAAAAAAAAAAAAAAAAIAAAAlAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2026-06-04T14:03:47.719Z",
-              "EditorCaption": ""
+              "WhenOpened": "2026-06-04T14:03:47.719Z"
             },
             {
               "$type": "Document",
@@ -386,8 +370,7 @@
               "RelativeToolTip": "EnglishLearningOnlineSystem\\Services\\Models\\AuthServiceResult.cs",
               "ViewState": "AgIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2026-06-04T13:51:54.831Z",
-              "EditorCaption": ""
+              "WhenOpened": "2026-06-04T13:51:54.831Z"
             },
             {
               "$type": "Document",
@@ -399,8 +382,7 @@
               "RelativeToolTip": "EnglishLearningOnlineSystem\\Services\\Implementations\\AuthService.cs",
               "ViewState": "AgIAAAgAAAAAAAAAAAAxwAAAAAAAAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2026-06-04T13:51:50.717Z",
-              "EditorCaption": ""
+              "WhenOpened": "2026-06-04T13:51:50.717Z"
             },
             {
               "$type": "Document",
