@@ -1,6 +1,46 @@
-bin/
-obj/
-/packages/
-riderModule.iml
-/_ReSharper.Caches/
-appsettings.Development.json
+## =======================================================================
+## Visual Studio & .NET Core GitIgnore Template (Bản sửa lỗi lồng thư mục)
+## =======================================================================
+
+# Chặn TẤT CẢ thư mục .vs và .idea ở bất kỳ cấp độ lồng nào (Thêm **/ vào trước)
+**/.vs/
+**/.idea/
+
+# Các file và thư mục sinh ra khi Build project
+**/[Bb]in/
+**/[Oo]bj/
+**/[Log]/
+**/[Ll]ogs/
+
+# Các cài đặt cá nhân và file tạm của dự án
+**/*.user
+**/*.userosscache
+**/*.sln.docstates
+**/*.suo
+**/*.userprefs
+
+# Thư mục chứa các thư viện tải về từ NuGet và NPM
+**/packages/
+!**/packages/build/
+**/node_modules/
+project.lock.json
+project.fragment.lock.json
+
+# File cấu hình chứa thông tin nhạy cảm
+**/appsettings.Development.json
+**/appsettings.Local.json
+**/*.secrets.json
+**/.secrets/
+
+# File tạm của hệ điều hành
+**/Thumbs.db
+**/ehthumbs.db
+**/Desktop.ini
+**/.DS_Store
+
+# Thư mục publish/deploy local
+**/csx/
+**/*.build.csdef
+**/*.build.cscfg
+**/pub/
+**/publish/
