@@ -29,6 +29,7 @@ project.lock.json
 project.fragment.lock.json
 
 # CHỈ CHẶN các file cấu hình môi trường Local (ĐỂ LẠI appsettings.json gốc cho cả nhóm)
+EnglishLearningOnlineSystem/appsettings.json
 **/appsettings.Development.json
 **/appsettings.Local.json
 **/*.secrets.json
