@@ -12,8 +12,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace EnglishLearningOnlineSystem.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20260604180044_AddNewModels")]
-    partial class AddNewModels
+    [Migration("20260607155623_AddQuizAndFlashcardTables")]
+    partial class AddQuizAndFlashcardTables
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
