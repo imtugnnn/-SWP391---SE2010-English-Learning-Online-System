@@ -61,8 +61,15 @@ public class StudentController : BaseStudentController
         if (userId == null) return RedirectToAction("Login", "Auth");
 
         var vm = await _dashboardService.GetDashboardAsync(userId.Value);
+
+        // Tự động tạo StudentProfile nếu chưa có (user mới đăng ký)
         if (vm == null)
-            return Content($"[Debug] Login OK. UserId = {userId}. StudentProfile chưa có trong DB.");
+        {
+            await _dashboardService.EnsureStudentProfileAsync(userId.Value);
+            vm = await _dashboardService.GetDashboardAsync(userId.Value);
+        }
+
+        if (vm == null) return RedirectToAction("Login", "Auth");
 
         // Chuyển sang trang onboarding nếu đăng nhập lần đầu
         if (vm.IsFirstLogin)
@@ -309,14 +316,26 @@ public class StudentController : BaseStudentController
         return RedirectToAction(nameof(LessonDetail), new { lessonId });
     }
 
-    // Hiển thị danh sách từ vựng của một bài học
-    [HttpGet("/student/lesson/{lessonId:int}/vocabulary")]
-    public async Task<IActionResult> Vocabulary(int lessonId)
+    // Hiển thị trang từ vựng tổng hợp (tất cả từ vựng học sinh đã học)
+    [HttpGet("/student/vocabulary")]
+    public async Task<IActionResult> VocabularyHub()
     {
         var userId = GetCurrentUserId();
         if (userId == null) return RedirectToAction("Login", "Auth");
 
-        var vm = await _vocabularyService.GetVocabularyAsync(lessonId);
+        var vm = await _vocabularyService.GetAllVocabularyAsync(userId.Value);
+        return View(vm);
+    }
+
+
+    // Hiển thị chi tiết khóa học và danh sách bài học
+    [HttpGet("/student/courses/{courseId:int}")]
+    public async Task<IActionResult> CourseDetail(int courseId)
+    {
+        var userId = GetCurrentUserId();
+        if (userId == null) return RedirectToAction("Login", "Auth");
+
+        var vm = await _courseService.GetCourseDetailAsync(userId.Value, courseId);
         if (vm == null) return NotFound();
 
         return View(vm);
