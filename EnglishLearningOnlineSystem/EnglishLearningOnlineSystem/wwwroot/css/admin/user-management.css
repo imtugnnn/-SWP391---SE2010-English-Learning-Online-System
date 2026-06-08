@@ -1,0 +1,111 @@
+.user-management-container {
+    width: 100%;
+}
+
+.page-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+
+    margin-bottom: 25px;
+}
+
+.page-header h2 {
+    margin: 0;
+    font-weight: 700;
+}
+
+.btn-add-user {
+    border: none;
+
+    background: #1976d2;
+    color: white;
+
+    padding: 12px 20px;
+
+    border-radius: 8px;
+
+    font-size: 13px;
+    font-weight: 600;
+
+    cursor: pointer;
+}
+
+.btn-add-user:hover {
+    background: #1565c0;
+}
+
+.table-container {
+    background: white;
+
+    border-radius: 12px;
+
+    overflow: hidden;
+
+    box-shadow: 0 2px 10px rgba(0,0,0,.08);
+}
+
+.user-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.user-table thead {
+    background: #fafafa;
+}
+
+.user-table th {
+    padding: 18px;
+    text-align: left;
+
+    font-size: 12px;
+    color: #666;
+
+    border-bottom: 1px solid #eee;
+}
+
+.user-table td {
+    padding: 18px;
+    border-bottom: 1px solid #f3f3f3;
+}
+
+.role-badge {
+    padding: 5px 10px;
+    border-radius: 999px;
+
+    font-size: 12px;
+    font-weight: 600;
+}
+
+.role-badge.admin {
+    background: #efe3ff;
+    color: #7b2cbf;
+}
+
+.role-badge.teacher {
+    background: #dbeafe;
+    color: #2563eb;
+}
+
+.role-badge.student {
+    background: #dcfce7;
+    color: #16a34a;
+}
+
+.actions {
+    display: flex;
+    gap: 10px;
+}
+
+.icon-btn {
+    border: none;
+    background: transparent;
+
+    cursor: pointer;
+
+    font-size: 15px;
+}
+
+.icon-btn:hover {
+    transform: scale(1.1);
+}

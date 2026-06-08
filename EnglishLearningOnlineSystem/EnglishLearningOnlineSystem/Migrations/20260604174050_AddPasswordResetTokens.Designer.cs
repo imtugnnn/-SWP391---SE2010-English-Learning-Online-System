@@ -153,63 +153,7 @@ namespace EnglishLearningOnlineSystem.Migrations
                     b.ToTable("DailyMissions");
                 });
 
-            modelBuilder.Entity("EnglishLearningOnlineSystem.Models.FlashcardCardResult", b =>
-                {
-                    b.Property<int>("ResultId")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
 
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("ResultId"));
-
-                    b.Property<bool>("KnewIt")
-                        .HasColumnType("bit");
-
-                    b.Property<int>("SessionId")
-                        .HasColumnType("int");
-
-                    b.Property<int>("VocabularyId")
-                        .HasColumnType("int");
-
-                    b.HasKey("ResultId");
-
-                    b.HasIndex("SessionId");
-
-                    b.HasIndex("VocabularyId");
-
-                    b.ToTable("FlashcardCardResults");
-                });
-
-            modelBuilder.Entity("EnglishLearningOnlineSystem.Models.FlashcardSession", b =>
-                {
-                    b.Property<int>("SessionId")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("SessionId"));
-
-                    b.Property<int>("CardsReviewed")
-                        .HasColumnType("int");
-
-                    b.Property<DateTime?>("CompletedAt")
-                        .HasColumnType("datetime2");
-
-                    b.Property<int>("LessonId")
-                        .HasColumnType("int");
-
-                    b.Property<DateTime>("StartedAt")
-                        .HasColumnType("datetime2");
-
-                    b.Property<int>("StudentId")
-                        .HasColumnType("int");
-
-                    b.HasKey("SessionId");
-
-                    b.HasIndex("LessonId");
-
-                    b.HasIndex("StudentId");
-
-                    b.ToTable("FlashcardSessions");
-                });
 
             modelBuilder.Entity("EnglishLearningOnlineSystem.Models.Lesson", b =>
                 {
@@ -419,84 +363,7 @@ namespace EnglishLearningOnlineSystem.Migrations
                     b.ToTable("Quizzes");
                 });
 
-            modelBuilder.Entity("EnglishLearningOnlineSystem.Models.QuizAttempt", b =>
-                {
-                    b.Property<int>("AttemptId")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
 
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("AttemptId"));
-
-                    b.Property<int>("CorrectCount")
-                        .HasColumnType("int");
-
-                    b.Property<int>("LessonId")
-                        .HasColumnType("int");
-
-                    b.Property<int>("Score")
-                        .HasColumnType("int");
-
-                    b.Property<DateTime>("StartedAt")
-                        .HasColumnType("datetime2");
-
-                    b.Property<int>("StudentId")
-                        .HasColumnType("int");
-
-                    b.Property<DateTime>("SubmittedAt")
-                        .HasColumnType("datetime2");
-
-                    b.Property<int>("TimeSpentSec")
-                        .HasColumnType("int");
-
-                    b.Property<int>("TotalQuestions")
-                        .HasColumnType("int");
-
-                    b.Property<int?>("WeeklyAssignmentId")
-                        .HasColumnType("int");
-
-                    b.Property<bool>("XpAwarded")
-                        .HasColumnType("bit");
-
-                    b.HasKey("AttemptId");
-
-                    b.HasIndex("LessonId");
-
-                    b.HasIndex("WeeklyAssignmentId");
-
-                    b.HasIndex("StudentId", "SubmittedAt");
-
-                    b.ToTable("QuizAttempts");
-                });
-
-            modelBuilder.Entity("EnglishLearningOnlineSystem.Models.QuizAttemptAnswer", b =>
-                {
-                    b.Property<int>("AnswerId")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("AnswerId"));
-
-                    b.Property<int>("AttemptId")
-                        .HasColumnType("int");
-
-                    b.Property<bool>("IsCorrect")
-                        .HasColumnType("bit");
-
-                    b.Property<int>("QuizId")
-                        .HasColumnType("int");
-
-                    b.Property<string>("SelectedAnswer")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.HasKey("AnswerId");
-
-                    b.HasIndex("AttemptId");
-
-                    b.HasIndex("QuizId");
-
-                    b.ToTable("QuizAttemptAnswers");
-                });
 
             modelBuilder.Entity("EnglishLearningOnlineSystem.Models.Role", b =>
                 {
@@ -850,43 +717,7 @@ namespace EnglishLearningOnlineSystem.Migrations
                     b.Navigation("Creator");
                 });
 
-            modelBuilder.Entity("EnglishLearningOnlineSystem.Models.FlashcardCardResult", b =>
-                {
-                    b.HasOne("EnglishLearningOnlineSystem.Models.FlashcardSession", "Session")
-                        .WithMany("CardResults")
-                        .HasForeignKey("SessionId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
 
-                    b.HasOne("EnglishLearningOnlineSystem.Models.Vocabulary", "Vocabulary")
-                        .WithMany()
-                        .HasForeignKey("VocabularyId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
-                    b.Navigation("Session");
-
-                    b.Navigation("Vocabulary");
-                });
-
-            modelBuilder.Entity("EnglishLearningOnlineSystem.Models.FlashcardSession", b =>
-                {
-                    b.HasOne("EnglishLearningOnlineSystem.Models.Lesson", "Lesson")
-                        .WithMany()
-                        .HasForeignKey("LessonId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
-                    b.HasOne("EnglishLearningOnlineSystem.Models.StudentProfile", "Student")
-                        .WithMany("FlashcardSessions")
-                        .HasForeignKey("StudentId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
-                    b.Navigation("Lesson");
-
-                    b.Navigation("Student");
-                });
 
             modelBuilder.Entity("EnglishLearningOnlineSystem.Models.Lesson", b =>
                 {
@@ -962,50 +793,7 @@ namespace EnglishLearningOnlineSystem.Migrations
                     b.Navigation("Lesson");
                 });
 
-            modelBuilder.Entity("EnglishLearningOnlineSystem.Models.QuizAttempt", b =>
-                {
-                    b.HasOne("EnglishLearningOnlineSystem.Models.Lesson", "Lesson")
-                        .WithMany()
-                        .HasForeignKey("LessonId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
 
-                    b.HasOne("EnglishLearningOnlineSystem.Models.StudentProfile", "Student")
-                        .WithMany("QuizAttempts")
-                        .HasForeignKey("StudentId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
-                    b.HasOne("EnglishLearningOnlineSystem.Models.WeeklyAssignment", "WeeklyAssignment")
-                        .WithMany()
-                        .HasForeignKey("WeeklyAssignmentId")
-                        .OnDelete(DeleteBehavior.SetNull);
-
-                    b.Navigation("Lesson");
-
-                    b.Navigation("Student");
-
-                    b.Navigation("WeeklyAssignment");
-                });
-
-            modelBuilder.Entity("EnglishLearningOnlineSystem.Models.QuizAttemptAnswer", b =>
-                {
-                    b.HasOne("EnglishLearningOnlineSystem.Models.QuizAttempt", "Attempt")
-                        .WithMany("Answers")
-                        .HasForeignKey("AttemptId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("EnglishLearningOnlineSystem.Models.Quiz", "Quiz")
-                        .WithMany()
-                        .HasForeignKey("QuizId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
-                    b.Navigation("Attempt");
-
-                    b.Navigation("Quiz");
-                });
 
             modelBuilder.Entity("EnglishLearningOnlineSystem.Models.StudentBadge", b =>
                 {
@@ -1161,10 +949,6 @@ namespace EnglishLearningOnlineSystem.Migrations
                     b.Navigation("StudentMissions");
                 });
 
-            modelBuilder.Entity("EnglishLearningOnlineSystem.Models.FlashcardSession", b =>
-                {
-                    b.Navigation("CardResults");
-                });
 
             modelBuilder.Entity("EnglishLearningOnlineSystem.Models.Lesson", b =>
                 {
@@ -1184,10 +968,6 @@ namespace EnglishLearningOnlineSystem.Migrations
                     b.Navigation("StudentProgresses");
                 });
 
-            modelBuilder.Entity("EnglishLearningOnlineSystem.Models.QuizAttempt", b =>
-                {
-                    b.Navigation("Answers");
-                });
 
             modelBuilder.Entity("EnglishLearningOnlineSystem.Models.Role", b =>
                 {
@@ -1196,13 +976,9 @@ namespace EnglishLearningOnlineSystem.Migrations
 
             modelBuilder.Entity("EnglishLearningOnlineSystem.Models.StudentProfile", b =>
                 {
-                    b.Navigation("FlashcardSessions");
-
                     b.Navigation("GameProgresses");
 
                     b.Navigation("LessonProgresses");
-
-                    b.Navigation("QuizAttempts");
 
                     b.Navigation("ReceivedFeedbacks");
 
