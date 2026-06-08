@@ -46,7 +46,6 @@ public class StudentCourseRepository : IStudentCourseRepository
     // Lấy danh sách courseId mà học sinh đã tham gia
     public async Task<List<int>> GetEnrolledCourseIdsAsync(int studentId)
     {
-        // Lấy profile học sinh (dùng để validate tồn tại user)
         var profile = await _db.StudentProfiles!
             .AsNoTracking()
             .FirstOrDefaultAsync(sp => sp.StudentId == studentId);
@@ -54,7 +53,6 @@ public class StudentCourseRepository : IStudentCourseRepository
         if (profile == null)
             return new List<int>();
 
-        // Lấy danh sách course từ class mà học sinh đã tham gia
         return await _db.Classes!
             .Where(c => c.CourseId.HasValue)
             .Select(c => c.CourseId!.Value)
@@ -68,5 +66,14 @@ public class StudentCourseRepository : IStudentCourseRepository
         return await _db.Lessons!
             .Where(l => l.CourseId == courseId && l.IsPublished)
             .CountAsync();
+    }
+
+    // Lấy thông tin course kèm danh sách lessons đã publish
+    public async Task<Course?> GetCourseWithLessonsAsync(int courseId)
+    {
+        return await _db.Courses!
+            .Include(c => c.Lessons.Where(l => l.IsPublished)
+                .OrderBy(l => l.OrderIndex))
+            .FirstOrDefaultAsync(c => c.CourseId == courseId && c.IsPublished);
     }
 }

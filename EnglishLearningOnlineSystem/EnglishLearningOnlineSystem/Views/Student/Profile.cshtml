@@ -7,14 +7,12 @@
 
 @section Styles {
     <style>
-        /* ── Profile grid ── */
         .profile-grid {
             display: grid;
             grid-template-columns: 300px 1fr;
             gap: 24px;
         }
 
-        /* ── Left: profile card ── */
         .profile-card {
             background: var(--card);
             border-radius: var(--radius);
@@ -24,12 +22,6 @@
             text-align: center;
         }
 
-        .avatar-wrap {
-            position: relative;
-            display: inline-block;
-            margin-bottom: 16px;
-        }
-
         .avatar-img {
             width: 110px;
             height: 110px;
@@ -37,6 +29,7 @@
             object-fit: cover;
             border: 4px solid var(--sky);
             box-shadow: 0 4px 16px rgba(14,165,233,.25);
+            margin-bottom: 16px;
         }
 
         .profile-name {
@@ -73,7 +66,6 @@
             border-top: 2px solid var(--border);
             border-bottom: 2px solid var(--border);
             margin-bottom: 20px;
-            gap: 8px;
         }
 
         .stat-item .s-val {
@@ -131,7 +123,7 @@
                 margin-top: 1px;
             }
 
-        /* ── Right: edit card ── */
+        /* ── Right card ── */
         .edit-card {
             background: var(--card);
             border-radius: var(--radius);
@@ -150,8 +142,59 @@
                 gap: 8px;
             }
 
-        .form-group {
-            margin-bottom: 18px;
+        /* ── View mode ── */
+        #view-mode .view-row {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 12px 0;
+            border-bottom: 1px solid #f1f5f9;
+            font-size: .9rem;
+        }
+
+            #view-mode .view-row:last-of-type {
+                border-bottom: none;
+            }
+
+        #view-mode .vr-label {
+            font-size: .75rem;
+            font-weight: 800;
+            color: var(--muted);
+            text-transform: uppercase;
+            letter-spacing: .05em;
+            min-width: 110px;
+        }
+
+        #view-mode .vr-val {
+            font-weight: 700;
+            color: var(--text);
+        }
+
+        .btn-edit {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            background: linear-gradient(135deg,#0ea5e9,#6366f1);
+            color: #fff;
+            border: none;
+            border-radius: 12px;
+            padding: 10px 24px;
+            font-family: 'Nunito', sans-serif;
+            font-size: .9rem;
+            font-weight: 800;
+            cursor: pointer;
+            transition: opacity .15s, transform .12s;
+            margin-top: 20px;
+        }
+
+            .btn-edit:hover {
+                opacity: .9;
+                transform: translateY(-1px);
+            }
+
+        /* ── Edit mode ── */
+        #edit-mode {
+            display: none;
         }
 
         .form-label {
@@ -162,6 +205,10 @@
             letter-spacing: .05em;
             margin-bottom: 6px;
             display: block;
+        }
+
+        .form-group {
+            margin-bottom: 18px;
         }
 
         .form-control-custom {
@@ -187,46 +234,6 @@
                 opacity: .6;
                 cursor: not-allowed;
             }
-
-        .btn-save {
-            background: linear-gradient(135deg,#0ea5e9,#6366f1);
-            color: #fff;
-            border: none;
-            border-radius: 12px;
-            padding: 11px 28px;
-            font-family: 'Nunito', sans-serif;
-            font-size: .9rem;
-            font-weight: 800;
-            cursor: pointer;
-            transition: opacity .15s, transform .12s;
-        }
-
-            .btn-save:hover {
-                opacity: .9;
-                transform: translateY(-1px);
-            }
-
-        .alert-success-custom {
-            background: #f0fdf4;
-            border: 2px solid #bbf7d0;
-            border-radius: 12px;
-            padding: 12px 16px;
-            color: #15803d;
-            font-weight: 700;
-            font-size: .88rem;
-            margin-bottom: 18px;
-        }
-
-        .alert-error-custom {
-            background: #fef2f2;
-            border: 2px solid #fecaca;
-            border-radius: 12px;
-            padding: 12px 16px;
-            color: #dc2626;
-            font-weight: 700;
-            font-size: .88rem;
-            margin-bottom: 18px;
-        }
 
         .avatar-preview-wrap {
             display: flex;
@@ -263,6 +270,70 @@
                 border-color: var(--sky);
             }
 
+        .btn-row {
+            display: flex;
+            gap: 10px;
+            margin-top: 4px;
+        }
+
+        .btn-save {
+            background: linear-gradient(135deg,#0ea5e9,#6366f1);
+            color: #fff;
+            border: none;
+            border-radius: 12px;
+            padding: 10px 24px;
+            font-family: 'Nunito', sans-serif;
+            font-size: .9rem;
+            font-weight: 800;
+            cursor: pointer;
+            transition: opacity .15s, transform .12s;
+        }
+
+            .btn-save:hover {
+                opacity: .9;
+                transform: translateY(-1px);
+            }
+
+        .btn-cancel {
+            background: var(--bg);
+            color: var(--muted);
+            border: 2px solid var(--border);
+            border-radius: 12px;
+            padding: 10px 20px;
+            font-family: 'Nunito', sans-serif;
+            font-size: .9rem;
+            font-weight: 800;
+            cursor: pointer;
+            transition: border-color .15s;
+        }
+
+            .btn-cancel:hover {
+                border-color: var(--sky-d);
+                color: var(--sky-d);
+            }
+
+        .alert-success-custom {
+            background: #f0fdf4;
+            border: 2px solid #bbf7d0;
+            border-radius: 12px;
+            padding: 12px 16px;
+            color: #15803d;
+            font-weight: 700;
+            font-size: .88rem;
+            margin-bottom: 18px;
+        }
+
+        .alert-error-custom {
+            background: #fef2f2;
+            border: 2px solid #fecaca;
+            border-radius: 12px;
+            padding: 12px 16px;
+            color: #dc2626;
+            font-weight: 700;
+            font-size: .88rem;
+            margin-bottom: 18px;
+        }
+
         @@media (max-width: 992px) {
             .profile-grid {
                 grid-template-columns: 1fr;
@@ -276,10 +347,8 @@
     <!-- LEFT: Profile card -->
     <div>
         <div class="profile-card">
-            <div class="avatar-wrap">
-                <img id="avatarDisplay" src="@Model.AvatarUrl" alt="avatar" class="avatar-img"
-                     onerror="this.src='/images/default-avatar.png'" />
-            </div>
+            <img id="avatarDisplay" src="@Model.AvatarUrl" alt="avatar" class="avatar-img"
+                 onerror="this.src='/images/default-avatar.png'" />
             <div class="profile-name">@Model.Nickname</div>
             <div class="profile-username">@@@Model.Username</div>
             <div class="level-badge"> Level @Model.Level</div>
@@ -300,7 +369,7 @@
             </div>
 
             <div class="info-item">
-                <div class="i-icon">✉</div>
+                <div class="i-icon"></div>
                 <div>
                     <div class="i-val">@Model.Email</div>
                     <div class="i-lbl">Email</div>
@@ -319,10 +388,9 @@
         </div>
     </div>
 
-    <!-- RIGHT: Edit form -->
+    <!-- RIGHT: View / Edit card -->
     <div>
         <div class="edit-card">
-            <h4> Edit Profile</h4>
 
             @if (!string.IsNullOrEmpty(Model.SuccessMessage))
             {
@@ -333,65 +401,113 @@
                 <div class="alert-error-custom"> @Model.ErrorMessage</div>
             }
 
-            <form method="post" enctype="multipart/form-data">
-                @Html.AntiForgeryToken()
+            <!-- ── VIEW MODE ── -->
+            <div id="view-mode">
+                <h4> Thông tin hồ sơ</h4>
 
-                <!-- Avatar upload -->
-                <div class="form-group">
-                    <label class="form-label">Profile Photo</label>
-                    <div class="avatar-preview-wrap">
-                        <img id="avatarPreview" src="@Model.AvatarUrl" alt="preview" class="avatar-preview"
-                             onerror="this.src='/images/default-avatar.png'" />
-                        <label class="avatar-upload-btn" for="avatarFileInput">
-                             Choose photo
-                        </label>
-                        <input type="file" id="avatarFileInput" name="AvatarFile"
-                               accept="image/jpeg,image/png,image/gif,image/webp"
-                               onchange="previewAvatar(event)"
-                               style="display:none" />
-                    </div>
+                <div class="view-row">
+                    <span class="vr-label">Nickname</span>
+                    <span class="vr-val">@Model.Nickname</span>
                 </div>
-
-                <!-- Nickname -->
-                <div class="form-group">
-                    <label class="form-label" for="nicknameInput">Nickname</label>
-                    <input type="text" id="nicknameInput" name="NewNickname"
-                           class="form-control-custom" value="@Model.NewNickname"
-                           maxlength="50" placeholder="Your display name" required />
+                <div class="view-row">
+                    <span class="vr-label">Username</span>
+                    <span class="vr-val">@@@Model.Username</span>
                 </div>
-
-                <!-- Read-only fields -->
-                <div class="form-group">
-                    <label class="form-label">Username</label>
-                    <input type="text" class="form-control-custom" value="@Model.Username" disabled />
-                </div>
-                <div class="form-group">
-                    <label class="form-label">Email</label>
-                    <input type="text" class="form-control-custom" value="@Model.Email" disabled />
+                <div class="view-row">
+                    <span class="vr-label">Email</span>
+                    <span class="vr-val">@Model.Email</span>
                 </div>
                 @if (Model.BirthDate.HasValue)
                 {
-                    <div class="form-group">
-                        <label class="form-label">Date of Birth</label>
-                        <input type="text" class="form-control-custom"
-                               value="@Model.BirthDate.Value.ToString("dd/MM/yyyy")" disabled />
+                    <div class="view-row">
+                        <span class="vr-label">Ngày sinh</span>
+                        <span class="vr-val">@Model.BirthDate.Value.ToString("dd/MM/yyyy")</span>
                     </div>
                 }
+                <div class="view-row">
+                    <span class="vr-label">Cấp độ</span>
+                    <span class="vr-val">Level @Model.Level · @Model.XP XP</span>
+                </div>
 
-                <button type="submit" class="btn-save"> Save Changes</button>
-            </form>
+                <button type="button" class="btn-edit" onclick="switchToEdit()"> Chỉnh sửa</button>
+            </div>
+
+            <!-- ── EDIT MODE ── -->
+            <div id="edit-mode">
+                <h4> Chỉnh sửa hồ sơ</h4>
+
+                <form method="post" enctype="multipart/form-data">
+                    @Html.AntiForgeryToken()
+
+                    <!-- Avatar -->
+                    <div class="form-group">
+                        <label class="form-label">Ảnh đại diện</label>
+                        <div class="avatar-preview-wrap">
+                            <img id="avatarPreview" src="@Model.AvatarUrl" alt="preview" class="avatar-preview"
+                                 onerror="this.src='/images/default-avatar.png'" />
+                            <label class="avatar-upload-btn" for="avatarFileInput">
+                                 Chọn ảnh
+                            </label>
+                            <input type="file" id="avatarFileInput" name="AvatarFile"
+                                   accept="image/jpeg,image/png,image/gif,image/webp"
+                                   onchange="previewAvatar(event)"
+                                   style="display:none" />
+                        </div>
+                    </div>
+
+                    <!-- Nickname -->
+                    <div class="form-group">
+                        <label class="form-label" for="nicknameInput">Nickname</label>
+                        <input type="text" id="nicknameInput" name="NewNickname"
+                               class="form-control-custom" value="@Model.Nickname"
+                               maxlength="50" placeholder="Tên hiển thị của bạn" required />
+                    </div>
+
+                    <!-- Read-only -->
+                    <div class="form-group">
+                        <label class="form-label">Username</label>
+                        <input type="text" class="form-control-custom" value="@Model.Username" disabled />
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Email</label>
+                        <input type="text" class="form-control-custom" value="@Model.Email" disabled />
+                    </div>
+
+                    <div class="btn-row">
+                        <button type="submit" class="btn-save"> Lưu thay đổi</button>
+                        <button type="button" class="btn-cancel" onclick="switchToView()">Huỷ</button>
+                    </div>
+                </form>
+            </div>
+
         </div>
     </div>
 </div>
 
 @section Scripts {
     <script>
+        function switchToEdit() {
+            document.getElementById('view-mode').style.display = 'none';
+            document.getElementById('edit-mode').style.display = 'block';
+        }
+
+        function switchToView() {
+            document.getElementById('edit-mode').style.display = 'none';
+            document.getElementById('view-mode').style.display = 'block';
+        }
+
         function previewAvatar(event) {
             const file = event.target.files[0];
             if (!file) return;
             const url = URL.createObjectURL(file);
             document.getElementById('avatarPreview').src = url;
             document.getElementById('avatarDisplay').src = url;
+        }
+
+        // Nếu có lỗi hoặc save thành công → mở sẵn view mode
+        @if (!string.IsNullOrEmpty(Model.ErrorMessage))
+        {
+                <text>switchToEdit();</text>
         }
     </script>
 }

@@ -12,4 +12,7 @@ public interface IStudentCourseRepository
     Task<List<int>> GetEnrolledCourseIdsAsync(int studentId);
 
     Task<int> GetLessonCountAsync(int courseId);
+
+    // Lấy thông tin course kèm danh sách lessons
+    Task<Course?> GetCourseWithLessonsAsync(int courseId);
 }
