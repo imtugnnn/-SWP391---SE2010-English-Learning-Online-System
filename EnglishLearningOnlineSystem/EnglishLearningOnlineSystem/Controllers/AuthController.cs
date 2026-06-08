@@ -7,6 +7,8 @@ using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Google;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
+using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.Authentication.Cookies;
 using System.Security.Claims;
 
 namespace EnglishLearningOnlineSystem.Controllers;
@@ -16,6 +18,18 @@ public class AuthController : Controller
     private readonly IAuthService _authService;
     private readonly IPasswordResetService _passwordResetService;
     private readonly IUserRepository _userRepository;
+    
+    [HttpPost("/logout")]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> Logout()
+    {
+        HttpContext.Session.Clear();
+
+        await HttpContext.SignOutAsync(
+            CookieAuthenticationDefaults.AuthenticationScheme);
+
+        return RedirectToAction(nameof(Login));
+    }
 
     public AuthController(
         IAuthService authService,
