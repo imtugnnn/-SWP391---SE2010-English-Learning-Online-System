@@ -261,13 +261,6 @@
         <a href="/student/courses"     class="@Nav("courses")">
             <span class="nav-icon"></span><span>Khoá học</span>
         </a>
-        <a href="/student/lessons"     class="@Nav("lessons")">
-            <span class="nav-icon"></span><span>Bài học</span>
-            @if (ViewBag.PendingLessons is int p && p > 0)
-            {
-                <span class="nav-badge">@p</span>
-            }
-        </a>
         <a href="/student/vocabulary"  class="@Nav("vocabulary")">
             <span class="nav-icon"></span><span>Từ vựng</span>
         </a>

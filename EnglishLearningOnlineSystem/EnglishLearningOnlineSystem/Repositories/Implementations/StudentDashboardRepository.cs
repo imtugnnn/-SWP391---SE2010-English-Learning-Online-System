@@ -111,4 +111,23 @@ public class StudentDashboardRepository : IStudentDashboardRepository
 
         await _db.SaveChangesAsync();
     }
+
+    public async Task CreateDefaultProfileAsync(int userId)
+    {
+        var user = await _db.Users.FindAsync(userId);
+        if (user == null) return;
+
+        _db.StudentProfiles!.Add(new StudentProfile
+        {
+            StudentId = userId,
+            Nickname = user.Username,
+            AvatarUrl = "/images/default-avatar.png",
+            Level = 1,
+            XP = 0,
+            CurrentStreakDays = 0,
+            LastActiveDate = null
+        });
+
+        await _db.SaveChangesAsync();
+    }
 }

@@ -138,6 +138,7 @@ public class AuthService : IAuthService
         };
 
         await _userRepository.AddAsync(user);
+        await EnsureStudentProfileAsync(user, username, null);
 
         return AuthServiceResult.Success();
     }
@@ -167,5 +168,4 @@ public class AuthService : IAuthService
             LastActiveDate = null
         });
     }
-
 }
