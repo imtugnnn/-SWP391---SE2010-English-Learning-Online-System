@@ -19,7 +19,6 @@
         </button>
 
         <div class="user-info">
-
             <div class="user-avatar">
                 A
             </div>
@@ -28,8 +27,22 @@
                 <strong>Admin</strong>
                 <small>Administrator</small>
             </div>
-
         </div>
+
+        <form asp-controller="Auth"
+              asp-action="Logout"
+              method="post"
+              class="logout-form">
+
+            @Html.AntiForgeryToken()
+
+            <button type="submit"
+                    class="logout-btn icon-btn"
+                    aria-label="Logout">
+                🚪
+            </button>
+
+        </form>
 
     </div>
 
