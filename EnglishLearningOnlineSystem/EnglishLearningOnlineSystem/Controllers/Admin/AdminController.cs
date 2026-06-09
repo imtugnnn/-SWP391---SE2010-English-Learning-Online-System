@@ -8,4 +8,9 @@ public class AdminController : Controller
     {
         return View("AdminDashboard");
     }
-}
+    
+    public IActionResult UserManagement()
+    {
+        return View("~/Views/Admin/UserManagement/Index.cshtml");
+    }
+}   

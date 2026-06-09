@@ -21,6 +21,14 @@ public class StudentDashboardService : IStudentDashboardService
         _adaptiveService = adaptiveService;
     }
 
+    public async Task EnsureStudentProfileAsync(int userId)
+    {
+        // Lấy thông tin User để lấy Username làm Nickname mặc định
+        var profile = await _repo.GetProfileByUserIdAsync(userId);
+        if (profile != null) return; // đã có rồi, không làm gì
+
+        await _repo.CreateDefaultProfileAsync(userId);
+    }
     public async Task<StudentDashboardViewModel?> GetDashboardAsync(int userId)
     {
         var profile = await _repo.GetProfileByUserIdAsync(userId);

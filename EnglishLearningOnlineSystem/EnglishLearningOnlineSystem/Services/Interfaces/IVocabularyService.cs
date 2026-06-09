@@ -6,4 +6,7 @@ namespace EnglishLearningOnlineSystem.Services.Interfaces;
 public interface IVocabularyService
 {
     Task<VocabularyViewModel?> GetVocabularyAsync(int lessonId);
+
+    // Lấy tất cả từ vựng của học sinh gom nhóm theo bài học
+    Task<VocabularyHubViewModel> GetAllVocabularyAsync(int studentId);
 }
