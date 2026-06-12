@@ -5,30 +5,28 @@ namespace EnglishLearningOnlineSystem.ViewModels;
 
 public class RegisterViewModel
 {
-    [Required]
+    [Required(ErrorMessage = "Vui lòng nhập tên đăng nhập.")]
     [StringLength(50)]
     public string Username { get; set; } = string.Empty;
 
-    [Required]
-    [EmailAddress]
+    [Required(ErrorMessage = "Vui lòng nhập email.")]
+    [EmailAddress(ErrorMessage = "Vui lòng nhập địa chỉ email hợp lệ.")]
     [StringLength(100)]
     public string Email { get; set; } = string.Empty;
 
-    [Required]
-    [DataType(DataType.Password)]
-    [StringLength(100, MinimumLength = 6)]
+    [Required(ErrorMessage = "Vui lòng nhập mật khẩu.")]
+    [StringLength(100, MinimumLength = 6,
+        ErrorMessage = "Mật khẩu phải có ít nhất 6 ký tự.")]
     public string Password { get; set; } = string.Empty;
 
-    [Required]
-    [DataType(DataType.Password)]
-    [Compare(nameof(Password), ErrorMessage = "Passwords do not match.")]
+    [Required(ErrorMessage = "Vui lòng xác nhận mật khẩu.")]
+    [Compare(nameof(Password), ErrorMessage = "Mật khẩu không khớp")]
     public string ConfirmPassword { get; set; } = string.Empty;
 
-    [Required]
-    [DataType(DataType.Date)]
+    [Required(ErrorMessage = "Vui lòng chọn ngày sinh.")]
     public DateTime? BirthDate { get; set; }
 
-    [Required]
+    [Required(ErrorMessage = "Vui lòng chọn vai trò.")]
     public int RoleId { get; set; }
 
     public List<SelectListItem> RoleOptions { get; set; } = new();

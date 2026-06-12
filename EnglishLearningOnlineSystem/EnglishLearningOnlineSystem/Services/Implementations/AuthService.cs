@@ -24,17 +24,17 @@ public class AuthService : IAuthService
 
         if (user == null)
         {
-            return AuthServiceResult.Failure((nameof(model.Email), "Email is not registered."));
+            return AuthServiceResult.Failure((nameof(model.Email), "Email chưa được đăng ký."));
         }
 
         if (!user.IsActive)
         {
-            return AuthServiceResult.Failure((string.Empty, "Your account is inactive. Please contact support."));
+            return AuthServiceResult.Failure((string.Empty, "Tài khoản của bạn đã bị vô hiệu hóa. Vui lòng liên hệ quản trị viên."));
         }
 
         if (!BCrypt.Net.BCrypt.Verify(model.Password, user.Password))
         {
-            return AuthServiceResult.Failure((nameof(model.Password), "Password is incorrect."));
+            return AuthServiceResult.Failure((nameof(model.Password), "Mật khẩu không chính xác."));
         }
 
         return AuthServiceResult.Success();
@@ -49,14 +49,14 @@ public class AuthService : IAuthService
         {
             if (!user.IsActive)
             {
-                return (AuthServiceResult.Failure((string.Empty, "Your account is inactive. Please contact support.")), null);
+                return (AuthServiceResult.Failure((string.Empty, "Tài khoản của bạn đã bị vô hiệu hóa. Vui lòng liên hệ quản trị viên.")), null);
             }
 
             await EnsureStudentProfileAsync(user, displayName, avatarUrl);
             return (AuthServiceResult.Success(), user);
         }
 
-        return (AuthServiceResult.Failure((string.Empty, "Please complete your Google account setup.")), null);
+        return (AuthServiceResult.Failure((string.Empty, "Vui lòng hoàn tất thông tin tài khoản để tiếp tục.")), null);
     }
 
     public async Task<(AuthServiceResult Result, User? User)> CompleteGoogleLoginAsync(GoogleLoginCompletionViewModel model, string? displayName, string? avatarUrl)
@@ -67,17 +67,17 @@ public class AuthService : IAuthService
 
         if (await _roleRepository.FindRegistrationRoleAsync(model.RoleId) == null)
         {
-            errors.Add((nameof(model.RoleId), "Please choose Student or Parent."));
+            errors.Add((nameof(model.RoleId), "Vui lòng chọn vai trò."));
         }
 
         if (await _userRepository.UsernameExistsAsync(username))
         {
-            errors.Add((nameof(model.Username), "Username is already taken."));
+            errors.Add((nameof(model.Username), "Tên đăng nhập đã tồn tại."));
         }
 
         if (await _userRepository.EmailExistsAsync(email))
         {
-            errors.Add((nameof(model.Email), "Email is already registered. Please use the normal Google login button."));
+            errors.Add((nameof(model.Email), "Email đã được đăng ký. Vui lòng sử dụng chức năng Đăng nhập bằng Google."));
         }
 
         if (errors.Count > 0)
@@ -109,17 +109,17 @@ public class AuthService : IAuthService
 
         if (await _roleRepository.FindRegistrationRoleAsync(model.RoleId) == null)
         {
-            errors.Add((nameof(model.RoleId), "Please choose Student or Parent."));
+            errors.Add((nameof(model.RoleId), "Vui lòng chọn vai trò."));
         }
 
         if (await _userRepository.UsernameExistsAsync(username))
         {
-            errors.Add((nameof(model.Username), "Username is already taken."));
+            errors.Add((nameof(model.Username), "Tên đăng nhập đã tồn tại."));
         }
 
         if (await _userRepository.EmailExistsAsync(email))
         {
-            errors.Add((nameof(model.Email), "Email is already registered."));
+            errors.Add((nameof(model.Email), "Email đã được đăng ký."));
         }
 
         if (errors.Count > 0)
