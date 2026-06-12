@@ -4,10 +4,10 @@ namespace EnglishLearningOnlineSystem.ViewModels;
 
 public class LoginViewModel
 {
-    [Required(ErrorMessage = "Please enter your email.")]
-    [EmailAddress(ErrorMessage = "Please enter a valid email address.")]
+    [Required(ErrorMessage = "Vui lòng nhập email.")]
+    [EmailAddress(ErrorMessage = "Vui lòng nhập địa chỉ email hợp lệ.")]
     public string Email { get; set; } = string.Empty;
 
-    [Required(ErrorMessage = "Please enter your password.")]
+    [Required(ErrorMessage = "Vui lòng nhập mật khẩu.")]
     public string Password { get; set; } = string.Empty;
 }

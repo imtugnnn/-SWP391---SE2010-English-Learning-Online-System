@@ -90,7 +90,9 @@ public class AuthController : Controller
         var email = User.FindFirstValue(ClaimTypes.Email);
         if (string.IsNullOrWhiteSpace(email))
         {
-            ModelState.AddModelError(string.Empty, "Google did not return an email address.");
+            ModelState.AddModelError(
+                string.Empty,
+                "Không thể lấy địa chỉ email từ tài khoản Google.");
             return View(nameof(Login), new LoginViewModel());
         }
 
@@ -228,11 +230,11 @@ public class AuthController : Controller
         }
         catch
         {
-            ModelState.AddModelError(string.Empty, "Could not send the password reset email. Please check SMTP settings and try again.");
+            ModelState.AddModelError(string.Empty, "Không thể gửi email đặt lại mật khẩu. Vui lòng thử lại sau.");
             return View(model);
         }
 
-        ViewBag.Message = "If this email exists, a password reset link has been sent.";
+        ViewBag.Message = "Nếu email tồn tại trong hệ thống, liên kết đặt lại mật khẩu đã được gửi.";
         return View(new ForgotPasswordViewModel());
     }
 
@@ -262,7 +264,7 @@ public class AuthController : Controller
             return ViewWithErrors(model, result);
         }
 
-        TempData["Message"] = "Your password has been reset. Please log in with your new password.";
+        TempData["Message"] = "Mật khẩu đã được đặt lại thành công. Vui lòng đăng nhập bằng mật khẩu mới.";
         return RedirectToAction(nameof(Login));
     }
 
@@ -303,7 +305,7 @@ public class AuthController : Controller
     {
         return user?.RoleId switch
         {
-            1 => RedirectToAction(nameof(StudentController.Dashboard), "Student"),
+            1 => RedirectToAction(nameof(StudentController.Onboarding), "Student"),
             2 => RedirectToAction(nameof(AdminController.Dashboard), "Admin"),
             _ => RedirectToAction(nameof(HomeController.Homepage), "Home")
         };
