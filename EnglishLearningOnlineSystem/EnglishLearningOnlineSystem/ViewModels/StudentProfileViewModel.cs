@@ -11,6 +11,7 @@ public class StudentProfileViewModel
     // Thông tin hồ sơ
     public string Nickname { get; set; } = "";
     public string AvatarUrl { get; set; } = "";
+    public string? StudentCode { get; set; }
 
     // Thống kê học tập
     public int Level { get; set; }

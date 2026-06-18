@@ -161,11 +161,35 @@ public class AuthService : IAuthService
         {
             StudentId = user.Id,
             Nickname = string.IsNullOrWhiteSpace(displayName) ? user.Username : displayName.Trim(),
+            StudentCode = await GenerateStudentCodeAsync(),
             AvatarUrl = string.IsNullOrWhiteSpace(trimmedAvatarUrl) ? "/images/default-avatar.png" : trimmedAvatarUrl[..Math.Min(trimmedAvatarUrl.Length, 500)],
             Level = 1,
             XP = 0,
             CurrentStreakDays = 0,
             LastActiveDate = null
         });
+    }
+
+    private async Task<string> GenerateStudentCodeAsync()
+    {
+        const string chars = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
+
+        for (var attempt = 0; attempt < 20; attempt++)
+        {
+            var buffer = new char[6];
+            var bytes = System.Security.Cryptography.RandomNumberGenerator.GetBytes(6);
+            for (var i = 0; i < 6; i++)
+            {
+                buffer[i] = chars[bytes[i] % chars.Length];
+            }
+
+            var code = "STU-" + new string(buffer);
+            if (!await _userRepository.StudentCodeExistsAsync(code))
+            {
+                return code;
+            }
+        }
+
+        return "STU-" + Guid.NewGuid().ToString("N")[..6].ToUpper();
     }
 }

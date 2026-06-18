@@ -15,4 +15,7 @@ public interface IUserRepository
     Task DeleteAsync(User user);
 
     Task AddStudentProfileAsync(StudentProfile studentProfile);
+
+    Task<StudentProfile?> FindStudentProfileByCodeAsync(string studentCode);
+    Task<bool> StudentCodeExistsAsync(string studentCode);
 }

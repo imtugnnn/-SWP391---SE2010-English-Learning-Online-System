@@ -29,6 +29,9 @@ builder.Services.AddScoped<IPasswordResetService, PasswordResetService>();
 builder.Services.AddScoped<IUserService, UserService>();
 builder.Services.AddScoped<IRoleService, RoleService>();
 
+builder.Services.AddScoped<IParentStudentLinkRepository, ParentStudentLinkRepository>();
+builder.Services.AddScoped<IParentStudentLinkService, ParentStudentLinkService>();
+
 builder.Services.AddScoped<IStudentDashboardRepository, StudentDashboardRepository>();
 builder.Services.AddScoped<IStudentDashboardService, StudentDashboardService>();
 builder.Services.AddScoped<IStudentProfileRepository, StudentProfileRepository>();

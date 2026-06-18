@@ -25,6 +25,7 @@ public class StudentProfileService : IStudentProfileService
             BirthDate = user.BirthDate,
             Nickname = profile.Nickname ?? user.Username,
             AvatarUrl = profile.AvatarUrl ?? "/images/default-avatar.png",
+            StudentCode = profile.StudentCode,
             Level = profile.Level,
             XP = profile.XP,
             CurrentStreakDays = profile.CurrentStreakDays,

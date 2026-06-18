@@ -40,6 +40,8 @@ public class AppDbContext : Microsoft.EntityFrameworkCore.DbContext
     public DbSet<FlashcardSession> FlashcardSessions { get; set; }
     public DbSet<FlashcardCardResult> FlashcardCardResults { get; set; }
 
+    public DbSet<ParentStudentLink> ParentStudentLinks { get; set; }
+
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         base.OnModelCreating(modelBuilder);
@@ -201,6 +203,34 @@ public class AppDbContext : Microsoft.EntityFrameworkCore.DbContext
                   .WithMany()
                   .HasForeignKey(cr => cr.VocabularyId)
                   .OnDelete(DeleteBehavior.Restrict);
+            });
+        }
+        catch { }
+
+        try
+        {
+            modelBuilder.Entity<StudentProfile>()
+                .HasIndex(s => s.StudentCode)
+                .IsUnique()
+                .HasFilter("[StudentCode] IS NOT NULL");
+        }
+        catch { }
+
+        try
+        {
+            modelBuilder.Entity<ParentStudentLink>(eb =>
+            {
+                eb.HasOne(l => l.Parent)
+                  .WithMany()
+                  .HasForeignKey(l => l.ParentId)
+                  .OnDelete(DeleteBehavior.Cascade);
+
+                eb.HasOne(l => l.Student)
+                  .WithMany()
+                  .HasForeignKey(l => l.StudentId)
+                  .OnDelete(DeleteBehavior.Restrict);
+
+                eb.HasIndex(l => new { l.ParentId, l.StudentId }).IsUnique();
             });
         }
         catch { }

@@ -1,0 +1,115 @@
+@model List<EnglishLearningOnlineSystem.ViewModels.LinkedStudentItem>
+
+@{
+    Layout = "_ParentLayout";
+    ViewData["Title"] = "Bảng điều khiển";
+    ViewData["Subtitle"] = "Tổng quan tình hình học tập của con bạn.";
+    ViewData["ActiveNav"] = "dashboard";
+}
+
+@section Styles {
+    <style>
+        .dash-empty {
+            background: #fff; border-radius: 20px;
+            box-shadow: 0 4px 20px rgba(15,23,42,.06);
+            padding: 48px 32px; text-align: center;
+        }
+        .dash-empty-icon { font-size: 3rem; margin-bottom: 12px; }
+        .dash-empty-title { font-size: 1.3rem; font-weight: 900; color: #1e293b; margin-bottom: 8px; }
+        .dash-empty-desc { color: #64748b; font-weight: 600; margin-bottom: 22px; }
+        .btn-link-now {
+            display: inline-block; background: #2563eb; color: #fff;
+            padding: 13px 28px; border-radius: 14px;
+            font-weight: 800; text-decoration: none; transition: background .15s;
+        }
+        .btn-link-now:hover { background: #1d4ed8; color: #fff; }
+
+        .child-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 22px; }
+        .child-card {
+            background: #fff; border-radius: 20px;
+            box-shadow: 0 4px 20px rgba(15,23,42,.06);
+            padding: 24px;
+        }
+        .child-head { display: flex; align-items: center; gap: 16px; margin-bottom: 18px; }
+        .child-avatar {
+            width: 60px; height: 60px; border-radius: 50%;
+            background: #fce7f3; display: flex; align-items: center; justify-content: center;
+            font-size: 1.8rem; flex-shrink: 0;
+        }
+        .child-name { font-size: 1.2rem; font-weight: 900; color: #1e293b; }
+        .child-rel { color: #64748b; font-weight: 600; font-size: .88rem; }
+        .child-stats { display: flex; justify-content: space-between; padding: 16px 0; border-top: 1px solid #f1f5f9; }
+        .child-stat { text-align: center; flex: 1; }
+        .child-stat-val { font-size: 1.4rem; font-weight: 900; }
+        .child-stat-lbl { font-size: .72rem; color: #64748b; font-weight: 700; margin-top: 2px; }
+        .cs-streak { color: #ea580c; }
+        .cs-xp { color: #d97706; }
+        .cs-level { color: #7c3aed; }
+        .child-actions { margin-top: 14px; }
+        .btn-report {
+            display: block; text-align: center;
+            background: #f1f5f9; color: #2563eb;
+            padding: 10px; border-radius: 12px;
+            font-weight: 800; text-decoration: none; font-size: .9rem;
+            transition: background .15s;
+        }
+        .btn-report:hover { background: #e2e8f0; color: #1d4ed8; }
+        .dash-bar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+        .dash-bar-title { font-size: 1.2rem; font-weight: 900; color: #1e293b; }
+        .btn-add-child {
+            background: #2563eb; color: #fff; padding: 10px 18px;
+            border-radius: 12px; font-weight: 800; text-decoration: none; font-size: .9rem;
+            transition: background .15s;
+        }
+        .btn-add-child:hover { background: #1d4ed8; color: #fff; }
+    </style>
+}
+
+@if (!Model.Any())
+{
+    <div class="dash-empty">
+        <div class="dash-empty-icon">👨‍👩‍👧</div>
+        <div class="dash-empty-title">Bạn chưa liên kết với học sinh nào</div>
+        <div class="dash-empty-desc">Hãy liên kết tài khoản với hồ sơ học tập của con để bắt đầu theo dõi.</div>
+        <a href="/Parent" class="btn-link-now">🔗 Liên kết con ngay</a>
+    </div>
+}
+else
+{
+    <div class="dash-bar">
+        <div class="dash-bar-title">Con của bạn (@Model.Count)</div>
+        <a href="/Parent" class="btn-add-child">+ Liên kết thêm con</a>
+    </div>
+
+    <div class="child-grid">
+        @foreach (var child in Model)
+        {
+            <div class="child-card">
+                <div class="child-head">
+                    <div class="child-avatar">👧</div>
+                    <div>
+                        <div class="child-name">@(string.IsNullOrWhiteSpace(child.Nickname) ? child.Username : child.Nickname)</div>
+                        <div class="child-rel">@(child.Relationship ?? "Phụ huynh") · @child.Email</div>
+                    </div>
+                </div>
+                <div class="child-stats">
+                    <div class="child-stat">
+                        <div class="child-stat-val cs-streak">@child.CurrentStreakDays</div>
+                        <div class="child-stat-lbl">Streak</div>
+                    </div>
+                    <div class="child-stat">
+                        <div class="child-stat-val cs-xp">@child.XP</div>
+                        <div class="child-stat-lbl">XP</div>
+                    </div>
+                    <div class="child-stat">
+                        <div class="child-stat-val cs-level">@child.Level</div>
+                        <div class="child-stat-lbl">Cấp độ</div>
+                    </div>
+                </div>
+                <div class="child-actions">
+                    <a href="/Parent/Reports" class="btn-report">📊 Xem báo cáo học tập</a>
+                </div>
+            </div>
+        }
+    </div>
+}

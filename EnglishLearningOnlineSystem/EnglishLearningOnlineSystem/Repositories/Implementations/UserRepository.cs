@@ -74,4 +74,19 @@ public class UserRepository : IUserRepository
         _context.StudentProfiles!.Add(studentProfile);
         await _context.SaveChangesAsync();
     }
+
+    public Task<StudentProfile?> FindStudentProfileByCodeAsync(string studentCode)
+    {
+        var normalized = studentCode.Trim().ToUpper();
+        return _context.StudentProfiles!
+            .Include(p => p.User)
+            .FirstOrDefaultAsync(p => p.StudentCode != null && p.StudentCode.ToUpper() == normalized);
+    }
+
+    public Task<bool> StudentCodeExistsAsync(string studentCode)
+    {
+        var normalized = studentCode.Trim().ToUpper();
+        return _context.StudentProfiles!
+            .AnyAsync(p => p.StudentCode != null && p.StudentCode.ToUpper() == normalized);
+    }
 }

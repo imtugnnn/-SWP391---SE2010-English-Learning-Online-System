@@ -40,12 +40,24 @@ public static class DbInitializer
         {
             StudentId = studentUser.Id,
             Nickname = "Student 01",
+            StudentCode = "STU-DEMO01",
             AvatarUrl = "/images/default-avatar.png",
             Level = 3,
             XP = 420,
             CurrentStreakDays = 5,
             LastActiveDate = DateTime.Now
         });
+        await context.SaveChangesAsync();
+
+        var parentUser = new User
+        {
+            Username = "parent01",
+            Email = "parent@english.com",
+            Password = BCrypt.Net.BCrypt.HashPassword("123456"),
+            IsActive = true,
+            RoleId = 4
+        };
+        context.Users.Add(parentUser);
         await context.SaveChangesAsync();
 
         // ── Teacher ───────────────────────────────────────────────────────────

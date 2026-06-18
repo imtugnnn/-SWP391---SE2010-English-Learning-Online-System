@@ -1,0 +1,217 @@
+@model EnglishLearningOnlineSystem.ViewModels.ParentLinkPageViewModel
+
+@{
+    Layout = "_ParentLayout";
+    ViewData["Title"] = "Liên kết con";
+    ViewData["Subtitle"] = "Kết nối tài khoản của bạn với hồ sơ học tập của con bạn.";
+    ViewData["ActiveNav"] = "link";
+    var verified = Model.VerifiedStudent;
+}
+
+@section Styles {
+    <style>
+        .link-grid { display: grid; grid-template-columns: 1.2fr 1fr; gap: 26px; align-items: start; }
+        .link-head { display: flex; align-items: flex-start; gap: 16px; margin-bottom: 22px; }
+        .link-head-icon {
+            width: 56px; height: 56px; border-radius: 16px;
+            background: #dbeafe; color: #2563eb;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 1.6rem; flex-shrink: 0;
+        }
+        .link-head-title { font-size: 1.4rem; font-weight: 900; color: #1e293b; }
+        .link-head-desc { color: #64748b; font-size: .95rem; margin-top: 4px; }
+
+        .code-input {
+            width: 100%; padding: 16px 18px;
+            border: 1.5px solid #e2e8f0; border-radius: 14px;
+            font-size: 1rem; font-weight: 600; font-family: 'Nunito', sans-serif;
+            margin-bottom: 16px;
+        }
+        .code-input:focus { outline: none; border-color: #2563eb; box-shadow: 0 0 0 3px rgba(37,99,235,.12); }
+
+        .btn-verify {
+            width: 100%; padding: 15px;
+            background: #2563eb; color: #fff;
+            border: none; border-radius: 14px;
+            font-size: 1.05rem; font-weight: 800; cursor: pointer;
+            transition: background .15s;
+        }
+        .btn-verify:hover { background: #1d4ed8; }
+
+        .btn-link {
+            width: 100%; padding: 15px;
+            background: #16a34a; color: #fff;
+            border: none; border-radius: 14px;
+            font-size: 1.05rem; font-weight: 800; cursor: pointer;
+            transition: background .15s;
+        }
+        .btn-link:hover { background: #15803d; }
+
+        .verify-sep { display: flex; align-items: center; justify-content: center; margin: 22px 0; }
+        .verify-check {
+            width: 34px; height: 34px; border-radius: 50%;
+            background: #16a34a; color: #fff;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 1.1rem;
+        }
+
+        .student-card {
+            background: #f0fdf4; border: 1.5px solid #bbf7d0;
+            border-radius: 16px; padding: 20px;
+            display: flex; align-items: center; gap: 18px; margin-bottom: 20px;
+        }
+        .student-avatar {
+            width: 70px; height: 70px; border-radius: 50%;
+            background: #fce7f3; object-fit: cover; flex-shrink: 0;
+            display: flex; align-items: center; justify-content: center; font-size: 2rem;
+        }
+        .student-name { font-size: 1.3rem; font-weight: 900; color: #1e293b; }
+        .student-meta { display: flex; gap: 20px; color: #64748b; font-weight: 600; font-size: .92rem; margin: 6px 0; }
+        .student-verified { color: #16a34a; font-weight: 800; font-size: .92rem; display: flex; align-items: center; gap: 6px; }
+
+        .help-card { background: #fff; border-radius: 20px; box-shadow: 0 4px 20px rgba(15,23,42,.06); padding: 28px; }
+        .help-head { display: flex; align-items: center; gap: 14px; margin-bottom: 22px; }
+        .help-head-icon {
+            width: 46px; height: 46px; border-radius: 13px;
+            background: #ede9fe; color: #7c3aed;
+            display: flex; align-items: center; justify-content: center; font-size: 1.3rem;
+        }
+        .help-head-title { font-size: 1.15rem; font-weight: 900; color: #1e293b; }
+        .help-item { display: flex; gap: 14px; padding: 14px 0; border-bottom: 1px solid #f1f5f9; align-items: flex-start; }
+        .help-item:last-child { border-bottom: none; }
+        .help-item-icon {
+            width: 40px; height: 40px; border-radius: 11px;
+            display: flex; align-items: center; justify-content: center; font-size: 1.1rem; flex-shrink: 0;
+        }
+        .help-item-text { color: #475569; font-weight: 600; font-size: .95rem; line-height: 1.45; }
+
+        .linked-table { width: 100%; border-collapse: collapse; margin-top: 14px; }
+        .linked-table th { text-align: left; color: #64748b; font-size: .85rem; padding: 10px 12px; border-bottom: 2px solid #e2e8f0; }
+        .linked-table td { padding: 12px; border-bottom: 1px solid #f1f5f9; font-weight: 600; }
+
+        @@media (max-width: 992px) { .link-grid { grid-template-columns: 1fr; } }
+    </style>
+}
+
+@if (TempData["Message"] != null)
+{
+    <div class="alert alert-success" style="border-radius:14px; font-weight:700;">@TempData["Message"]</div>
+}
+
+<div class="link-grid">
+    <div class="p-card">
+        <div class="link-head">
+            <div class="link-head-icon">🔗</div>
+            <div>
+                <div class="link-head-title">Mã học sinh / Mã mời</div>
+                <div class="link-head-desc">Nhập mã do giáo viên hoặc nhà trường cung cấp để liên kết hồ sơ học tập của con bạn.</div>
+            </div>
+        </div>
+
+        <div asp-validation-summary="ModelOnly" class="text-danger mb-2"></div>
+
+        <form asp-action="Verify" method="post">
+            <input asp-for="StudentCode" class="code-input" placeholder="Nhập mã tại đây" autocomplete="off" />
+            <span asp-validation-for="StudentCode" class="text-danger d-block mb-2"></span>
+            <button type="submit" class="btn-verify">Xác minh mã</button>
+        </form>
+
+        @if (verified != null)
+        {
+            <div class="verify-sep">
+                <div class="verify-check">✓</div>
+            </div>
+
+            <div class="student-card">
+                <div class="student-avatar">👧</div>
+                <div>
+                    <div class="student-name">@verified.DisplayName</div>
+                    <div class="student-meta">
+                        <span>🎓 Cấp @verified.Level</span>
+                        @if (!string.IsNullOrWhiteSpace(verified.ClassName))
+                        {
+                            <span>👥 @verified.ClassName</span>
+                        }
+                    </div>
+                    <div class="student-verified">✓ Mã đã được xác minh</div>
+                </div>
+            </div>
+
+            <form asp-action="Link" method="post">
+                <input type="hidden" asp-for="StudentCode" value="@verified.StudentCode" />
+                <div class="form-group mb-3">
+                    <select asp-for="Relationship" class="code-input" style="margin-bottom:0;">
+                        <option value="">-- Chọn quan hệ (tuỳ chọn) --</option>
+                        <option value="Bố">Bố</option>
+                        <option value="Mẹ">Mẹ</option>
+                        <option value="Người giám hộ">Người giám hộ</option>
+                    </select>
+                </div>
+                <button type="submit" class="btn-link">Liên kết tài khoản</button>
+            </form>
+        }
+    </div>
+
+    <div class="help-card">
+        <div class="help-head">
+            <div class="help-head-icon">?</div>
+            <div class="help-head-title">Tôi có thể tìm mã ở đâu?</div>
+        </div>
+
+        <div class="help-item">
+            <div class="help-item-icon" style="background:#dbeafe; color:#2563eb;">✉</div>
+            <div class="help-item-text">Kiểm tra email do giáo viên hoặc nhà trường gửi.</div>
+        </div>
+        <div class="help-item">
+            <div class="help-item-icon" style="background:#ede9fe; color:#7c3aed;">📋</div>
+            <div class="help-item-text">Hỏi giáo viên của con bạn để nhận mã học sinh hoặc mã mời.</div>
+        </div>
+        <div class="help-item">
+            <div class="help-item-icon" style="background:#fef3c7; color:#d97706;">🏫</div>
+            <div class="help-item-text">Mã thường được cung cấp vào đầu khóa học hoặc năm học.</div>
+        </div>
+    </div>
+</div>
+
+@if (Model.LinkedStudents.Any())
+{
+    <div class="p-card" style="margin-top:26px;">
+        <div class="help-head-title" style="margin-bottom:6px;">Học sinh đã liên kết</div>
+        <table class="linked-table">
+            <thead>
+                <tr>
+                    <th>Học sinh</th>
+                    <th>Mã</th>
+                    <th>Quan hệ</th>
+                    <th>Cấp độ</th>
+                    <th>XP</th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var item in Model.LinkedStudents)
+                {
+                    <tr>
+                        <td>@(string.IsNullOrWhiteSpace(item.Nickname) ? item.Username : item.Nickname)</td>
+                        <td>@item.StudentCode</td>
+                        <td>@(item.Relationship ?? "-")</td>
+                        <td>@item.Level</td>
+                        <td>@item.XP</td>
+                        <td>
+                            <form asp-action="Unlink" method="post" onsubmit="return confirm('Hủy liên kết với học sinh này?');" style="margin:0;">
+                                <input type="hidden" name="linkId" value="@item.LinkId" />
+                                <button type="submit" class="btn btn-sm btn-outline-danger">Hủy liên kết</button>
+                            </form>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+}
+
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+}

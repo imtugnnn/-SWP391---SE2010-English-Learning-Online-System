@@ -11,6 +11,10 @@ namespace EnglishLearningOnlineSystem.Models
 
         [MaxLength(255)]
         public string Nickname { get; set; }
+
+        [MaxLength(20)]
+        public string? StudentCode { get; set; }
+
         public int Level { get; set; } = 1;
         public int XP { get; set; } = 0;
         public int CurrentStreakDays { get; set; } = 0;
