@@ -105,4 +105,105 @@ public class ParentStudentLinkService : IParentStudentLinkService
         await _linkRepo.DeleteAsync(link);
         return UserServiceResult<object>.Ok(null);
     }
+
+    public async Task<ParentDashboardViewModel> BuildDashboardAsync(int parentId, int? selectedStudentId)
+    {
+        var vm = new ParentDashboardViewModel();
+
+        try
+        {
+            var links = await _linkRepo.GetByParentIdAsync(parentId);
+
+            if (!links.Any())
+            {
+                vm.HasLinkedChildren = false;
+                return vm;
+            }
+
+            vm.HasLinkedChildren = true;
+
+            var targetId = selectedStudentId ?? links.First().StudentId;
+            if (links.All(l => l.StudentId != targetId))
+            {
+                targetId = links.First().StudentId;
+            }
+
+            vm.SelectedStudentId = targetId;
+            vm.Children = links.Select(l => new ChildOption
+            {
+                StudentId = l.StudentId,
+                DisplayName = string.IsNullOrWhiteSpace(l.Student?.Nickname)
+                    ? l.Student?.User?.Username ?? "Học sinh"
+                    : l.Student!.Nickname,
+                AvatarUrl = l.Student?.AvatarUrl,
+                Relationship = l.Relationship,
+                IsSelected = l.StudentId == targetId
+            }).ToList();
+
+            var profile = await _linkRepo.GetLinkedStudentProfileAsync(parentId, targetId);
+            if (profile == null)
+            {
+                vm.HasLinkedChildren = false;
+                return vm;
+            }
+
+            var lessonsCompleted = await _linkRepo.CountCompletedLessonsAsync(targetId);
+            var badges = await _linkRepo.CountBadgesAsync(targetId);
+            var avgScore = await _linkRepo.GetAverageQuizScoreAsync(targetId);
+            var recentProgress = await _linkRepo.GetRecentProgressAsync(targetId, 5);
+            var upcoming = await _linkRepo.GetUpcomingAssignmentsAsync(5);
+            var recentBadges = await _linkRepo.GetRecentBadgesAsync(targetId, 3);
+
+            var overview = new ChildLearningOverview
+            {
+                DisplayName = string.IsNullOrWhiteSpace(profile.Nickname)
+                    ? profile.User?.Username ?? "Học sinh"
+                    : profile.Nickname,
+                Username = profile.User?.Username ?? string.Empty,
+                AvatarUrl = profile.AvatarUrl,
+                StudentCode = profile.StudentCode,
+                Level = profile.Level,
+                XP = profile.XP,
+                CurrentStreakDays = profile.CurrentStreakDays,
+                LastActiveDate = profile.LastActiveDate,
+                LessonsCompleted = lessonsCompleted,
+                BadgesEarned = badges,
+                AverageQuizScore = avgScore.HasValue ? (int)Math.Round(avgScore.Value) : 0,
+                RecentActivities = recentProgress.Select(p => new ParentRecentActivity
+                {
+                    LessonTitle = p.Lesson?.Title ?? "Bài học",
+                    QuizScore = p.QuizScore,
+                    XPEarned = p.XPEarned,
+                    CompletionStatus = p.CompletionStatus,
+                    CompletedAt = p.CompletedAt
+                }).ToList(),
+                UpcomingTasks = upcoming.Select(wa => new ParentUpcomingTask
+                {
+                    LessonTitle = wa.Lesson?.Title ?? "Bài học",
+                    Topic = wa.Lesson?.Topic ?? string.Empty,
+                    XPReward = wa.Lesson?.XPReward ?? 0,
+                    DueDate = wa.DueDate
+                }).ToList(),
+                RecentBadges = recentBadges.Select(sb => new ParentBadgeItem
+                {
+                    BadgeName = sb.Badge?.BadgeName ?? "Huy hiệu",
+                    IconUrl = sb.Badge?.IconUrl,
+                    EarnedAt = sb.EarnedAt
+                }).ToList()
+            };
+
+            overview.HasLearningData = lessonsCompleted > 0
+                || avgScore.HasValue
+                || overview.RecentActivities.Any()
+                || profile.XP > 0;
+
+            vm.Overview = overview;
+            return vm;
+        }
+        catch
+        {
+            vm.LoadFailed = true;
+            return vm;
+        }
+    }
 }

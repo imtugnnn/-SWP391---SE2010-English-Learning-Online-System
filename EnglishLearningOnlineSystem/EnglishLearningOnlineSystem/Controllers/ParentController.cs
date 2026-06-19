@@ -15,7 +15,7 @@ public class ParentController : Controller
         _linkService = linkService;
     }
 
-    public async Task<IActionResult> Dashboard()
+    public async Task<IActionResult> Dashboard(int? studentId)
     {
         var parentId = GetCurrentParentId();
         if (parentId == null)
@@ -23,8 +23,8 @@ public class ParentController : Controller
             return RedirectToAction("Login", "Auth");
         }
 
-        var result = await _linkService.GetLinkedStudentsAsync(parentId.Value);
-        return View(result.Data ?? new List<LinkedStudentItem>());
+        var vm = await _linkService.BuildDashboardAsync(parentId.Value, studentId);
+        return View(vm);
     }
 
     public async Task<IActionResult> Index()
