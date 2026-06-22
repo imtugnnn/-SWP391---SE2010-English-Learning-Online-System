@@ -27,6 +27,18 @@ public class ParentController : Controller
         return View(vm);
     }
 
+    public async Task<IActionResult> Reports(int? studentId, string? period, DateTime? fromDate, DateTime? toDate)
+    {
+        var parentId = GetCurrentParentId();
+        if (parentId == null)
+        {
+            return RedirectToAction("Login", "Auth");
+        }
+
+        var vm = await _linkService.BuildReportAsync(parentId.Value, studentId, period, fromDate, toDate);
+        return View(vm);
+    }
+
     public async Task<IActionResult> Index()
     {
         var parentId = GetCurrentParentId();

@@ -251,5 +251,24 @@ public static class DbInitializer
             EarnedAt = DateTime.Now
         });
         await context.SaveChangesAsync();
+
+        context.QuizAttempts!.AddRange(
+            new QuizAttempt { StudentId = studentUser.Id, LessonId = lesson2.LessonId, StartedAt = DateTime.Now.AddDays(-2), SubmittedAt = DateTime.Now.AddDays(-2).AddMinutes(6), TotalQuestions = 5, CorrectCount = 4, Score = 80, TimeSpentSec = 360, XpAwarded = true },
+            new QuizAttempt { StudentId = studentUser.Id, LessonId = lesson3.LessonId, StartedAt = DateTime.Now.AddDays(-3), SubmittedAt = DateTime.Now.AddDays(-3).AddMinutes(4), TotalQuestions = 5, CorrectCount = 3, Score = 60, TimeSpentSec = 240, XpAwarded = true },
+            new QuizAttempt { StudentId = studentUser.Id, LessonId = lesson4.LessonId, StartedAt = DateTime.Now.AddDays(-1), SubmittedAt = DateTime.Now.AddDays(-1).AddMinutes(7), TotalQuestions = 6, CorrectCount = 5, Score = 83, TimeSpentSec = 420, XpAwarded = true }
+        );
+        await context.SaveChangesAsync();
+
+        context.Progresses!.AddRange(
+            new Progress { StudentId = studentUser.Id, LessonId = lesson2.LessonId, CompletionStatus = "Completed", QuizScore = 80, XPEarned = 50, CompletedAt = DateTime.Now.AddDays(-2), IsBestAttempt = true },
+            new Progress { StudentId = studentUser.Id, LessonId = lesson4.LessonId, CompletionStatus = "Completed", QuizScore = 83, XPEarned = 60, CompletedAt = DateTime.Now.AddDays(-1), IsBestAttempt = true }
+        );
+        await context.SaveChangesAsync();
+
+        context.TeacherFeedbacks!.AddRange(
+            new TeacherFeedback { TeacherId = teacherUser.Id, StudentId = studentUser.Id, Content = "Con học rất chăm chỉ và tiến bộ tốt ở phần từ vựng động vật. Hãy tiếp tục phát huy nhé!", IsRead = false, CreateAt = DateTime.Now.AddDays(-2) },
+            new TeacherFeedback { TeacherId = teacherUser.Id, StudentId = studentUser.Id, Content = "Phần Numbers cần luyện thêm. Con nên ôn lại các số từ 11-20 để làm bài tốt hơn.", IsRead = false, CreateAt = DateTime.Now.AddDays(-1) }
+        );
+        await context.SaveChangesAsync();
     }
 }

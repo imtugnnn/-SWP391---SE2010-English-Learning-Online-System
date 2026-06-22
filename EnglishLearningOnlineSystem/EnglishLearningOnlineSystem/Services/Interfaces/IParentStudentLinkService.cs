@@ -10,4 +10,5 @@ public interface IParentStudentLinkService
     Task<UserServiceResult<object>> LinkByCodeAsync(int parentId, string studentCode, string? relationship);
     Task<UserServiceResult<object>> UnlinkStudentAsync(int parentId, int linkId);
     Task<ParentDashboardViewModel> BuildDashboardAsync(int parentId, int? selectedStudentId);
+    Task<ParentReportViewModel> BuildReportAsync(int parentId, int? selectedStudentId, string? period, DateTime? fromDate, DateTime? toDate);
 }

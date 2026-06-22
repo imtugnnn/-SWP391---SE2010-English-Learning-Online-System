@@ -17,4 +17,8 @@ public interface IParentStudentLinkRepository
     Task<List<Progress>> GetRecentProgressAsync(int studentId, int take);
     Task<List<WeeklyAssignment>> GetUpcomingAssignmentsAsync(int take);
     Task<List<StudentBadge>> GetRecentBadgesAsync(int studentId, int take);
+
+    Task<List<QuizAttempt>> GetQuizAttemptsInPeriodAsync(int studentId, DateTime from, DateTime to);
+    Task<List<Progress>> GetProgressInPeriodAsync(int studentId, DateTime from, DateTime to);
+    Task<List<TeacherFeedback>> GetFeedbacksAsync(int studentId, int take);
 }

@@ -9,10 +9,21 @@ using Microsoft.AspNetCore.Authentication.Google;
 
 var builder = WebApplication.CreateBuilder(args);
 
+builder.Configuration
+    .AddJsonFile("appsettings.Development.json", optional: true, reloadOnChange: true)
+    .AddJsonFile("appsettings.Local.json", optional: true, reloadOnChange: true);
+
 // Đăng ký các dịch vụ và middleware của ứng dụng
 builder.Services.AddControllersWithViews();
 
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
+
+if (string.IsNullOrWhiteSpace(connectionString))
+{
+    throw new InvalidOperationException(
+        "Không tìm thấy chuỗi kết nối 'DefaultConnection'. " +
+        "Hãy tạo file appsettings.Development.json trong thư mục dự án và cấu hình ConnectionStrings:DefaultConnection.");
+}
 
 builder.Services.AddDbContext<EnglishLearningOnlineSystem.Data.AppDbContext>(options =>
     options.UseSqlServer(connectionString));

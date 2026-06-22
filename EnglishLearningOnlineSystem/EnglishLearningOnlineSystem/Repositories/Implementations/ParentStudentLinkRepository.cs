@@ -122,4 +122,41 @@ public class ParentStudentLinkRepository : IParentStudentLinkRepository
             .AsNoTracking()
             .ToListAsync();
     }
+
+    public Task<List<QuizAttempt>> GetQuizAttemptsInPeriodAsync(int studentId, DateTime from, DateTime to)
+    {
+        return _context.QuizAttempts!
+            .Include(qa => qa.Lesson)
+            .Where(qa => qa.StudentId == studentId
+                      && qa.SubmittedAt >= from
+                      && qa.SubmittedAt < to)
+            .OrderByDescending(qa => qa.SubmittedAt)
+            .AsNoTracking()
+            .ToListAsync();
+    }
+
+    public Task<List<Progress>> GetProgressInPeriodAsync(int studentId, DateTime from, DateTime to)
+    {
+        return _context.Progresses!
+            .Include(p => p.Lesson)
+            .Where(p => p.StudentId == studentId
+                     && p.IsBestAttempt
+                     && p.CompletedAt != null
+                     && p.CompletedAt >= from
+                     && p.CompletedAt < to)
+            .OrderByDescending(p => p.CompletedAt)
+            .AsNoTracking()
+            .ToListAsync();
+    }
+
+    public Task<List<TeacherFeedback>> GetFeedbacksAsync(int studentId, int take)
+    {
+        return _context.TeacherFeedbacks!
+            .Include(f => f.Teacher)
+            .Where(f => f.StudentId == studentId)
+            .OrderByDescending(f => f.CreateAt)
+            .Take(take)
+            .AsNoTracking()
+            .ToListAsync();
+    }
 }

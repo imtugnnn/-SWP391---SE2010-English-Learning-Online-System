@@ -1,0 +1,289 @@
+@model EnglishLearningOnlineSystem.ViewModels.ParentReportViewModel
+
+@{
+    Layout = "_ParentLayout";
+    ViewData["Title"] = "Báo cáo học tập";
+    ViewData["Subtitle"] = "Chi tiết kết quả và tiến độ học tập của con bạn.";
+    ViewData["ActiveNav"] = "reports";
+
+    string PeriodLabel(string p) => p switch
+    {
+        "week" => "Tuần này",
+        "month" => "Tháng này",
+        "all" => "Tất cả",
+        "custom" => "Tùy chọn",
+        _ => "Tuần này"
+    };
+}
+
+@section Styles {
+    <style>
+        .state-card { background:#fff; border-radius:20px; box-shadow:0 4px 20px rgba(15,23,42,.06); padding:48px 32px; text-align:center; }
+        .state-icon { font-size:3rem; margin-bottom:12px; }
+        .state-title { font-size:1.3rem; font-weight:900; color:#1e293b; margin-bottom:8px; }
+        .state-desc { color:#64748b; font-weight:600; margin-bottom:22px; }
+        .btn-primary-soft { display:inline-block; background:#2563eb; color:#fff; padding:13px 28px; border-radius:14px; font-weight:800; text-decoration:none; }
+        .btn-primary-soft:hover { background:#1d4ed8; color:#fff; }
+
+        .report-toolbar { display:flex; flex-wrap:wrap; gap:16px; justify-content:space-between; align-items:flex-end; margin-bottom:24px; }
+        .toolbar-group { display:flex; flex-wrap:wrap; gap:10px; align-items:flex-end; }
+        .field-label { font-size:.74rem; font-weight:800; color:#64748b; text-transform:uppercase; letter-spacing:.04em; margin-bottom:6px; display:block; }
+        .field-select, .field-date {
+            padding:10px 14px; border:1.5px solid #e2e8f0; border-radius:12px;
+            font-family:'Nunito',sans-serif; font-weight:700; font-size:.9rem; color:#1e293b; background:#fff;
+        }
+        .field-select:focus, .field-date:focus { outline:none; border-color:#2563eb; }
+        .btn-apply { background:#2563eb; color:#fff; border:none; border-radius:12px; padding:10px 20px; font-weight:800; cursor:pointer; }
+        .btn-apply:hover { background:#1d4ed8; }
+        .btn-print { background:#fff; color:#2563eb; border:1.5px solid #bfdbfe; border-radius:12px; padding:10px 18px; font-weight:800; cursor:pointer; }
+        .btn-print:hover { background:#eff6ff; }
+
+        .report-head {
+            background:linear-gradient(135deg,#2563eb,#1e40af); color:#fff;
+            border-radius:20px; padding:22px 28px; margin-bottom:24px;
+            display:flex; align-items:center; justify-content:space-between; gap:16px;
+        }
+        .report-head-left { display:flex; align-items:center; gap:16px; }
+        .report-head-avatar { width:56px; height:56px; border-radius:50%; background:rgba(255,255,255,.2); display:flex; align-items:center; justify-content:center; font-size:1.8rem; }
+        .report-head-name { font-size:1.4rem; font-weight:900; }
+        .report-head-period { opacity:.9; font-weight:600; font-size:.9rem; margin-top:3px; }
+
+        .metric-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(160px,1fr)); gap:18px; margin-bottom:26px; }
+        .metric-card { background:#fff; border-radius:18px; box-shadow:0 4px 16px rgba(15,23,42,.05); padding:20px; }
+        .metric-val { font-size:1.7rem; font-weight:900; color:#1e293b; line-height:1; }
+        .metric-lbl { font-size:.8rem; color:#64748b; font-weight:700; margin-top:6px; }
+
+        .panel { background:#fff; border-radius:20px; box-shadow:0 4px 20px rgba(15,23,42,.06); padding:26px; margin-bottom:24px; }
+        .panel-title { font-size:1.15rem; font-weight:900; color:#1e293b; margin-bottom:18px; }
+
+        .skill-row { margin-bottom:16px; }
+        .skill-head { display:flex; justify-content:space-between; margin-bottom:6px; font-weight:700; color:#1e293b; font-size:.92rem; }
+        .skill-bar-bg { background:#f1f5f9; border-radius:99px; height:12px; overflow:hidden; }
+        .skill-bar-fill { height:100%; border-radius:99px; }
+
+        .data-table { width:100%; border-collapse:collapse; }
+        .data-table th { text-align:left; color:#64748b; font-size:.8rem; font-weight:800; text-transform:uppercase; padding:10px 12px; border-bottom:2px solid #e2e8f0; }
+        .data-table td { padding:12px; border-bottom:1px solid #f1f5f9; font-weight:600; color:#1e293b; }
+        .score-chip { font-weight:900; }
+        .score-good { color:#16a34a; }
+        .score-mid { color:#d97706; }
+        .score-low { color:#dc2626; }
+
+        .feedback-item { display:flex; gap:14px; padding:16px 0; border-bottom:1px solid #f1f5f9; }
+        .feedback-item:last-child { border-bottom:none; }
+        .feedback-avatar { width:42px; height:42px; border-radius:50%; background:#ede9fe; color:#7c3aed; display:flex; align-items:center; justify-content:center; font-size:1.2rem; flex-shrink:0; }
+        .feedback-content { color:#334155; font-weight:600; line-height:1.5; }
+        .feedback-meta { font-size:.8rem; color:#94a3b8; font-weight:700; margin-top:4px; }
+        .panel-empty { color:#94a3b8; font-weight:600; text-align:center; padding:24px 0; }
+
+        @@media print {
+            .p-sidebar, .report-toolbar, .btn-print { display:none !important; }
+            .p-main { margin-left:0 !important; }
+            .p-topbar { display:none !important; }
+        }
+    </style>
+}
+
+@if (Model.LoadFailed)
+{
+    <div class="state-card">
+        <div class="state-icon">⚠️</div>
+        <div class="state-title">Không thể tải báo cáo</div>
+        <div class="state-desc">Đã xảy ra lỗi tạm thời. Vui lòng thử lại sau.</div>
+        <a href="/Parent/Reports" class="btn-primary-soft">Thử lại</a>
+    </div>
+}
+else if (!Model.HasLinkedChildren)
+{
+    <div class="state-card">
+        <div class="state-icon">👨‍👩‍👧</div>
+        <div class="state-title">Bạn chưa liên kết với học sinh nào</div>
+        <div class="state-desc">Hãy liên kết tài khoản với hồ sơ học tập của con để xem báo cáo.</div>
+        <a href="/Parent" class="btn-primary-soft">🔗 Liên kết con ngay</a>
+    </div>
+}
+else
+{
+    <form method="get" action="/Parent/Reports" class="report-toolbar">
+        <div class="toolbar-group">
+            @if (Model.Children.Count > 1)
+            {
+                <div>
+                    <label class="field-label">Chọn con</label>
+                    <select name="studentId" class="field-select" onchange="this.form.submit()">
+                        @foreach (var c in Model.Children)
+                        {
+                            if (c.IsSelected)
+                            {
+                                <option value="@c.StudentId" selected>@c.DisplayName</option>
+                            }
+                            else
+                            {
+                                <option value="@c.StudentId">@c.DisplayName</option>
+                            }
+                        }
+                    </select>
+                </div>
+            }
+            else
+            {
+                <input type="hidden" name="studentId" value="@Model.SelectedStudentId" />
+            }
+
+            <div>
+                <label class="field-label">Kỳ báo cáo</label>
+                <select name="period" id="periodSelect" class="field-select" onchange="toggleCustom()">
+                    @foreach (var p in new[] { "week", "month", "all", "custom" })
+                    {
+                        if (Model.Period == p)
+                        {
+                            <option value="@p" selected>@PeriodLabel(p)</option>
+                        }
+                        else
+                        {
+                            <option value="@p">@PeriodLabel(p)</option>
+                        }
+                    }
+                </select>
+            </div>
+
+            <div id="customRange" style="display:@(Model.Period == "custom" ? "flex" : "none"); gap:10px; align-items:flex-end;">
+                <div>
+                    <label class="field-label">Từ ngày</label>
+                    <input type="date" name="fromDate" class="field-date" value="@Model.FromDate.ToString("yyyy-MM-dd")" />
+                </div>
+                <div>
+                    <label class="field-label">Đến ngày</label>
+                    <input type="date" name="toDate" class="field-date" value="@Model.ToDate.AddDays(-1).ToString("yyyy-MM-dd")" />
+                </div>
+            </div>
+
+            <button type="submit" class="btn-apply">Áp dụng</button>
+        </div>
+
+        <button type="button" class="btn-print" onclick="window.print()">🖨️ In / Tải báo cáo</button>
+    </form>
+
+    <div class="report-head">
+        <div class="report-head-left">
+            <div class="report-head-avatar">👧</div>
+            <div>
+                <div class="report-head-name">@Model.ChildDisplayName</div>
+                <div class="report-head-period">
+                    @PeriodLabel(Model.Period)
+                    · @Model.FromDate.ToString("dd/MM/yyyy") - @Model.ToDate.AddDays(-1).ToString("dd/MM/yyyy")
+                </div>
+            </div>
+        </div>
+    </div>
+
+    @if (!Model.HasReportData)
+    {
+        <div class="state-card">
+            <div class="state-icon">📭</div>
+            <div class="state-title">Không có dữ liệu trong kỳ đã chọn</div>
+            <div class="state-desc">Con bạn chưa có hoạt động học tập nào trong khoảng thời gian này. Hãy thử chọn kỳ báo cáo khác.</div>
+        </div>
+    }
+    else
+    {
+        <div class="metric-grid">
+            <div class="metric-card"><div class="metric-val">@Model.LessonsCompleted</div><div class="metric-lbl">Bài học hoàn thành</div></div>
+            <div class="metric-card"><div class="metric-val">@Model.QuizzesTaken</div><div class="metric-lbl">Lượt làm quiz</div></div>
+            <div class="metric-card"><div class="metric-val">@Model.AverageQuizScore%</div><div class="metric-lbl">Điểm quiz TB</div></div>
+            <div class="metric-card"><div class="metric-val">@Model.XPEarnedInPeriod</div><div class="metric-lbl">XP đạt được</div></div>
+            <div class="metric-card"><div class="metric-val">@Model.TotalTimeSpentMinutes'</div><div class="metric-lbl">Thời gian học</div></div>
+        </div>
+
+        <div class="panel">
+            <div class="panel-title">Tiến độ theo kỹ năng / chủ đề</div>
+            @if (!Model.SkillProgress.Any())
+            {
+                <div class="panel-empty">Chưa có dữ liệu kỹ năng.</div>
+            }
+            else
+            {
+                @foreach (var s in Model.SkillProgress)
+                {
+                    var color = s.AverageScore >= 80 ? "#16a34a" : (s.AverageScore >= 50 ? "#d97706" : "#dc2626");
+                    <div class="skill-row">
+                        <div class="skill-head">
+                            <span>@s.Topic <span style="color:#94a3b8; font-weight:600;">(@s.AttemptCount lượt)</span></span>
+                            <span>@s.AverageScore%</span>
+                        </div>
+                        <div class="skill-bar-bg">
+                            <div class="skill-bar-fill" style="width:@(s.AverageScore)%; background:@color;"></div>
+                        </div>
+                    </div>
+                }
+            }
+        </div>
+
+        <div class="panel">
+            <div class="panel-title">Kết quả quiz gần đây</div>
+            @if (!Model.QuizResults.Any())
+            {
+                <div class="panel-empty">Chưa có lượt làm quiz nào trong kỳ.</div>
+            }
+            else
+            {
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th>Bài học</th>
+                            <th>Chủ đề</th>
+                            <th>Đúng</th>
+                            <th>Điểm</th>
+                            <th>Thời gian</th>
+                            <th>Ngày làm</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var q in Model.QuizResults)
+                        {
+                            var cls = q.Score >= 80 ? "score-good" : (q.Score >= 50 ? "score-mid" : "score-low");
+                            <tr>
+                                <td>@q.LessonTitle</td>
+                                <td>@q.Topic</td>
+                                <td>@q.CorrectCount/@q.TotalQuestions</td>
+                                <td class="score-chip @cls">@q.Score%</td>
+                                <td>@(Math.Round(q.TimeSpentSec / 60.0, 1))'</td>
+                                <td>@q.SubmittedAt.ToString("dd/MM/yyyy")</td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            }
+        </div>
+
+        <div class="panel">
+            <div class="panel-title">Nhận xét của giáo viên</div>
+            @if (!Model.Feedbacks.Any())
+            {
+                <div class="panel-empty">Chưa có nhận xét nào từ giáo viên.</div>
+            }
+            else
+            {
+                @foreach (var f in Model.Feedbacks)
+                {
+                    <div class="feedback-item">
+                        <div class="feedback-avatar">👩‍🏫</div>
+                        <div>
+                            <div class="feedback-content">@f.Content</div>
+                            <div class="feedback-meta">@f.TeacherName · @f.CreatedAt.ToString("dd/MM/yyyy")</div>
+                        </div>
+                    </div>
+                }
+            }
+        </div>
+    }
+}
+
+@section Scripts {
+    <script>
+        function toggleCustom() {
+            var p = document.getElementById('periodSelect').value;
+            document.getElementById('customRange').style.display = (p === 'custom') ? 'flex' : 'none';
+        }
+    </script>
+}

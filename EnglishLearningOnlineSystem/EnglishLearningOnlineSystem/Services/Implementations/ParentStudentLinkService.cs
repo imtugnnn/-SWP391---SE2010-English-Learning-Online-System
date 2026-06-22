@@ -206,4 +206,129 @@ public class ParentStudentLinkService : IParentStudentLinkService
             return vm;
         }
     }
+
+    public async Task<ParentReportViewModel> BuildReportAsync(int parentId, int? selectedStudentId, string? period, DateTime? fromDate, DateTime? toDate)
+    {
+        var vm = new ParentReportViewModel();
+
+        try
+        {
+            var links = await _linkRepo.GetByParentIdAsync(parentId);
+
+            if (!links.Any())
+            {
+                vm.HasLinkedChildren = false;
+                return vm;
+            }
+
+            vm.HasLinkedChildren = true;
+
+            var targetId = selectedStudentId ?? links.First().StudentId;
+            if (links.All(l => l.StudentId != targetId))
+            {
+                targetId = links.First().StudentId;
+            }
+
+            vm.SelectedStudentId = targetId;
+            vm.Children = links.Select(l => new ChildOption
+            {
+                StudentId = l.StudentId,
+                DisplayName = string.IsNullOrWhiteSpace(l.Student?.Nickname)
+                    ? l.Student?.User?.Username ?? "Học sinh"
+                    : l.Student!.Nickname,
+                AvatarUrl = l.Student?.AvatarUrl,
+                Relationship = l.Relationship,
+                IsSelected = l.StudentId == targetId
+            }).ToList();
+
+            var profile = await _linkRepo.GetLinkedStudentProfileAsync(parentId, targetId);
+            if (profile == null)
+            {
+                vm.HasLinkedChildren = false;
+                return vm;
+            }
+
+            vm.ChildDisplayName = string.IsNullOrWhiteSpace(profile.Nickname)
+                ? profile.User?.Username ?? "Học sinh"
+                : profile.Nickname;
+            vm.ChildAvatarUrl = profile.AvatarUrl;
+
+            (vm.Period, vm.FromDate, vm.ToDate) = ResolvePeriod(period, fromDate, toDate);
+
+            var attempts = await _linkRepo.GetQuizAttemptsInPeriodAsync(targetId, vm.FromDate, vm.ToDate);
+            var progress = await _linkRepo.GetProgressInPeriodAsync(targetId, vm.FromDate, vm.ToDate);
+            var feedbacks = await _linkRepo.GetFeedbacksAsync(targetId, 10);
+
+            vm.LessonsCompleted = progress.Count(p => p.CompletionStatus == "Completed");
+            vm.QuizzesTaken = attempts.Count;
+            vm.AverageQuizScore = attempts.Any() ? (int)Math.Round(attempts.Average(a => (double)a.Score)) : 0;
+            vm.XPEarnedInPeriod = progress.Sum(p => p.XPEarned);
+            vm.TotalTimeSpentMinutes = (int)Math.Round(attempts.Sum(a => a.TimeSpentSec) / 60.0);
+
+            vm.SkillProgress = attempts
+                .Where(a => a.Lesson != null)
+                .GroupBy(a => string.IsNullOrWhiteSpace(a.Lesson!.Topic) ? "Khác" : a.Lesson.Topic)
+                .Select(g => new SkillProgressItem
+                {
+                    Topic = g.Key,
+                    AverageScore = (int)Math.Round(g.Average(a => (double)a.Score)),
+                    AttemptCount = g.Count()
+                })
+                .OrderByDescending(s => s.AverageScore)
+                .ToList();
+
+            vm.QuizResults = attempts.Select(a => new QuizResultItem
+            {
+                LessonTitle = a.Lesson?.Title ?? "Bài học",
+                Topic = a.Lesson?.Topic ?? string.Empty,
+                Score = a.Score,
+                CorrectCount = a.CorrectCount,
+                TotalQuestions = a.TotalQuestions,
+                TimeSpentSec = a.TimeSpentSec,
+                SubmittedAt = a.SubmittedAt
+            }).ToList();
+
+            vm.Feedbacks = feedbacks.Select(f => new TeacherFeedbackItem
+            {
+                Content = f.Content,
+                TeacherName = f.Teacher?.Username ?? "Giáo viên",
+                CreatedAt = f.CreateAt
+            }).ToList();
+
+            vm.HasReportData = vm.QuizzesTaken > 0
+                || vm.LessonsCompleted > 0
+                || vm.Feedbacks.Any();
+
+            return vm;
+        }
+        catch
+        {
+            vm.LoadFailed = true;
+            return vm;
+        }
+    }
+
+    private static (string period, DateTime from, DateTime to) ResolvePeriod(string? period, DateTime? fromDate, DateTime? toDate)
+    {
+        var today = DateTime.Today;
+        period = string.IsNullOrWhiteSpace(period) ? "week" : period.Trim().ToLower();
+
+        switch (period)
+        {
+            case "month":
+                return ("month", new DateTime(today.Year, today.Month, 1), today.AddDays(1));
+            case "all":
+                return ("all", new DateTime(2000, 1, 1), today.AddDays(1));
+            case "custom":
+                var from = fromDate?.Date ?? today.AddDays(-7);
+                var to = (toDate?.Date ?? today).AddDays(1);
+                if (to <= from) to = from.AddDays(1);
+                return ("custom", from, to);
+            case "week":
+            default:
+                var diff = (7 + (int)today.DayOfWeek - (int)DayOfWeek.Monday) % 7;
+                var monday = today.AddDays(-diff);
+                return ("week", monday, today.AddDays(1));
+        }
+    }
 }
