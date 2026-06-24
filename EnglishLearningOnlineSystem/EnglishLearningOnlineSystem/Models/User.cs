@@ -1,4 +1,4 @@
-﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore;
 
 namespace EnglishLearningOnlineSystem.Models;
 
@@ -12,6 +12,10 @@ public class User
     public bool IsActive { get; set; } = true;
     public int RoleId { get; set; }   // khóa ngoại
     public Role? Role { get; set; }   // navigation property
+
+    public DateTime CreateAt { get; set; }
+    public DateTime UpdateAt { get; set; }
+    public DateTime? LastLoginAt { get; set; }
 
     public ICollection<Class> TaughtClasses { get; set; } = new List<Class>();
     public ICollection<TeacherFeedback> GivenFeedbacks { get; set; } = new List<TeacherFeedback>();
