@@ -1,0 +1,61 @@
+@model EnglishLearningOnlineSystem.ViewModels.Admin.AcademicYears.AcademicYearCreateViewModel
+
+@{
+    ViewData["Title"] = "Tạo năm học mới";
+    Layout = "~/Views/Shared/Admin/_AdminLayout.cshtml";
+}
+
+<div class="container-fluid py-4" style="max-width: 680px;">
+    <div class="mb-4">
+        <h2 class="mb-1 fw-bold text-dark" style="color: #0f172a !important;">Tạo năm học mới</h2>
+        <p class="text-muted mb-0" style="color: #64748b !important;">Tạo một năm học mới trước khi thêm các lớp học.</p>
+    </div>
+
+    <div class="card border-0 shadow-sm" style="border-radius: 12px; border: 1px solid #e2e8f0 !important;">
+        <div class="card-body p-4">
+            <form asp-action="Create" method="post">
+                <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
+
+                <div class="mb-4">
+                    <label asp-for="YearLabel" class="form-label fw-semibold text-dark" style="font-size: 0.9rem; color: #334155;">Tên năm học</label>
+                    <input asp-for="YearLabel" class="form-control px-3 py-2.5" placeholder="Ví dụ: 2025 - 2026" style="border-radius: 8px; border: 1px solid #cbd5e1;" />
+                    <span asp-validation-for="YearLabel" class="text-danger" style="font-size: 0.85rem;"></span>
+                </div>
+
+                <div class="row g-3 mb-4">
+                    <div class="col-md-6">
+                        <label asp-for="StartDate" class="form-label fw-semibold text-dark" style="font-size: 0.9rem; color: #334155;">Ngày bắt đầu</label>
+                        <input asp-for="StartDate" type="date" class="form-control px-3 py-2.5" style="border-radius: 8px; border: 1px solid #cbd5e1;" />
+                        <span asp-validation-for="StartDate" class="text-danger" style="font-size: 0.85rem;"></span>
+                    </div>
+                    <div class="col-md-6">
+                        <label asp-for="EndDate" class="form-label fw-semibold text-dark" style="font-size: 0.9rem; color: #334155;">Ngày kết thúc</label>
+                        <input asp-for="EndDate" type="date" class="form-control px-3 py-2.5" style="border-radius: 8px; border: 1px solid #cbd5e1;" />
+                        <span asp-validation-for="EndDate" class="text-danger" style="font-size: 0.85rem;"></span>
+                    </div>
+                </div>
+
+                <div class="form-check form-switch mb-2">
+                    <input asp-for="IsActive" class="form-check-input" role="switch" style="cursor: pointer;" />
+                    <label asp-for="IsActive" class="form-check-label fw-medium text-dark" style="cursor: pointer; font-size: 0.9rem; color: #334155;">Đặt làm năm học hoạt động</label>
+                </div>
+                <div class="form-text text-muted mb-4" style="font-size: 0.8rem; color: #64748b;">Nếu đây là năm học đầu tiên, nó sẽ tự động được kích hoạt làm năm học hiện tại.</div>
+
+                <div class="d-flex gap-2 pt-3" style="border-top: 1px solid #f1f5f9 !important;">
+                    <button type="submit" class="btn btn-primary px-4 py-2.5 shadow-sm" style="background-color: #2563eb; border-color: #2563eb; border-radius: 8px; font-weight: 600; font-size: 0.9rem;">
+                        Tạo mới
+                    </button>
+                    <a asp-action="Index" class="btn btn-outline-secondary px-4 py-2.5" style="border-radius: 8px; font-weight: 500; font-size: 0.9rem; border-color: #cbd5e1; color: #475569; background-color: #ffffff;">
+                        Quay lại
+                    </a>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+}

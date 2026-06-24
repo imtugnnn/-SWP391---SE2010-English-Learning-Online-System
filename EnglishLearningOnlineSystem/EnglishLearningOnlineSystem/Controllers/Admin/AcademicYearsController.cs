@@ -36,12 +36,12 @@ public class AcademicYearsController : Controller
             })
             .ToListAsync();
 
-        return View(years);
+        return View("~/Views/Admin/AcademicYears/Index.cshtml", years);
     }
 
     public IActionResult Create()
     {
-        return View(new AcademicYearCreateViewModel());
+        return View("~/Views/Admin/AcademicYears/Create.cshtml", new AcademicYearCreateViewModel());
     }
 
     [HttpPost]
@@ -50,20 +50,20 @@ public class AcademicYearsController : Controller
     {
         if (!ModelState.IsValid)
         {
-            return View(vm);
+            return View("~/Views/Admin/AcademicYears/Create.cshtml", vm);
         }
 
         if (vm.StartDate.HasValue && vm.EndDate.HasValue && vm.StartDate.Value >= vm.EndDate.Value)
         {
-            ModelState.AddModelError(nameof(vm.EndDate), "End date must be later than start date.");
-            return View(vm);
+            ModelState.AddModelError(nameof(vm.EndDate), "Ngày kết thúc phải sau ngày bắt đầu.");
+            return View("~/Views/Admin/AcademicYears/Create.cshtml", vm);
         }
 
         var exists = await _context.AcademicYears!.AnyAsync(y => y.YearLabel == vm.YearLabel.Trim());
         if (exists)
         {
-            ModelState.AddModelError(nameof(vm.YearLabel), "Academic year already exists.");
-            return View(vm);
+            ModelState.AddModelError(nameof(vm.YearLabel), "Năm học này đã tồn tại.");
+            return View("~/Views/Admin/AcademicYears/Create.cshtml", vm);
         }
 
         var hasActiveYear = await _context.AcademicYears!.AnyAsync(y => y.IsActive);
@@ -96,7 +96,7 @@ public class AcademicYearsController : Controller
             return NotFound();
         }
 
-        return View(vm);
+        return View("~/Views/Admin/AcademicYears/Edit.cshtml", vm);
     }
 
     [HttpPost]
@@ -116,17 +116,17 @@ public class AcademicYearsController : Controller
 
         if (teacher == null || teacher.Role?.Name != "Teacher")
         {
-            ModelState.AddModelError("NewClass.TeacherId", "Please choose a valid teacher.");
+            ModelState.AddModelError("NewClass.TeacherId", "Vui lòng chọn một giáo viên chủ nhiệm hợp lệ.");
         }
 
         if (vm.NewClass.ClassName.Contains('\n') || vm.NewClass.ClassName.Contains('\r'))
         {
-            ModelState.AddModelError("NewClass.ClassName", "Class name cannot contain line breaks.");
+            ModelState.AddModelError("NewClass.ClassName", "Tên lớp học không được chứa ký tự xuống dòng.");
         }
 
         if (vm.NewClass.GradeLevel.Contains('\n') || vm.NewClass.GradeLevel.Contains('\r'))
         {
-            ModelState.AddModelError("NewClass.GradeLevel", "Grade level cannot contain line breaks.");
+            ModelState.AddModelError("NewClass.GradeLevel", "Khối lớp không được chứa ký tự xuống dòng.");
         }
 
         var className = vm.NewClass.ClassName.Trim();
@@ -136,7 +136,7 @@ public class AcademicYearsController : Controller
 
         if (existingClass)
         {
-            ModelState.AddModelError("NewClass.ClassName", "Class name must be unique within the same academic year.");
+            ModelState.AddModelError("NewClass.ClassName", "Tên lớp học phải là duy nhất trong cùng một năm học.");
         }
 
         var parsedEmails = ParseEmails(vm.NewClass.StudentEmails, preserveOrder: true);
@@ -152,12 +152,12 @@ public class AcademicYearsController : Controller
 
         if (emails.Count == 0)
         {
-            ModelState.AddModelError("NewClass.StudentEmails", "Enter at least one student email.");
+            ModelState.AddModelError("NewClass.StudentEmails", "Vui lòng nhập ít nhất một email học sinh.");
         }
 
         if (duplicateEmails.Count > 0)
         {
-            ModelState.AddModelError("NewClass.StudentEmails", $"Duplicate student emails are not allowed: {string.Join(", ", duplicateEmails)}.");
+            ModelState.AddModelError("NewClass.StudentEmails", $"Không được phép trùng lặp email học sinh: {string.Join(", ", duplicateEmails)}.");
         }
 
         var students = await _context.Users
@@ -177,12 +177,12 @@ public class AcademicYearsController : Controller
 
         if (missingEmails.Count > 0)
         {
-            ModelState.AddModelError("NewClass.StudentEmails", $"Unknown student emails: {string.Join(", ", missingEmails)}.");
+            ModelState.AddModelError("NewClass.StudentEmails", $"Email học sinh không tồn tại trên hệ thống: {string.Join(", ", missingEmails)}.");
         }
 
         if (invalidStudents.Count > 0)
         {
-            ModelState.AddModelError("NewClass.StudentEmails", $"These accounts are not students: {string.Join(", ", invalidStudents)}.");
+            ModelState.AddModelError("NewClass.StudentEmails", $"Các tài khoản này không phải là học sinh: {string.Join(", ", invalidStudents)}.");
         }
 
         if (!ModelState.IsValid)
@@ -193,7 +193,7 @@ public class AcademicYearsController : Controller
                 return NotFound();
             }
 
-            return View("Edit", invalidVm);
+            return View("~/Views/Admin/AcademicYears/Edit.cshtml", invalidVm);
         }
 
         var newClass = new Class
@@ -251,27 +251,27 @@ public class AcademicYearsController : Controller
 
         if (vm.ImportFile == null || vm.ImportFile.Length == 0)
         {
-            ModelState.AddModelError(nameof(vm.ImportFile), "Please choose an Excel file.");
+            ModelState.AddModelError(nameof(vm.ImportFile), "Vui lòng chọn tệp Excel.");
             var invalidVm = await BuildEditViewModel(id, vm.SelectedClassId, vm.NewClass);
             if (invalidVm == null)
             {
                 return NotFound();
             }
 
-            return View("Edit", invalidVm);
+            return View("~/Views/Admin/AcademicYears/Edit.cshtml", invalidVm);
         }
 
         var extension = Path.GetExtension(vm.ImportFile.FileName).ToLowerInvariant();
         if (extension != ".xlsx")
         {
-            ModelState.AddModelError(nameof(vm.ImportFile), "Only .xlsx files are supported.");
+            ModelState.AddModelError(nameof(vm.ImportFile), "Chỉ hỗ trợ định dạng tệp .xlsx.");
             var invalidVm = await BuildEditViewModel(id, vm.SelectedClassId, vm.NewClass);
             if (invalidVm == null)
             {
                 return NotFound();
             }
 
-            return View("Edit", invalidVm);
+            return View("~/Views/Admin/AcademicYears/Edit.cshtml", invalidVm);
         }
 
         List<ExcelStudentImportRow> rows;
@@ -282,20 +282,22 @@ public class AcademicYearsController : Controller
 
         if (rows.Count == 0)
         {
-            ModelState.AddModelError(string.Empty, "The Excel file does not contain any student emails.");
+            ModelState.AddModelError(string.Empty, "Tệp Excel không chứa bất kỳ email học sinh nào.");
             var invalidVm = await BuildEditViewModel(id, vm.SelectedClassId, vm.NewClass);
             if (invalidVm == null)
             {
                 return NotFound();
             }
 
-            return View("Edit", invalidVm);
+            return View("~/Views/Admin/AcademicYears/Edit.cshtml", invalidVm);
         }
 
-        var allStudents = await _context.Users
+        var excelEmails = rows.Select(r => r.StudentEmail.Trim()).ToList();
+
+        var usersInExcel = await _context.Users
             .AsNoTracking()
             .Include(u => u.Role)
-            .Where(u => u.Role != null && u.Role.Name == "Student")
+            .Where(u => excelEmails.Contains(u.Email))
             .ToListAsync();
 
         var emails = new List<string>();
@@ -307,20 +309,20 @@ public class AcademicYearsController : Controller
             var email = row.StudentEmail.Trim();
             if (!seenEmails.Add(email))
             {
-                errors.Add($"Row {row.RowNumber}: Duplicate student email '{email}' is not allowed.");
+                errors.Add($"Dòng {row.RowNumber}: Email học sinh trùng lặp '{email}' không được chấp nhận.");
                 continue;
             }
 
-            var student = allStudents.FirstOrDefault(u => string.Equals(u.Email, email, StringComparison.OrdinalIgnoreCase));
-            if (student == null)
+            var user = usersInExcel.FirstOrDefault(u => string.Equals(u.Email, email, StringComparison.OrdinalIgnoreCase));
+            if (user == null)
             {
-                errors.Add($"Row {row.RowNumber}: Student '{email}' was not found.");
+                errors.Add($"Dòng {row.RowNumber}: Không tìm thấy học sinh '{email}' trên hệ thống.");
                 continue;
             }
 
-            if (student.Role?.Name != "Student")
+            if (user.Role?.Name != "Student")
             {
-                errors.Add($"Row {row.RowNumber}: '{email}' is not a student account.");
+                errors.Add($"Dòng {row.RowNumber}: Tài khoản '{email}' không phải là tài khoản học sinh.");
                 continue;
             }
 
@@ -341,7 +343,7 @@ public class AcademicYearsController : Controller
                 return NotFound();
             }
 
-            return View("Edit", invalidVm);
+            return View("~/Views/Admin/AcademicYears/Edit.cshtml", invalidVm);
         }
 
         vm.NewClass.StudentEmails = string.Join(Environment.NewLine, emails);
@@ -352,7 +354,7 @@ public class AcademicYearsController : Controller
             return NotFound();
         }
 
-        return View("Edit", updatedVm);
+        return View("~/Views/Admin/AcademicYears/Edit.cshtml", updatedVm);
     }
 
     private async Task<AcademicYearEditViewModel?> BuildEditViewModel(int id, int? selectedClassId = null, AddClassViewModel? newClass = null)
@@ -436,6 +438,28 @@ public class AcademicYearsController : Controller
 
         return RedirectToAction(nameof(Index));
     }
+
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> RemoveClass(int id, int classId)
+    {
+        var classEntity = await _context.Classes!
+            .Include(c => c.Enrollments)
+            .FirstOrDefaultAsync(c => c.ClassId == classId && c.AcademicYearId == id);
+
+        if (classEntity != null)
+        {
+            if (classEntity.Enrollments.Any())
+            {
+                _context.ClassEnrollments!.RemoveRange(classEntity.Enrollments);
+            }
+            _context.Classes!.Remove(classEntity);
+            await _context.SaveChangesAsync();
+        }
+
+        return RedirectToAction(nameof(Edit), new { id = id });
+    }
+
 
     private async Task DeactivateAllAcademicYearsAsync()
     {

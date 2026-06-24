@@ -1,0 +1,293 @@
+@model EnglishLearningOnlineSystem.ViewModels.Admin.AcademicYears.AcademicYearEditViewModel
+
+@{
+    ViewData["Title"] = "Quản lý năm học";
+    Layout = "~/Views/Shared/Admin/_AdminLayout.cshtml";
+}
+
+<div class="container-fluid py-4" style="max-width: 1200px;">
+    @if (Model.SelectedClass != null)
+    {
+        <div class="mb-3">
+            <a href="@Url.Action("Edit", "AcademicYears", new { id = Model.AcademicYearId })" class="text-primary text-decoration-none d-inline-flex align-items-center gap-1" style="font-size: 0.85rem; font-weight: 500;">
+                <i class="bi bi-arrow-left"></i> Quay lại quản lý năm học
+            </a>
+        </div>
+    }
+    else
+    {
+        <div class="mb-3">
+            <a asp-action="Index" class="text-primary text-decoration-none d-inline-flex align-items-center gap-1" style="font-size: 0.85rem; font-weight: 500;">
+                <i class="bi bi-arrow-left"></i> Danh sách năm học
+            </a>
+        </div>
+    }
+
+    <div class="d-flex flex-wrap justify-content-between align-items-center gap-3 mb-4">
+        <div>
+            @if (Model.SelectedClass != null)
+            {
+                <h2 class="mb-1 fw-bold text-dark" style="color: #0f172a !important;">@Model.SelectedClass.ClassName</h2>
+                <p class="text-muted mb-0" style="font-size: 0.95rem; color: #64748b !important;">Khối @Model.SelectedClass.GradeLevel</p>
+            }
+            else
+            {
+                <h2 class="mb-1 fw-bold text-dark" style="color: #0f172a !important;">Quản lý năm học</h2>
+                <div class="d-flex align-items-center gap-2 mb-1">
+                    <span class="fs-4 fw-semibold text-dark" style="color: #1e293b !important;">@Model.YearLabel</span>
+                    @if (Model.IsActive)
+                    {
+                        <span class="badge px-2 py-1 fw-medium" style="background-color: #dcfce7; color: #166534; border-radius: 6px; font-size: 0.75rem;">Đang hoạt động</span>
+                    }
+                    else
+                    {
+                        <span class="badge px-2 py-1 fw-medium" style="background-color: #f1f5f9; color: #475569; border-radius: 6px; font-size: 0.75rem;">Không hoạt động</span>
+                    }
+                </div>
+                
+                @if (Model.StartDate.HasValue || Model.EndDate.HasValue)
+                {
+                    <div class="d-inline-flex align-items-center text-muted" style="font-size: 0.9rem;">
+                        <i class="bi bi-calendar3 me-2" style="color: #94a3b8; font-size: 0.9rem;"></i>
+                        <span style="color: #64748b;">@Model.StartDate?.ToString("yyyy-MM-dd")</span>
+                        <span class="mx-1" style="color: #94a3b8;">-</span>
+                        <span style="color: #64748b;">@Model.EndDate?.ToString("yyyy-MM-dd")</span>
+                    </div>
+                }
+                else
+                {
+                    <div class="d-inline-flex align-items-center text-muted" style="font-size: 0.9rem;">
+                        <i class="bi bi-calendar3 me-2" style="color: #94a3b8; font-size: 0.9rem;"></i>
+                        <span style="color: #64748b;">Chưa thiết lập khoảng thời gian.</span>
+                    </div>
+                }
+            }
+        </div>
+        
+        @if (Model.SelectedClass == null)
+        {
+            <a asp-action="Index" class="btn btn-outline-secondary px-3 py-2 d-inline-flex align-items-center gap-1.5" style="border-radius: 8px; font-weight: 500; font-size: 0.9rem; border-color: #cbd5e1; color: #475569; background-color: #ffffff;">
+                <i class="bi bi-arrow-left"></i> Quay lại danh sách
+            </a>
+        }
+    </div>
+
+    <div class="row g-4">
+        <!-- Classes Column -->
+        <div class="col-lg-7">
+            <div class="card border-0 shadow-sm h-100" style="border-radius: 12px; border: 1px solid #e2e8f0 !important; min-height: 500px;">
+                <div class="card-body p-4">
+                    <div class="d-flex justify-content-between align-items-center mb-4">
+                        <h4 class="mb-0 fw-bold text-dark" style="color: #0f172a !important; font-size: 1.2rem;">
+                            Lớp học 
+                            <span class="badge ms-1" style="font-size: 0.8rem; padding: 4px 8px; background-color: #dbeafe; color: #1e40af; border-radius: 6px;">@Model.Classes.Count</span>
+                        </h4>
+                    </div>
+
+                    @if (!Model.Classes.Any())
+                    {
+                        <div class="alert alert-light border border-dashed text-center py-5 mb-0" style="border-color: #cbd5e1 !important; border-radius: 8px;">
+                            <i class="bi bi-folder2-open text-muted fs-2 d-block mb-2"></i>
+                            <span class="text-muted">Chưa có lớp học nào được thêm.</span>
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="table-responsive">
+                            <table class="table table-hover align-middle mb-0" style="border-collapse: collapse;">
+                                <thead>
+                                    <tr style="border-bottom: 1px solid #e2e8f0;">
+                                        <th class="py-2.5 px-3 text-muted fw-semibold" style="font-size: 0.8rem; letter-spacing: 0.05em; width: 100px;">Lớp</th>
+                                        <th class="py-2.5 px-3 text-muted fw-semibold" style="font-size: 0.8rem; letter-spacing: 0.05em; width: 100px;">Khối</th>
+                                        <th class="py-2.5 px-3 text-muted fw-semibold" style="font-size: 0.8rem; letter-spacing: 0.05em;">Giáo viên</th>
+                                        <th class="py-2.5 px-3 text-muted fw-semibold" style="font-size: 0.8rem; letter-spacing: 0.05em; width: 100px;">Học sinh</th>
+                                        <th class="py-2.5 px-3 text-muted fw-semibold text-end" style="width: 40px;"></th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach (var item in Model.Classes)
+                                    {
+                                        var selectedUrl = Url.Action("Edit", "AcademicYears", new { id = Model.AcademicYearId, selectedClassId = item.ClassId });
+                                        var defaultUrl = Url.Action("Edit", "AcademicYears", new { id = Model.AcademicYearId });
+                                        var isSelected = Model.SelectedClassId == item.ClassId;
+                                        
+                                        <tr role="button"
+                                            style="cursor:pointer; border-bottom: 1px solid #f1f5f9; background-color: @(isSelected ? "#f0f7ff" : "transparent");"
+                                            class="@(isSelected ? "table-active-custom" : "")"
+                                            onclick="handleClassRowClick('@selectedUrl', '@defaultUrl', @(isSelected ? "true" : "false"))">
+                                            <td class="py-3 px-3 fw-bold text-dark" style="font-size: 0.95rem; color: #1e293b !important;">@item.ClassName</td>
+                                            <td class="py-3 px-3 text-secondary" style="font-size: 0.95rem; color: #475569 !important;">@item.GradeLevel</td>
+                                            <td class="py-3 px-3">
+                                                <div class="d-flex align-items-center gap-3">
+                                                    <div class="d-flex align-items-center justify-content-center text-primary fw-bold" style="width: 36px; height: 36px; border-radius: 50%; background-color: #dbeafe; color: #1e40af !important; font-size: 0.9rem;">
+                                                        @(string.IsNullOrEmpty(item.TeacherName) ? "U" : item.TeacherName.Substring(0, 1).ToUpper())
+                                                    </div>
+                                                    <div>
+                                                        <div class="fw-semibold text-dark" style="font-size: 0.9rem; color: #1e293b !important;">@item.TeacherName</div>
+                                                        @if (!string.IsNullOrWhiteSpace(item.TeacherEmail))
+                                                        {
+                                                            <small class="text-muted d-block" style="font-size: 0.75rem; color: #64748b !important;">@item.TeacherEmail</small>
+                                                        }
+                                                    </div>
+                                                </div>
+                                            </td>
+                                            <td class="py-3 px-3 fw-medium" style="font-size: 0.95rem; color: #475569 !important;">@item.StudentEmails.Count</td>
+                                            <td class="py-3 px-3 text-end">
+                                                <i class="bi bi-chevron-right text-muted" style="font-size: 0.9rem; color: #94a3b8 !important;"></i>
+                                            </td>
+                                        </tr>
+                                    }
+                                </tbody>
+                            </table>
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+
+        <!-- Details / Add Class Column -->
+        <div class="col-lg-5">
+            <div class="card border-0 shadow-sm h-100" style="border-radius: 12px; border: 1px solid #e2e8f0 !important;">
+                <div class="card-body p-4 d-flex flex-column" style="min-height: 500px;">
+                    @if (Model.SelectedClass != null)
+                    {
+                        <div class="mb-4">
+                            <label class="form-label fw-semibold text-muted mb-2" style="font-size: 0.8rem; letter-spacing: 0.05em; text-transform: uppercase;">Giáo viên chủ nhiệm</label>
+                            <div class="p-3 d-flex align-items-center gap-3" style="border: 1px solid #bfdbfe; background-color: #eff6ff; border-radius: 8px;">
+                                <div class="d-flex align-items-center justify-content-center text-primary fw-bold" style="width: 44px; height: 44px; border-radius: 50%; background-color: #3b82f6; color: #ffffff !important; font-size: 1.1rem;">
+                                    @(string.IsNullOrEmpty(Model.SelectedClass.TeacherName) ? "U" : Model.SelectedClass.TeacherName.Substring(0, 1).ToUpper())
+                                </div>
+                                <div>
+                                    <div class="fw-bold text-dark" style="font-size: 0.95rem; color: #1e293b !important;">@Model.SelectedClass.TeacherName</div>
+                                    @if (!string.IsNullOrWhiteSpace(Model.SelectedClass.TeacherEmail))
+                                    {
+                                        <div class="text-muted" style="font-size: 0.85rem; color: #64748b !important;">@Model.SelectedClass.TeacherEmail</div>
+                                    }
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="d-flex justify-content-between align-items-center mb-3">
+                            <h5 class="mb-0 fw-bold text-dark" style="font-size: 1rem; color: #0f172a !important;">
+                                Học sinh 
+                                <span class="badge ms-1" style="font-size: 0.75rem; padding: 4px 8px; background-color: #dbeafe; color: #1e40af; border-radius: 6px;">@Model.SelectedClass.StudentEmails.Count</span>
+                            </h5>
+                        </div>
+
+                        @if (Model.SelectedClass.StudentEmails.Count == 0)
+                        {
+                            <div class="alert alert-light border text-center py-4 mb-4" style="border-radius: 8px;">
+                                <span class="text-muted" style="font-size: 0.9rem;">Chưa có học sinh nào được phân công vào lớp này.</span>
+                            </div>
+                        }
+                        else
+                        {
+                            <div class="list-group mb-4" style="border-radius: 8px; border: 1px solid #e2e8f0; overflow: hidden; max-height: 350px; overflow-y: auto;">
+                                @for (int i = 0; i < Model.SelectedClass.StudentEmails.Count; i++)
+                                {
+                                    var email = Model.SelectedClass.StudentEmails[i];
+                                    <div class="list-group-item d-flex gap-3 align-items-center py-2.5 px-3" style="border-bottom: 1px solid #e2e8f0; background: #ffffff;">
+                                        <span class="text-muted fw-medium" style="width: 20px; font-size: 0.85rem;">@(i + 1)</span>
+                                        <span class="text-dark fw-medium" style="font-size: 0.9rem; color: #334155 !important;">@email</span>
+                                    </div>
+                                }
+                            </div>
+                        }
+
+                        <div class="mt-auto pt-4 border-top" style="border-top: 1px solid #f1f5f9 !important;">
+                            <form asp-action="RemoveClass" asp-route-id="@Model.AcademicYearId" method="post">
+                                @Html.AntiForgeryToken()
+                                <input type="hidden" name="classId" value="@Model.SelectedClass.ClassId" />
+                                <button type="submit" class="btn btn-outline-danger w-100 d-flex align-items-center justify-content-center gap-2 py-2.5 shadow-sm" style="border-radius: 8px; font-weight: 600; font-size: 0.9rem; border-color: #fca5a5 !important; color: #dc2626 !important; background-color: #ffffff;" onclick="return confirm('Bạn có chắc chắn muốn xóa lớp học này không?');">
+                                    <i class="bi bi-trash" style="font-size: 1.05rem;"></i> Xóa lớp học
+                                </button>
+                            </form>
+                        </div>
+                    }
+                    else
+                    {
+                        <h4 class="mb-3 fw-bold text-dark" style="color: #0f172a !important; font-size: 1.2rem;">Thêm lớp học</h4>
+
+                        <form asp-action="AddClass"
+                              asp-route-id="@Model.AcademicYearId"
+                              method="post"
+                              enctype="multipart/form-data">
+                            <input type="hidden" asp-for="SelectedClassId" />
+                            <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
+
+                            <div class="d-flex flex-wrap gap-2 mb-4">
+                                <a asp-action="DownloadClassTemplate"
+                                   asp-route-id="@Model.AcademicYearId"
+                                   class="btn btn-outline-primary d-inline-flex align-items-center gap-1.5 px-3 py-2"
+                                   style="border-radius: 8px; font-weight: 600; font-size: 0.85rem; color: #2563eb; border-color: #2563eb;">
+                                    <i class="bi bi-download"></i> Tải file mẫu
+                                </a>
+                                <button type="submit"
+                                        class="btn btn-outline-success d-inline-flex align-items-center gap-1.5 px-3 py-2"
+                                        formaction="@Url.Action("LoadStudentsFromExcel", "AcademicYears", new { id = Model.AcademicYearId })"
+                                        formnovalidate
+                                        style="border-radius: 8px; font-weight: 600; font-size: 0.85rem; color: #16a34a; border-color: #16a34a;">
+                                    <i class="bi bi-upload"></i> Tải danh sách học sinh
+                                </button>
+                            </div>
+
+                            <div class="mb-3">
+                                <label asp-for="ImportFile" class="form-label fw-semibold text-dark" style="font-size: 0.85rem; color: #334155;">Tệp Excel học sinh</label>
+                                <input asp-for="ImportFile" type="file" class="form-control px-3 py-2" style="border-radius: 8px; border: 1px solid #cbd5e1;" accept=".xlsx" />
+                                <div class="form-text text-muted" style="font-size: 0.8rem; color: #64748b;">Tệp chỉ cần có 2 cột: No và Student Email.</div>
+                                <span asp-validation-for="ImportFile" class="text-danger" style="font-size: 0.8rem;"></span>
+                            </div>
+
+                            <div class="mb-3">
+                                <label asp-for="NewClass.ClassName" class="form-label fw-semibold text-dark" style="font-size: 0.85rem; color: #334155;">Tên lớp học</label>
+                                <input asp-for="NewClass.ClassName" class="form-control px-3 py-2" placeholder="Ví dụ: Lớp 10A1" style="border-radius: 8px; border: 1px solid #cbd5e1;" />
+                                <span asp-validation-for="NewClass.ClassName" class="text-danger" style="font-size: 0.8rem;"></span>
+                            </div>
+
+                            <div class="mb-3">
+                                <label asp-for="NewClass.GradeLevel" class="form-label fw-semibold text-dark" style="font-size: 0.85rem; color: #334155;">Khối lớp</label>
+                                <input asp-for="NewClass.GradeLevel" class="form-control px-3 py-2" placeholder="Ví dụ: Khối 10" style="border-radius: 8px; border: 1px solid #cbd5e1;" />
+                                <span asp-validation-for="NewClass.GradeLevel" class="text-danger" style="font-size: 0.8rem;"></span>
+                            </div>
+
+                            <div class="mb-3">
+                                <label asp-for="NewClass.TeacherId" class="form-label fw-semibold text-dark" style="font-size: 0.85rem; color: #334155;">Giáo viên chủ nhiệm</label>
+                                <select asp-for="NewClass.TeacherId" class="form-select px-3 py-2" style="border-radius: 8px; border: 1px solid #cbd5e1;" asp-items="ViewBag.TeacherId">
+                                    <option value="">Chọn giáo viên</option>
+                                </select>
+                                <span asp-validation-for="NewClass.TeacherId" class="text-danger" style="font-size: 0.8rem;"></span>
+                            </div>
+
+                            <div class="mb-4">
+                                <label asp-for="NewClass.StudentEmails" class="form-label fw-semibold text-dark" style="font-size: 0.85rem; color: #334155;">Email học sinh</label>
+                                <textarea asp-for="NewClass.StudentEmails"
+                                          class="form-control px-3 py-2"
+                                          rows="5"
+                                          placeholder="student1@email.com&#10;student2@email.com"
+                                          style="border-radius: 8px; border: 1px solid #cbd5e1; background-color: #f8fafc;"
+                                          readonly></textarea>
+                                <div class="form-text text-muted" style="font-size: 0.8rem; color: #64748b;">Email học sinh được tải từ tệp Excel và không thể chỉnh sửa tại đây.</div>
+                                <span asp-validation-for="NewClass.StudentEmails" class="text-danger" style="font-size: 0.8rem;"></span>
+                            </div>
+
+                            <button type="submit" class="btn btn-primary w-100 py-2.5 fw-semibold shadow-sm" style="background-color: #2563eb; border-color: #2563eb; border-radius: 8px; font-size: 0.95rem;">
+                                Thêm lớp học
+                            </button>
+                        </form>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+    <script>
+        function handleClassRowClick(selectedUrl, defaultUrl, isSelected) {
+            window.location = isSelected ? defaultUrl : selectedUrl;
+        }
+    </script>
+}
