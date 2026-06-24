@@ -1,48 +1,27 @@
 <nav class="admin-navbar">
 
     <div class="navbar-left">
-
-        <h4>@ViewData["Title"]</h4>
-
+        <h3>@ViewData["Title"]</h3>
     </div>
 
     <div class="navbar-right">
 
+        <div class="navbar-pill">
+            🔥 12 ngày
+        </div>
+
+        <div class="navbar-pill xp-pill">
+            ⭐ 1,250 XP
+        </div>
+
         <button class="icon-btn">
-            🔔
+            <i class="bi bi-bell"></i>
             <span class="badge">3</span>
         </button>
 
-        <button class="icon-btn">
-            ⚠
-            <span class="badge">2</span>
-        </button>
-
-        <div class="user-info">
-            <div class="user-avatar">
-                A
-            </div>
-
-            <div>
-                <strong>Admin</strong>
-                <small>Administrator</small>
-            </div>
+        <div class="user-avatar">
+            A
         </div>
-
-        <form asp-controller="Auth"
-              asp-action="Logout"
-              method="post"
-              class="logout-form">
-
-            @Html.AntiForgeryToken()
-
-            <button type="submit"
-                    class="logout-btn icon-btn"
-                    aria-label="Logout">
-                🚪
-            </button>
-
-        </form>
 
     </div>
 
