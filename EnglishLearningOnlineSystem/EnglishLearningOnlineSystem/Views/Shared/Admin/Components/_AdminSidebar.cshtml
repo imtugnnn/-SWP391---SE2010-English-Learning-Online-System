@@ -48,6 +48,15 @@
         </li>
 
         <li>
+            <a class="@(controller == "AcademicYears" ? "active" : "")"
+               asp-controller="AcademicYears"
+               asp-action="Index">
+                <i class="bi bi-calendar3-range-fill"></i>
+                Academic Years
+            </a>
+        </li>
+
+        <li>
             <a class="@(controller == "CourseManagement" ? "active" : "")"
                asp-controller="CourseManagement"
                asp-action="Index">

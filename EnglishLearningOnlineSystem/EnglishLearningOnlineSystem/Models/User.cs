@@ -18,5 +18,6 @@ public class User
     public DateTime? LastLoginAt { get; set; }
 
     public ICollection<Class> TaughtClasses { get; set; } = new List<Class>();
+    public ICollection<ClassEnrollment> ClassEnrollments { get; set; } = new List<ClassEnrollment>();
     public ICollection<TeacherFeedback> GivenFeedbacks { get; set; } = new List<TeacherFeedback>();
 }

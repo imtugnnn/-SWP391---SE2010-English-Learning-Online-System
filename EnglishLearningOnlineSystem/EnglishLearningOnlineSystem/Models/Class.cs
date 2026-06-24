@@ -14,8 +14,9 @@ namespace EnglishLearningOnlineSystem.Models
         [MaxLength(50)]
         public string GradeLevel { get; set; }
 
-        [MaxLength(50)]
-        public string AcademicYear { get; set; }
+        public int AcademicYearId { get; set; }
+        [ForeignKey("AcademicYearId")]
+        public AcademicYear AcademicYear { get; set; }
 
         public int? TeacherId { get; set; }
         [ForeignKey("TeacherId")]
@@ -24,5 +25,7 @@ namespace EnglishLearningOnlineSystem.Models
         public int? CourseId { get; set; }
         [ForeignKey("CourseId")]
         public Course Course { get; set; }
+
+        public ICollection<ClassEnrollment> Enrollments { get; set; } = new List<ClassEnrollment>();
     }
 }
