@@ -1,0 +1,60 @@
+﻿@model EnglishLearningOnlineSystem.ViewModels.ContentManager.Courses.CourseEditViewModel
+@{
+    Layout = "_ContentManagerLayout";
+    ViewData["Title"] = "Sửa khoá học";
+    ViewData["ActiveNav"] = "courses";
+    ViewData["Breadcrumb"] = "Khoá học / Sửa";
+}
+
+<div class="cm-page-header">
+    <div>
+        <div class="cm-page-title">Sửa khoá học</div>
+        <div class="cm-page-subtitle">@Model.CourseName</div>
+    </div>
+</div>
+
+<div class="cm-card" style="padding:24px; max-width:640px;">
+    <div asp-validation-summary="ModelOnly" class="cm-field-error mb-3"></div>
+
+    <form asp-action="Edit" asp-route-id="@Model.CourseId" method="post">
+        <input type="hidden" asp-for="CourseId" />
+
+        <div class="cm-form-group">
+            <label asp-for="CourseName" class="cm-label cm-label-required"></label>
+            <input asp-for="CourseName" class="cm-input" />
+            <span asp-validation-for="CourseName" class="cm-field-error"></span>
+        </div>
+
+        <div class="cm-form-group">
+            <label asp-for="GradeLevel" class="cm-label cm-label-required"></label>
+            <input asp-for="GradeLevel" class="cm-input" />
+            <span asp-validation-for="GradeLevel" class="cm-field-error"></span>
+        </div>
+
+        <div class="cm-form-group">
+            <label asp-for="Description" class="cm-label"></label>
+            <textarea asp-for="Description" class="cm-textarea"></textarea>
+            <span asp-validation-for="Description" class="cm-field-error"></span>
+        </div>
+
+        @if (Model.HasLessons)
+        {
+            <div class="cm-form-group">
+                <label class="cm-label">Tổng thời lượng (tính từ bài học)</label>
+                <input class="cm-input" value="@Model.TotalDurationMinutes phút / @Model.LessonCount bài học" disabled style="background:var(--cm-surface);" />
+                <div class="cm-form-hint">Thời lượng được tự động tính từ các bài học, không thể chỉnh sửa trực tiếp.</div>
+            </div>
+        }
+
+        <hr class="cm-divider" />
+
+        <div class="d-flex gap-2">
+            <button type="submit" class="cm-btn cm-btn-primary">Cập nhật</button>
+            <a asp-action="Index" class="cm-btn cm-btn-secondary">Hủy</a>
+        </div>
+    </form>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

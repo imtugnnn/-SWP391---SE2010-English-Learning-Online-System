@@ -1,0 +1,53 @@
+﻿@model EnglishLearningOnlineSystem.ViewModels.ContentManager.Courses.CourseCreateViewModel
+@{
+    Layout = "_ContentManagerLayout";
+    ViewData["Title"] = "Thêm khoá học";
+    ViewData["ActiveNav"] = "courses";
+    ViewData["Breadcrumb"] = "Khoá học / Thêm mới";
+}
+
+<div class="cm-page-header">
+    <div>
+        <div class="cm-page-title">Thêm khoá học mới</div>
+        <div class="cm-page-subtitle">Khoá học hoàn toàn miễn phí cho học sinh</div>
+    </div>
+</div>
+
+<div class="cm-card" style="padding:24px; max-width:640px;">
+    <div asp-validation-summary="ModelOnly" class="cm-field-error mb-3"></div>
+
+    <form asp-action="Create" method="post">
+        <div class="cm-form-group">
+            <label asp-for="CourseName" class="cm-label cm-label-required"></label>
+            <input asp-for="CourseName" class="cm-input" placeholder="VD: Tiếng Anh giao tiếp cơ bản" />
+            <span asp-validation-for="CourseName" class="cm-field-error"></span>
+        </div>
+
+        <div class="cm-form-group">
+            <label asp-for="GradeLevel" class="cm-label cm-label-required"></label>
+            <input asp-for="GradeLevel" class="cm-input" placeholder="VD: Lớp 3" />
+            <span asp-validation-for="GradeLevel" class="cm-field-error"></span>
+        </div>
+
+        <div class="cm-form-group">
+            <label asp-for="Description" class="cm-label"></label>
+            <textarea asp-for="Description" class="cm-textarea"></textarea>
+            <span asp-validation-for="Description" class="cm-field-error"></span>
+        </div>
+
+        <div class="cm-form-hint mb-3">
+            Khoá học mới sẽ ở trạng thái <strong>Chưa kích hoạt</strong> cho đến khi bạn thêm bài học và bật trạng thái hoạt động.
+        </div>
+
+        <hr class="cm-divider" />
+
+        <div class="d-flex gap-2">
+            <button type="submit" class="cm-btn cm-btn-primary">Lưu khoá học</button>
+            <a asp-action="Index" class="cm-btn cm-btn-secondary">Hủy</a>
+        </div>
+    </form>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}
