@@ -2,6 +2,7 @@ using EnglishLearningOnlineSystem.Data;
 using EnglishLearningOnlineSystem.Services.Interfaces;
 using EnglishLearningOnlineSystem.ViewModels;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 
 namespace EnglishLearningOnlineSystem.Controllers;
 
@@ -352,6 +353,31 @@ public class StudentController : BaseStudentController
         if (vm == null) return NotFound();
 
         return View(vm);
+    }
+
+    // Endpoint API lấy danh sách thông báo hệ thống dành cho học sinh (RoleId = 1)
+    [HttpGet("/student/notifications/api")]
+    public async Task<IActionResult> GetNotificationsApi()
+    {
+        var now = DateTime.Now;
+        var notifications = await _db.SystemNotifications!
+            .AsNoTracking()
+            .Where(n => n.Status == "Đã phát hành" && (n.PublishTime == null || n.PublishTime <= now))
+            .OrderByDescending(n => n.PublishTime ?? n.CreatedAt)
+            .ToListAsync();
+
+        var studentNotifications = notifications
+            .Where(n => n.Recipient != null && n.Recipient.Split(',', StringSplitOptions.RemoveEmptyEntries).Select(s => s.Trim()).Contains("1"))
+            .Select(n => new
+            {
+                id = n.Id,
+                title = n.Title,
+                content = n.Content,
+                publishTime = n.PublishTime ?? n.CreatedAt
+            })
+            .ToList();
+
+        return Json(studentNotifications);
     }
 
 }
