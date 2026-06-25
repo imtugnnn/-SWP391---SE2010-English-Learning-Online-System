@@ -1,0 +1,442 @@
+﻿@model EnglishLearningOnlineSystem.ViewModels.TeacherClassDetailViewModel
+
+@{
+    ViewData["Title"] = "Chi tiết lớp học";
+}
+
+<style>
+    body {
+        background: #f0f9ff;
+    }
+
+    .teacher-class-shell {
+        min-height: 100vh;
+        padding: 40px 16px;
+        background: linear-gradient(135deg, #e0f2fe 0%, #f0f9ff 60%, #e0f2fe 100%);
+    }
+
+    .teacher-class-container {
+        max-width: 1180px;
+        margin: 0 auto;
+    }
+
+    .page-card {
+        background: #ffffff;
+        border: 1.5px solid #bae6fd;
+        border-radius: 28px;
+        box-shadow: 0 20px 60px rgba(14,165,233,.16), 0 2px 8px rgba(14,165,233,.08);
+        overflow: hidden;
+    }
+
+    .page-card-stripe {
+        height: 6px;
+        background: linear-gradient(90deg, #0ea5e9 0%, #38bdf8 50%, #7dd3fc 100%);
+    }
+
+    .page-card-body {
+        padding: 36px;
+    }
+
+    .section-card {
+        background: #ffffff;
+        border: 1.5px solid #bae6fd;
+        border-radius: 22px;
+        box-shadow: 0 8px 24px rgba(14,165,233,.08);
+        overflow: hidden;
+    }
+
+    .section-header {
+        padding: 18px 22px;
+        border-bottom: 1px solid #e0f2fe;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 16px;
+    }
+
+    .section-title {
+        font-weight: 900;
+        color: #1e3a5f;
+        margin: 0;
+        font-size: 1.05rem;
+    }
+
+    .page-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        background: #e0f2fe;
+        color: #0369a1;
+        font-size: .72rem;
+        font-weight: 800;
+        letter-spacing: .06em;
+        text-transform: uppercase;
+        padding: 5px 12px;
+        border-radius: 99px;
+        margin-bottom: 14px;
+    }
+
+    .page-badge-dot {
+        width: 6px;
+        height: 6px;
+        border-radius: 50%;
+        background: #0ea5e9;
+    }
+
+    .page-title {
+        font-size: 1.9rem;
+        font-weight: 900;
+        color: #1e3a5f;
+        margin-bottom: 8px;
+    }
+
+    .page-title span {
+        color: #0284c7;
+    }
+
+    .page-subtitle {
+        color: #64748b;
+        font-size: .95rem;
+        line-height: 1.7;
+        margin-bottom: 0;
+    }
+
+    .summary-card {
+        background: #f0f9ff;
+        border: 1.5px solid #bae6fd;
+        border-radius: 18px;
+        padding: 20px;
+        height: 100%;
+        transition: border-color .2s, box-shadow .2s, transform .15s;
+    }
+
+    .summary-card:hover {
+        border-color: #38bdf8;
+        box-shadow: 0 4px 16px rgba(14,165,233,.13);
+        transform: translateY(-2px);
+    }
+
+    .summary-label {
+        font-size: .78rem;
+        font-weight: 900;
+        color: #0369a1;
+        letter-spacing: .04em;
+        text-transform: uppercase;
+        margin-bottom: 6px;
+    }
+
+    .summary-value {
+        font-size: 1.7rem;
+        font-weight: 900;
+        color: #1e3a5f;
+        margin: 0;
+    }
+
+    .info-label {
+        font-size: .75rem;
+        font-weight: 900;
+        color: #0369a1;
+        letter-spacing: .04em;
+        text-transform: uppercase;
+        margin-bottom: 5px;
+    }
+
+    .info-value {
+        font-size: .98rem;
+        color: #334155;
+        font-weight: 700;
+        margin: 0;
+    }
+
+    .btn-teacher {
+        border: none;
+        border-radius: 14px;
+        background: linear-gradient(135deg, #0ea5e9 0%, #38bdf8 100%);
+        color: #fff;
+        font-weight: 800;
+        padding: 10px 16px;
+        box-shadow: 0 6px 20px rgba(14,165,233,.28);
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .btn-teacher:hover {
+        opacity: .92;
+        color: #fff;
+        transform: translateY(-1px);
+    }
+
+    .btn-teacher-outline {
+        border: 1.5px solid #38bdf8;
+        border-radius: 14px;
+        color: #0369a1;
+        font-weight: 800;
+        padding: 8px 14px;
+        text-decoration: none;
+        background: #ffffff;
+    }
+
+    .btn-teacher-outline:hover {
+        background: #e0f2fe;
+        color: #0369a1;
+    }
+
+    .table {
+        margin-bottom: 0;
+    }
+
+    .table thead th {
+        background: #f0f9ff;
+        color: #0369a1;
+        font-size: .78rem;
+        text-transform: uppercase;
+        letter-spacing: .04em;
+        border-bottom: 1px solid #bae6fd;
+        padding: 14px 18px;
+    }
+
+    .table tbody td {
+        padding: 16px 18px;
+        vertical-align: middle;
+        color: #334155;
+    }
+
+    .badge-soft-success {
+        background: #dcfce7;
+        color: #166534;
+        border-radius: 99px;
+        padding: 7px 11px;
+        font-weight: 800;
+    }
+
+    .badge-soft-primary {
+        background: #e0f2fe;
+        color: #0369a1;
+        border-radius: 99px;
+        padding: 7px 11px;
+        font-weight: 800;
+    }
+
+    .badge-soft-danger {
+        background: #fee2e2;
+        color: #991b1b;
+        border-radius: 99px;
+        padding: 7px 11px;
+        font-weight: 800;
+    }
+
+    .empty-state {
+        padding: 32px;
+        text-align: center;
+        color: #64748b;
+        background: #ffffff;
+    }
+</style>
+
+<div class="teacher-class-shell">
+    <div class="teacher-class-container">
+        <div class="page-card mb-4">
+            <div class="page-card-stripe"></div>
+
+            <div class="page-card-body">
+                <div class="d-flex justify-content-between align-items-start gap-3 flex-wrap mb-4">
+                    <div>
+                        <div class="page-badge">
+                            <span class="page-badge-dot"></span>
+                            Teacher Module
+                        </div>
+
+                        <h1 class="page-title">
+                            Chi tiết lớp <span>@Model.ClassName</span>
+                        </h1>
+
+                        <p class="page-subtitle">
+                            Theo dõi danh sách học sinh, bài học được giao và tiến độ học tập tổng quan của lớp.
+                        </p>
+                    </div>
+
+                    <a asp-controller="Home" asp-action="Homepage" class="btn-teacher-outline">
+                        Quay lại trang chủ
+                    </a>
+                </div>
+
+                <div class="row g-3 mb-4">
+                    <div class="col-md-3">
+                        <div class="summary-card">
+                            <div class="info-label">Tên lớp</div>
+                            <p class="info-value">@Model.ClassName</p>
+                        </div>
+                    </div>
+
+                    <div class="col-md-3">
+                        <div class="summary-card">
+                            <div class="info-label">Khối lớp</div>
+                            <p class="info-value">@Model.GradeLevel</p>
+                        </div>
+                    </div>
+
+                    <div class="col-md-3">
+                        <div class="summary-card">
+                            <div class="info-label">Năm học</div>
+                            <p class="info-value">@Model.AcademicYear</p>
+                        </div>
+                    </div>
+
+                    <div class="col-md-3">
+                        <div class="summary-card">
+                            <div class="info-label">Giáo viên</div>
+                            <p class="info-value">@Model.TeacherName</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="row g-3">
+                    <div class="col-md-3">
+                        <div class="summary-card">
+                            <div class="summary-label">Tổng học sinh</div>
+                            <p class="summary-value">@Model.StudentCount</p>
+                        </div>
+                    </div>
+
+                    <div class="col-md-3">
+                        <div class="summary-card">
+                            <div class="summary-label">Bài đã giao</div>
+                            <p class="summary-value">@Model.AssignmentCount</p>
+                        </div>
+                    </div>
+
+                    <div class="col-md-3">
+                        <div class="summary-card">
+                            <div class="summary-label">Tỉ lệ hoàn thành</div>
+                            <p class="summary-value">@Model.CompletionRate%</p>
+                        </div>
+                    </div>
+
+                    <div class="col-md-3">
+                        <div class="summary-card">
+                            <div class="summary-label">Chậm tiến độ</div>
+                            <p class="summary-value">@Model.StudentsBehindSchedule</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="section-card mb-4">
+            <div class="section-header">
+                <h2 class="section-title">Danh sách học sinh</h2>
+
+                <a asp-controller="Teacher"
+                   asp-action="ManageStudentList"
+                   asp-route-classId="@Model.ClassId"
+                   class="btn-teacher">
+                    Quản lý học sinh
+                </a>
+            </div>
+
+            @if (Model.Students.Any())
+            {
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle">
+                        <thead>
+                            <tr>
+                                <th>Tên học sinh</th>
+                                <th>Email</th>
+                                <th>Trạng thái</th>
+                                <th class="text-end">Thao tác</th>
+                            </tr>
+                        </thead>
+
+                        <tbody>
+                            @foreach (var student in Model.Students)
+                            {
+                                <tr>
+                                    <td class="fw-bold">@student.StudentName</td>
+                                    <td>@student.Email</td>
+                                    <td>
+                                        <span class="badge-soft-success">@student.EnrollmentStatus</span>
+                                    </td>
+                                    <td class="text-end">
+                                        <a asp-controller="Teacher"
+                                           asp-action="StudentDetail"
+                                           asp-route-studentId="@student.StudentId"
+                                           asp-route-classId="@Model.ClassId"
+                                           class="btn-teacher-outline">
+                                            Xem chi tiết
+                                        </a>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            }
+            else
+            {
+                <div class="empty-state">
+                    Lớp học hiện chưa có học sinh đang hoạt động.
+                </div>
+            }
+        </div>
+
+        <div class="section-card">
+            <div class="section-header">
+                <h2 class="section-title">Bài học được giao</h2>
+
+                <a asp-controller="Teacher"
+                   asp-action="AssignmentOverview"
+                   asp-route-classId="@Model.ClassId"
+                   class="btn-teacher">
+                    Xem tổng quan bài giao
+                </a>
+            </div>
+
+            @if (Model.Assignments.Any())
+            {
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle">
+                        <thead>
+                            <tr>
+                                <th>Tên assignment</th>
+                                <th>Bài học</th>
+                                <th>Ngày bắt đầu</th>
+                                <th>Hạn nộp</th>
+                                <th>Trạng thái</th>
+                            </tr>
+                        </thead>
+
+                        <tbody>
+                            @foreach (var assignment in Model.Assignments)
+                            {
+                                <tr>
+                                    <td class="fw-bold">@assignment.AssignmentTitle</td>
+                                    <td>@assignment.LessonTitle</td>
+                                    <td>@assignment.StartDate.ToString("dd/MM/yyyy")</td>
+                                    <td>@assignment.DueDate.ToString("dd/MM/yyyy")</td>
+                                    <td>
+                                        @if (assignment.Status == "Quá hạn")
+                                        {
+                                            <span class="badge-soft-danger">@assignment.Status</span>
+                                        }
+                                        else
+                                        {
+                                            <span class="badge-soft-primary">@assignment.Status</span>
+                                        }
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            }
+            else
+            {
+                <div class="empty-state">
+                    Lớp học hiện chưa có bài học nào được giao.
+                </div>
+            }
+        </div>
+    </div>
+</div>

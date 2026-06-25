@@ -48,6 +48,9 @@ builder.Services.AddScoped<IFlashcardRepository, FlashcardRepository>();
 builder.Services.AddScoped<IFlashcardService, FlashcardService>();
 builder.Services.AddScoped<IAdaptiveLearningService, AdaptiveLearningService>();
 
+builder.Services.AddScoped<IClassRepository, ClassRepository>();
+builder.Services.AddScoped<IClassService, ClassService>();
+
 // Cấu hình Session
 builder.Services.AddHttpContextAccessor();
 builder.Services.AddDistributedMemoryCache();
