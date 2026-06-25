@@ -8,11 +8,13 @@ public class TeacherController : Controller
 {
     private readonly IClassService _classService;
     private readonly IStudentManagementService _studentManagementService;
+    private readonly ITeacherAssignmentService _teacherAssignmentService;
 
-    public TeacherController(IClassService classService, IStudentManagementService studentManagementService)
+    public TeacherController(IClassService classService, IStudentManagementService studentManagementService, ITeacherAssignmentService teacherAssignmentService)
     {
         _classService = classService;
         _studentManagementService = studentManagementService;
+        _teacherAssignmentService = teacherAssignmentService;
     }
 
     public async Task<IActionResult> ClassDetail(int classId)
@@ -146,5 +148,118 @@ public class TeacherController : Controller
                 classId = model.ClassId,
                 studentId = model.StudentId
             });
+    }
+    [HttpGet]
+    public async Task<IActionResult> AssignWeeklyLessons(int classId)
+    {
+        var teacherId = GetCurrentUserId();
+
+        if (teacherId == null)
+        {
+            return RedirectToAction("Login", "Auth");
+        }
+
+        var viewModel = await _teacherAssignmentService.GetAssignWeeklyLessonsFormAsync(
+            classId,
+            teacherId.Value);
+
+        if (viewModel == null)
+        {
+            return Content("Không tìm thấy lớp học hoặc bạn không có quyền giao bài cho lớp này.");
+        }
+
+        return View(viewModel);
+    }
+
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> AssignWeeklyLessons(AssignWeeklyLessonViewModel model)
+    {
+        var teacherId = GetCurrentUserId();
+
+        if (teacherId == null)
+        {
+            return RedirectToAction("Login", "Auth");
+        }
+
+        if (model.SelectedLessonIds == null || !model.SelectedLessonIds.Any())
+        {
+            ModelState.AddModelError(string.Empty, "Vui lòng chọn ít nhất một bài học.");
+        }
+
+        if (model.DueDate < model.WeekStartDate)
+        {
+            ModelState.AddModelError(string.Empty, "Hạn hoàn thành không được nhỏ hơn ngày bắt đầu.");
+        }
+
+        if (!ModelState.IsValid)
+        {
+            var reloadModel = await _teacherAssignmentService.GetAssignWeeklyLessonsFormAsync(
+                model.ClassId,
+                teacherId.Value);
+
+            if (reloadModel == null)
+            {
+                return Content("Không thể tải lại dữ liệu giao bài.");
+            }
+
+            reloadModel.WeekStartDate = model.WeekStartDate;
+            reloadModel.DueDate = model.DueDate;
+            reloadModel.SelectedLessonIds = model.SelectedLessonIds ?? new List<int>();
+
+            return View(reloadModel);
+        }
+
+        var success = await _teacherAssignmentService.AssignWeeklyLessonsAsync(
+            model,
+            teacherId.Value);
+
+        if (!success)
+        {
+            ModelState.AddModelError(string.Empty, "Không thể giao bài. Có thể các bài học đã được giao trong tuần này.");
+
+            var reloadModel = await _teacherAssignmentService.GetAssignWeeklyLessonsFormAsync(
+                model.ClassId,
+                teacherId.Value);
+
+            if (reloadModel == null)
+            {
+                return Content("Không thể tải lại dữ liệu giao bài.");
+            }
+
+            reloadModel.WeekStartDate = model.WeekStartDate;
+            reloadModel.DueDate = model.DueDate;
+            reloadModel.SelectedLessonIds = model.SelectedLessonIds ?? new List<int>();
+
+            return View(reloadModel);
+        }
+
+        TempData["SuccessMessage"] = "Giao bài học theo tuần thành công.";
+
+        return RedirectToAction(
+            nameof(ClassDetail),
+            new { classId = model.ClassId });
+    }
+    public async Task<IActionResult> AssignmentOverview(
+    int classId,
+    string? status,
+    string? sortBy,
+    int page = 1)
+    {
+        var teacherId = GetCurrentUserId();
+
+        if (teacherId == null)
+        {
+            return RedirectToAction("Login", "Auth");
+        }
+
+        var viewModel = await _teacherAssignmentService.GetAssignmentOverviewAsync(
+    classId,
+    teacherId.Value,
+    status,
+    sortBy,
+    page);
+
+        return View(viewModel);
     }
 }

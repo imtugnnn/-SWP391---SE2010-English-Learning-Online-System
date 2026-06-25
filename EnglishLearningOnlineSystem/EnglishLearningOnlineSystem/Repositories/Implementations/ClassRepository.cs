@@ -101,4 +101,11 @@ public class ClassRepository : IClassRepository
         _context.TeacherFeedbacks!.Add(feedback);
         await _context.SaveChangesAsync();
     }
+    public async Task<List<Class>> GetClassesByTeacherIdAsync(int teacherId)
+    {
+        return await _context.Classes!
+            .Where(c => c.TeacherId == teacherId)
+            .AsNoTracking()
+            .ToListAsync();
+    }
 }
