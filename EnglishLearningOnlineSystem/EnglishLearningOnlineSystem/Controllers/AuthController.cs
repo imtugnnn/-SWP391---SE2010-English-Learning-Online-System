@@ -308,6 +308,7 @@ public class AuthController : Controller
             1 => RedirectToAction(nameof(StudentController.Onboarding), "Student"),
             2 => RedirectToAction(nameof(AdminController.Dashboard), "Admin"),
             4 => RedirectToAction(nameof(ParentController.Dashboard), "Parent"),
+            5 => RedirectToAction(nameof(BlogManagementController.Index), "BlogManagement"),
             _ => RedirectToAction(nameof(HomeController.Homepage), "Home")
         };
     }

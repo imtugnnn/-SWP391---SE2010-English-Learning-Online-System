@@ -44,6 +44,8 @@ public class AppDbContext : Microsoft.EntityFrameworkCore.DbContext
 
     public DbSet<ParentStudentLink> ParentStudentLinks { get; set; }
 
+    public DbSet<BlogPost> BlogPosts { get; set; }
+
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         base.OnModelCreating(modelBuilder);
@@ -271,6 +273,20 @@ public class AppDbContext : Microsoft.EntityFrameworkCore.DbContext
                   .OnDelete(DeleteBehavior.Restrict);
 
                 eb.HasIndex(l => new { l.ParentId, l.StudentId }).IsUnique();
+            });
+        }
+        catch { }
+
+        try
+        {
+            modelBuilder.Entity<BlogPost>(eb =>
+            {
+                eb.HasOne(b => b.Author)
+                  .WithMany()
+                  .HasForeignKey(b => b.AuthorId)
+                  .OnDelete(DeleteBehavior.Restrict);
+
+                eb.HasIndex(b => b.IsPublished);
             });
         }
         catch { }

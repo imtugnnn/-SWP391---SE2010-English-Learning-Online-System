@@ -1,0 +1,72 @@
+@model List<EnglishLearningOnlineSystem.ViewModels.Blog.BlogReadListItemViewModel>
+
+@{
+    Layout = "_StudentLayout";
+    ViewData["Title"] = "Blog học tập";
+    ViewData["ActiveNav"] = "blog";
+    var categories = ViewBag.Categories as List<string> ?? new List<string>();
+    var selected = ViewBag.SelectedCategory as string;
+}
+
+@section Styles {
+    <style>
+        .blog-filter { display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 22px; }
+        .blog-chip {
+            padding: 8px 16px; border-radius: 99px; text-decoration: none;
+            background: #fff; border: 2px solid var(--border); color: var(--text);
+            font-weight: 700; font-size: .85rem; transition: border-color .15s;
+        }
+        .blog-chip:hover { border-color: var(--sky); }
+        .blog-chip.active { background: var(--sky-d); color: #fff; border-color: var(--sky-d); }
+        .blog-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 20px; }
+        .blog-card {
+            background: var(--card); border: 2px solid var(--border); border-radius: var(--radius);
+            box-shadow: var(--shadow); padding: 22px; display: flex; flex-direction: column;
+            text-decoration: none; color: var(--text); transition: transform .12s, box-shadow .15s;
+        }
+        .blog-card:hover { transform: translateY(-3px); box-shadow: 0 8px 22px rgba(14,165,233,.2); color: var(--text); }
+        .blog-cat { align-self: flex-start; background: #e0f2fe; color: var(--sky-dark);
+            font-size: .72rem; font-weight: 800; padding: 4px 12px; border-radius: 99px; margin-bottom: 12px; }
+        .blog-title { font-size: 1.15rem; font-weight: 900; margin-bottom: 8px; line-height: 1.3; }
+        .blog-summary { color: var(--muted); font-size: .9rem; font-weight: 600; flex: 1; }
+        .blog-meta { margin-top: 14px; font-size: .78rem; color: var(--muted); font-weight: 700; }
+        .blog-empty { background: var(--card); border-radius: var(--radius); border: 2px solid var(--border);
+            padding: 48px; text-align: center; color: var(--muted); font-weight: 700; }
+    </style>
+}
+
+<h2 style="font-weight:900; margin-bottom:6px;">Blog học tập</h2>
+<p style="color:var(--muted); font-weight:600; margin-bottom:20px;">Mẹo ngữ pháp, bí quyết học tập và thông báo mới nhất.</p>
+
+@if (categories.Any())
+{
+    <div class="blog-filter">
+        <a href="/Blog" class="blog-chip @(string.IsNullOrEmpty(selected) ? "active" : "")">Tất cả</a>
+        @foreach (var c in categories)
+        {
+            <a href="/Blog?category=@c" class="blog-chip @(selected == c ? "active" : "")">@c</a>
+        }
+    </div>
+}
+
+@if (!Model.Any())
+{
+    <div class="blog-empty">Chưa có bài viết nào. Hãy quay lại sau nhé!</div>
+}
+else
+{
+    <div class="blog-grid">
+        @foreach (var post in Model)
+        {
+            <a href="/Blog/Detail/@post.BlogPostId" class="blog-card">
+                <span class="blog-cat">@post.Category</span>
+                <div class="blog-title">@post.Title</div>
+                <div class="blog-summary">@(post.Summary ?? "")</div>
+                <div class="blog-meta">
+                    @post.AuthorName
+                    @if (post.PublishedAt.HasValue) { <span>· @post.PublishedAt.Value.ToString("dd/MM/yyyy")</span> }
+                </div>
+            </a>
+        }
+    </div>
+}

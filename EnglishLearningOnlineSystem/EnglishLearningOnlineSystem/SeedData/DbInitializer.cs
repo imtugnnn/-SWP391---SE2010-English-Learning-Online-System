@@ -60,6 +60,56 @@ public static class DbInitializer
         context.Users.Add(parentUser);
         await context.SaveChangesAsync();
 
+        var contentManager = new User
+        {
+            Username = "content01",
+            Email = "content@english.com",
+            Password = BCrypt.Net.BCrypt.HashPassword("123456"),
+            IsActive = true,
+            RoleId = 5
+        };
+        context.Users.Add(contentManager);
+        await context.SaveChangesAsync();
+
+        context.BlogPosts.AddRange(
+            new BlogPost
+            {
+                Title = "5 mẹo ghi nhớ từ vựng tiếng Anh hiệu quả",
+                Summary = "Những phương pháp đơn giản giúp bé ghi nhớ từ vựng lâu hơn.",
+                Content = "1. Học từ vựng theo chủ đề.\n2. Dùng flashcard mỗi ngày.\n3. Đặt câu với từ mới.\n4. Ôn lại sau 1 ngày, 1 tuần.\n5. Chơi mini game từ vựng để ôn tập vui hơn.",
+                Category = "Learning Tips",
+                IsPublished = true,
+                AuthorId = contentManager.Id,
+                CreatedAt = DateTime.UtcNow.AddDays(-3),
+                UpdatedAt = DateTime.UtcNow.AddDays(-3),
+                PublishedAt = DateTime.UtcNow.AddDays(-3)
+            },
+            new BlogPost
+            {
+                Title = "Phân biệt 'a' và 'an' trong tiếng Anh",
+                Summary = "Quy tắc dùng mạo từ a/an cho người mới bắt đầu.",
+                Content = "Dùng 'a' trước từ bắt đầu bằng phụ âm: a cat, a dog.\nDùng 'an' trước từ bắt đầu bằng nguyên âm: an apple, an orange.\nLưu ý: dựa vào âm đọc, không phải chữ cái.",
+                Category = "Grammar",
+                IsPublished = true,
+                AuthorId = contentManager.Id,
+                CreatedAt = DateTime.UtcNow.AddDays(-1),
+                UpdatedAt = DateTime.UtcNow.AddDays(-1),
+                PublishedAt = DateTime.UtcNow.AddDays(-1)
+            },
+            new BlogPost
+            {
+                Title = "Thông báo: Cập nhật khoá học mới tháng này",
+                Summary = "Hệ thống vừa thêm khoá học và bài học mới.",
+                Content = "Chúng tôi vừa bổ sung các bài học mới về chủ đề Gia đình và Nghề nghiệp. Các bé hãy vào học và nhận thêm XP nhé!",
+                Category = "Announcement",
+                IsPublished = false,
+                AuthorId = contentManager.Id,
+                CreatedAt = DateTime.UtcNow,
+                UpdatedAt = DateTime.UtcNow
+            }
+        );
+        await context.SaveChangesAsync();
+
         // ── Teacher ───────────────────────────────────────────────────────────
         var teacherUser = new User
         {

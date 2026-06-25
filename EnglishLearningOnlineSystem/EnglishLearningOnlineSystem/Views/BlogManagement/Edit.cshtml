@@ -1,0 +1,56 @@
+@model EnglishLearningOnlineSystem.ViewModels.Blog.BlogPostEditViewModel
+
+@{
+    Layout = "_ContentManagerLayout";
+    ViewData["Title"] = "Sửa bài viết";
+    ViewData["ActiveNav"] = "blog";
+    var categories = new[] { "Grammar", "Learning Tips", "Announcement", "General" };
+}
+
+<div style="background:#fff; border-radius:18px; box-shadow:0 4px 20px rgba(15,23,42,.06); padding:30px; max-width:820px;">
+    <form asp-action="Edit" asp-route-id="@Model.BlogPostId" method="post">
+        <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+        <input type="hidden" asp-for="BlogPostId" />
+
+        <div class="mb-3">
+            <label asp-for="Title" class="form-label fw-bold">Tiêu đề</label>
+            <input asp-for="Title" class="form-control" />
+            <span asp-validation-for="Title" class="text-danger"></span>
+        </div>
+
+        <div class="mb-3">
+            <label asp-for="Category" class="form-label fw-bold">Danh mục</label>
+            <select asp-for="Category" class="form-select">
+                @foreach (var c in categories)
+                {
+                    <option value="@c">@c</option>
+                }
+            </select>
+            <span asp-validation-for="Category" class="text-danger"></span>
+        </div>
+
+        <div class="mb-3">
+            <label asp-for="Summary" class="form-label fw-bold">Tóm tắt (tuỳ chọn)</label>
+            <textarea asp-for="Summary" class="form-control" rows="2"></textarea>
+            <span asp-validation-for="Summary" class="text-danger"></span>
+        </div>
+
+        <div class="mb-3">
+            <label asp-for="Content" class="form-label fw-bold">Nội dung</label>
+            <textarea asp-for="Content" class="form-control" rows="10"></textarea>
+            <span asp-validation-for="Content" class="text-danger"></span>
+        </div>
+
+        <div class="form-check mb-3">
+            <input asp-for="IsPublished" class="form-check-input" />
+            <label asp-for="IsPublished" class="form-check-label">Đã đăng</label>
+        </div>
+
+        <button type="submit" class="btn btn-primary fw-bold" style="border-radius:12px;">Cập nhật</button>
+        <a asp-action="Index" class="btn btn-secondary" style="border-radius:12px;">Hủy</a>
+    </form>
+</div>
+
+@section Scripts {
+    @{ await Html.RenderPartialAsync("_ValidationScriptsPartial"); }
+}

@@ -1,0 +1,124 @@
+@{
+    var activeNav = ViewData["ActiveNav"]?.ToString() ?? "";
+    string Nav(string key) => activeNav == key ? "cm-nav-item active" : "cm-nav-item";
+}
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"] - ELS Content</title>
+
+    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+
+    <style>
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+        :root {
+            --cm-blue: #2563eb;
+            --cm-blue-d: #1d4ed8;
+            --cm-bg: #f1f5f9;
+            --cm-border: #e2e8f0;
+            --cm-muted: #64748b;
+            --cm-text: #1e293b;
+            --cm-sb-width: 248px;
+        }
+
+        body {
+            font-family: 'Nunito', sans-serif;
+            background: var(--cm-bg);
+            color: var(--cm-text);
+            min-height: 100vh;
+            display: flex;
+        }
+
+        .cm-sidebar {
+            width: var(--cm-sb-width);
+            min-height: 100vh;
+            background: linear-gradient(180deg, #2563eb 0%, #1e40af 100%);
+            display: flex; flex-direction: column;
+            flex-shrink: 0;
+            position: fixed; top: 0; left: 0; bottom: 0; z-index: 100;
+        }
+        .cm-logo { padding: 26px 24px 22px; color: #fff; }
+        .cm-logo-title { font-size: 1.6rem; font-weight: 900; line-height: 1; }
+        .cm-logo-sub { font-size: .82rem; font-weight: 600; opacity: .85; margin-top: 4px; }
+
+        .cm-nav { flex: 1; padding: 14px 14px; display: flex; flex-direction: column; gap: 6px; }
+        .cm-nav-item {
+            display: flex; align-items: center; gap: 14px;
+            padding: 13px 16px; border-radius: 14px;
+            color: rgba(255,255,255,.9); font-weight: 700; font-size: .96rem;
+            text-decoration: none; transition: background .15s;
+            border: none; background: none; width: 100%; text-align: left; cursor: pointer;
+        }
+        .cm-nav-item:hover { background: rgba(255,255,255,.15); color: #fff; }
+        .cm-nav-item.active { background: #fff; color: var(--cm-blue); box-shadow: 0 6px 16px rgba(0,0,0,.12); }
+        .cm-nav-icon { font-size: 1.2rem; width: 24px; text-align: center; flex-shrink: 0; }
+        .cm-nav-divider { height: 1px; background: rgba(255,255,255,.18); margin: 10px 6px; }
+
+        .cm-main { margin-left: var(--cm-sb-width); flex: 1; display: flex; flex-direction: column; min-height: 100vh; }
+        .cm-topbar {
+            background: #fff; padding: 20px 36px;
+            display: flex; align-items: center; justify-content: space-between;
+            border-bottom: 1px solid var(--cm-border); gap: 16px;
+        }
+        .cm-topbar-title { font-size: 1.7rem; font-weight: 900; color: var(--cm-text); }
+        .cm-avatar {
+            width: 44px; height: 44px; border-radius: 50%;
+            background: #cbd5e1; display: flex; align-items: center; justify-content: center;
+            font-size: 1.2rem; color: #fff;
+        }
+        .cm-content { padding: 32px 36px; flex: 1; }
+
+        @@media (max-width: 992px) {
+            :root { --cm-sb-width: 72px; }
+            .cm-logo-title, .cm-logo-sub, .cm-nav-item > span:not(.cm-nav-icon) { display: none; }
+            .cm-nav-item { justify-content: center; padding: 13px; }
+            .cm-logo { padding: 22px 12px; text-align: center; }
+        }
+    </style>
+    @await RenderSectionAsync("Styles", required: false)
+</head>
+<body>
+
+<aside class="cm-sidebar">
+    <div class="cm-logo">
+        <div class="cm-logo-title">ELS</div>
+        <div class="cm-logo-sub">Quản lý nội dung</div>
+    </div>
+
+    <nav class="cm-nav">
+        <a href="/BlogManagement" class="@Nav("blog")">
+            <span class="cm-nav-icon">📝</span><span>Quản lý Blog</span>
+        </a>
+
+        <div class="cm-nav-divider"></div>
+
+        <form asp-controller="Auth" asp-action="Logout" method="post">
+            @Html.AntiForgeryToken()
+            <button type="submit" class="cm-nav-item">
+                <span class="cm-nav-icon">↪</span><span>Đăng xuất</span>
+            </button>
+        </form>
+    </nav>
+</aside>
+
+<div class="cm-main">
+    <div class="cm-topbar">
+        <div class="cm-topbar-title">@(ViewData["Title"] ?? "ELS")</div>
+        <div class="cm-avatar">👤</div>
+    </div>
+
+    <div class="cm-content">
+        @RenderBody()
+    </div>
+</div>
+
+<script src="~/lib/jquery/dist/jquery.min.js"></script>
+<script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+@await RenderSectionAsync("Scripts", required: false)
+
+</body>
+</html>

@@ -1,0 +1,68 @@
+@model List<EnglishLearningOnlineSystem.ViewModels.Blog.BlogPostListItemViewModel>
+
+@{
+    Layout = "_ContentManagerLayout";
+    ViewData["Title"] = "Quản lý Blog";
+    ViewData["ActiveNav"] = "blog";
+}
+
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <p class="text-muted mb-0" style="font-weight:600;">Tạo và quản lý bài viết: mẹo ngữ pháp, bí quyết học tập, thông báo.</p>
+    <a asp-action="Create" class="btn btn-primary" style="font-weight:700; border-radius:12px;">+ Tạo bài viết</a>
+</div>
+
+@if (TempData["Message"] != null)
+{
+    <div class="alert alert-success" style="border-radius:12px;">@TempData["Message"]</div>
+}
+
+@if (!Model.Any())
+{
+    <div class="alert alert-info" style="border-radius:12px;">Chưa có bài viết nào. Hãy tạo bài viết đầu tiên.</div>
+}
+else
+{
+    <div style="background:#fff; border-radius:18px; box-shadow:0 4px 20px rgba(15,23,42,.06); padding:8px 20px;">
+        <table class="table table-hover align-middle mb-0">
+            <thead>
+                <tr>
+                    <th>Tiêu đề</th>
+                    <th>Danh mục</th>
+                    <th>Trạng thái</th>
+                    <th>Tác giả</th>
+                    <th>Ngày tạo</th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var item in Model)
+                {
+                    <tr>
+                        <td style="font-weight:700;">@item.Title</td>
+                        <td><span class="badge bg-secondary">@item.Category</span></td>
+                        <td>
+                            @if (item.IsPublished)
+                            {
+                                <span class="badge bg-success">Đã đăng</span>
+                            }
+                            else
+                            {
+                                <span class="badge bg-warning text-dark">Nháp</span>
+                            }
+                        </td>
+                        <td>@item.AuthorName</td>
+                        <td>@item.CreatedAt.ToString("dd/MM/yyyy")</td>
+                        <td class="text-end">
+                            <a asp-action="Edit" asp-route-id="@item.BlogPostId" class="btn btn-sm btn-outline-primary">Sửa</a>
+                            <form asp-action="Delete" asp-route-id="@item.BlogPostId" method="post" class="d-inline"
+                                  onsubmit="return confirm('Xóa bài viết này?');">
+                                @Html.AntiForgeryToken()
+                                <button type="submit" class="btn btn-sm btn-outline-danger">Xóa</button>
+                            </form>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+}
