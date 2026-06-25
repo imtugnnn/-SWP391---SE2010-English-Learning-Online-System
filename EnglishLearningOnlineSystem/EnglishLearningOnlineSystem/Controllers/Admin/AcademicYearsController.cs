@@ -32,7 +32,7 @@ public class AcademicYearsController : Controller
                 StartDate = y.StartDate,
                 EndDate = y.EndDate,
                 IsActive = y.IsActive,
-                ClassCount = y.Classes.Count
+                ClassCount = y.Classes.Count(c => !c.IsDeleted)
             })
             .ToListAsync();
 
@@ -132,7 +132,7 @@ public class AcademicYearsController : Controller
         var className = vm.NewClass.ClassName.Trim();
         var existingClass = await _context.Classes!
             .AsNoTracking()
-            .AnyAsync(c => c.AcademicYearId == id && c.ClassName == className);
+            .AnyAsync(c => c.AcademicYearId == id && c.ClassName == className && !c.IsDeleted);
 
         if (existingClass)
         {
@@ -395,7 +395,8 @@ public class AcademicYearsController : Controller
                 StudentEmails = c.Enrollments
                     .Select(e => e.Student.Email)
                     .OrderBy(email => email)
-                    .ToList()
+                    .ToList(),
+                IsDeleted = c.IsDeleted
             }).ToList(),
             NewClass = newClass ?? new AddClassViewModel()
         };
@@ -444,20 +445,186 @@ public class AcademicYearsController : Controller
     public async Task<IActionResult> RemoveClass(int id, int classId)
     {
         var classEntity = await _context.Classes!
-            .Include(c => c.Enrollments)
             .FirstOrDefaultAsync(c => c.ClassId == classId && c.AcademicYearId == id);
 
         if (classEntity != null)
         {
-            if (classEntity.Enrollments.Any())
-            {
-                _context.ClassEnrollments!.RemoveRange(classEntity.Enrollments);
-            }
-            _context.Classes!.Remove(classEntity);
+            classEntity.IsDeleted = true;
             await _context.SaveChangesAsync();
+            TempData["SuccessMessage"] = $"Lớp học '{classEntity.ClassName}' đã được xóa thành công.";
         }
 
         return RedirectToAction(nameof(Edit), new { id = id });
+    }
+
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> RestoreClass(int id, int classId)
+    {
+        var classEntity = await _context.Classes!
+            .FirstOrDefaultAsync(c => c.ClassId == classId && c.AcademicYearId == id);
+
+        if (classEntity != null)
+        {
+            var hasDuplicate = await _context.Classes!
+                .AnyAsync(c => c.AcademicYearId == id && c.ClassName == classEntity.ClassName && !c.IsDeleted && c.ClassId != classId);
+
+            if (hasDuplicate)
+            {
+                TempData["ErrorMessage"] = $"Không thể kích hoạt lại lớp học này vì lớp '{classEntity.ClassName}' đang hoạt động trong năm học này.";
+                return RedirectToAction(nameof(Edit), new { id = id, selectedClassId = classId });
+            }
+
+            classEntity.IsDeleted = false;
+            await _context.SaveChangesAsync();
+            TempData["SuccessMessage"] = $"Lớp học '{classEntity.ClassName}' đã được kích hoạt lại thành công.";
+        }
+
+        return RedirectToAction(nameof(Edit), new { id = id, selectedClassId = classId });
+    }
+
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> AddStudentsToClass(int id, int classId, string? studentEmails)
+    {
+        var classEntity = await _context.Classes!
+            .Include(c => c.Enrollments)
+                .ThenInclude(e => e.Student)
+            .FirstOrDefaultAsync(c => c.ClassId == classId && c.AcademicYearId == id);
+
+        if (classEntity == null)
+        {
+            return NotFound();
+        }
+
+        var parsedEmails = ParseEmails(studentEmails, preserveOrder: true);
+        var duplicateEmailsInInput = parsedEmails
+            .GroupBy(email => email, StringComparer.OrdinalIgnoreCase)
+            .Where(group => group.Count() > 1)
+            .Select(group => group.Key)
+            .ToList();
+
+        var emails = parsedEmails
+            .Distinct(StringComparer.OrdinalIgnoreCase)
+            .ToList();
+
+        if (emails.Count == 0)
+        {
+            TempData["ErrorMessage"] = "Vui lòng nhập ít nhất một email học sinh.";
+            return RedirectToAction(nameof(Edit), new { id = id, selectedClassId = classId });
+        }
+
+        if (duplicateEmailsInInput.Count > 0)
+        {
+            TempData["ErrorMessage"] = $"Không được phép trùng lặp email nhập vào: {string.Join(", ", duplicateEmailsInInput)}.";
+            return RedirectToAction(nameof(Edit), new { id = id, selectedClassId = classId });
+        }
+
+        var students = await _context.Users
+            .AsNoTracking()
+            .Include(u => u.Role)
+            .Where(u => emails.Contains(u.Email))
+            .ToListAsync();
+
+        var missingEmails = emails
+            .Except(students.Select(s => s.Email), StringComparer.OrdinalIgnoreCase)
+            .ToList();
+
+        var invalidStudents = students
+            .Where(s => s.Role?.Name != "Student")
+            .Select(s => s.Email)
+            .ToList();
+
+        if (missingEmails.Count > 0)
+        {
+            TempData["ErrorMessage"] = $"Email học sinh không tồn tại trên hệ thống: {string.Join(", ", missingEmails)}.";
+            return RedirectToAction(nameof(Edit), new { id = id, selectedClassId = classId });
+        }
+
+        if (invalidStudents.Count > 0)
+        {
+            TempData["ErrorMessage"] = $"Các tài khoản này không phải là học sinh: {string.Join(", ", invalidStudents)}.";
+            return RedirectToAction(nameof(Edit), new { id = id, selectedClassId = classId });
+        }
+
+        var existingEnrollments = classEntity.Enrollments.Select(e => e.Student.Email).ToList();
+        var alreadyEnrolled = students
+            .Where(s => existingEnrollments.Contains(s.Email, StringComparer.OrdinalIgnoreCase))
+            .Select(s => s.Email)
+            .ToList();
+
+        if (alreadyEnrolled.Count > 0)
+        {
+            TempData["ErrorMessage"] = $"Học sinh đã có sẵn trong lớp này: {string.Join(", ", alreadyEnrolled)}.";
+            return RedirectToAction(nameof(Edit), new { id = id, selectedClassId = classId });
+        }
+
+        var otherClassEnrollments = await _context.ClassEnrollments!
+            .Include(e => e.Class)
+            .Include(e => e.Student)
+            .Where(e => e.Class.AcademicYearId == id && !e.Class.IsDeleted && e.ClassId != classId && emails.Contains(e.Student.Email))
+            .Select(e => new { e.Student.Email, e.Class.ClassName })
+            .ToListAsync();
+
+        if (otherClassEnrollments.Count > 0)
+        {
+            var details = otherClassEnrollments.Select(e => $"{e.Email} (đang ở lớp {e.ClassName})");
+            TempData["ErrorMessage"] = $"Các học sinh này đã được phân công vào lớp khác trong năm học này: {string.Join(", ", details)}.";
+            return RedirectToAction(nameof(Edit), new { id = id, selectedClassId = classId });
+        }
+
+        var newEnrollments = students
+            .Select(s => new ClassEnrollment
+            {
+                ClassId = classId,
+                StudentId = s.Id
+            })
+            .ToList();
+
+        _context.ClassEnrollments!.AddRange(newEnrollments);
+        await _context.SaveChangesAsync();
+
+        TempData["SuccessMessage"] = $"Đã thêm thành công {newEnrollments.Count} học sinh vào lớp '{classEntity.ClassName}'.";
+        return RedirectToAction(nameof(Edit), new { id = id, selectedClassId = classId });
+    }
+
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> RemoveStudentFromClass(int id, int classId, string studentEmail)
+    {
+        var classEntity = await _context.Classes!
+            .FirstOrDefaultAsync(c => c.ClassId == classId && c.AcademicYearId == id);
+
+        if (classEntity == null)
+        {
+            return NotFound();
+        }
+
+        var student = await _context.Users
+            .FirstOrDefaultAsync(u => u.Email == studentEmail);
+
+        if (student != null)
+        {
+            var enrollment = await _context.ClassEnrollments!
+                .FirstOrDefaultAsync(e => e.ClassId == classId && e.StudentId == student.Id);
+
+            if (enrollment != null)
+            {
+                _context.ClassEnrollments!.Remove(enrollment);
+                await _context.SaveChangesAsync();
+                TempData["SuccessMessage"] = $"Đã xóa học sinh '{studentEmail}' khỏi lớp '{classEntity.ClassName}' thành công.";
+            }
+            else
+            {
+                TempData["ErrorMessage"] = $"Học sinh '{studentEmail}' không nằm trong lớp này.";
+            }
+        }
+        else
+        {
+            TempData["ErrorMessage"] = $"Không tìm thấy học sinh '{studentEmail}' trên hệ thống.";
+        }
+
+        return RedirectToAction(nameof(Edit), new { id = id, selectedClassId = classId });
     }
 
 
