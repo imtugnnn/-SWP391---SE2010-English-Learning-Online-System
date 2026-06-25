@@ -1,0 +1,58 @@
+@model EnglishLearningOnlineSystem.ViewModels.Student.Games.MatchingResultViewModel
+@{
+    Layout = "_StudentLayout"; @* Đổi tên layout nếu project bạn dùng tên khác *@
+    ViewData["Title"] = "Kết quả Ghép từ";
+}
+
+<div class="container py-4" style="max-width: 720px;">
+    <h2 class="mb-1">@Model.GameTitle — Kết quả</h2>
+    <p class="text-muted mb-4">
+        Đúng @Model.CorrectCount / @Model.TotalCount cặp ·
+        <span class="badge bg-warning text-dark">+@Model.XPEarned XP</span> ·
+        Tổng XP hiện tại: <strong>@Model.NewTotalXP</strong>
+    </p>
+
+    <div class="card mb-4">
+        <div class="card-body p-0">
+            <table class="table mb-0">
+                <thead class="table-light">
+                    <tr>
+                        <th>Từ</th>
+                        <th>Bạn chọn</th>
+                        <th>Đáp án đúng</th>
+                        <th class="text-center">Kết quả</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var item in Model.Items)
+                    {
+                        <tr class="@(item.IsCorrect ? "table-success" : "table-danger")">
+                            <td class="fw-semibold">@item.Word</td>
+                            <td>@item.YourMeaning</td>
+                            <td>@item.CorrectMeaning</td>
+                            <td class="text-center">
+                                @if (item.IsCorrect)
+                                {
+                                    <i class="bi bi-check-circle-fill text-success"></i>
+                                }
+                                else
+                                {
+                                    <i class="bi bi-x-circle-fill text-danger"></i>
+                                }
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <div class="d-flex gap-2">
+        <a href="/Matching/Play/@Model.GameId" class="btn btn-outline-primary">
+            <i class="bi bi-arrow-repeat"></i> Chơi lại
+        </a>
+        <a href="/student/lessons" class="btn btn-outline-secondary">
+            Về danh sách bài học
+        </a>
+    </div>
+</div>
