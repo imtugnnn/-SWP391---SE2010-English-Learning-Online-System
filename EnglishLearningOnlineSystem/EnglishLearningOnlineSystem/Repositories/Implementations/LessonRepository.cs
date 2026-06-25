@@ -1,4 +1,4 @@
-﻿using EnglishLearningOnlineSystem.Data;
+using EnglishLearningOnlineSystem.Data;
 using EnglishLearningOnlineSystem.Models;
 using EnglishLearningOnlineSystem.Repositories.Interfaces;
 using Microsoft.EntityFrameworkCore;
@@ -14,82 +14,62 @@ public class LessonRepository : ILessonRepository
         _db = db;
     }
 
-    public async Task<(IEnumerable<Lesson> Items, int TotalCount)> GetPagedAsync(
-        int? courseId,
-        string? searchTitle,
-        int page,
-        int pageSize)
+    public async Task<List<Lesson>> GetAllLessonsWithCourseAsync()
+    {
+        return await _db.Lessons!
+            .Include(l => l.Course)
+            .OrderBy(l => l.Course.CourseName)
+            .ThenBy(l => l.OrderIndex)
+            .ToListAsync();
+    }
+
+    public async Task<(List<Lesson> Lessons, int TotalCount)> GetLessonsPaginatedAsync(string? keyword, int? courseId, int page, int pageSize)
     {
         var query = _db.Lessons!
-            .AsNoTracking()
             .Include(l => l.Course)
-            .Where(l => l.Course != null && !l.Course.IsDeleted)
             .AsQueryable();
 
+        if (!string.IsNullOrWhiteSpace(keyword))
+        {
+            query = query.Where(l => l.Title.Contains(keyword) || l.Topic.Contains(keyword));
+        }
+
         if (courseId.HasValue)
+        {
             query = query.Where(l => l.CourseId == courseId.Value);
+        }
 
-        if (!string.IsNullOrWhiteSpace(searchTitle))
-            query = query.Where(l => l.Title.Contains(searchTitle));
+        int totalCount = await query.CountAsync();
 
-        var total = await query.CountAsync();
-
-        var items = await query
-            .OrderBy(l => l.CourseId)
-            .ThenBy(l => l.OrderIndex)
+        var lessons = await query
+            .OrderByDescending(l => l.LessonId)
             .Skip((page - 1) * pageSize)
             .Take(pageSize)
             .ToListAsync();
 
-        return (items, total);
+        return (lessons, totalCount);
     }
 
-    public async Task<Lesson?> GetByIdAsync(int lessonId)
+    public async Task<Lesson?> GetLessonByIdAsync(int id)
     {
-        return await _db.Lessons!
-            .AsNoTracking()
-            .FirstOrDefaultAsync(l => l.LessonId == lessonId);
+        return await _db.Lessons!.FirstOrDefaultAsync(l => l.LessonId == id);
     }
 
-    public async Task<Lesson?> GetByIdWithCourseAsync(int lessonId)
+    public async Task AddLessonAsync(Lesson lesson)
     {
-        return await _db.Lessons!
-            .AsNoTracking()
-            .Include(l => l.Course)
-            .FirstOrDefaultAsync(l => l.LessonId == lessonId);
+        _db.Lessons!.Add(lesson);
+        await _db.SaveChangesAsync();
     }
 
-    public async Task<IEnumerable<Lesson>> GetByCourseIdAsync(int courseId)
-    {
-        return await _db.Lessons!
-            .AsNoTracking()
-            .Where(l => l.CourseId == courseId)
-            .OrderBy(l => l.OrderIndex)
-            .ToListAsync();
-    }
-
-    public async Task AddAsync(Lesson lesson)
-    {
-        await _db.Lessons!.AddAsync(lesson);
-    }
-
-    public void Update(Lesson lesson)
+    public async Task UpdateLessonAsync(Lesson lesson)
     {
         _db.Lessons!.Update(lesson);
+        await _db.SaveChangesAsync();
     }
 
-    public void Delete(Lesson lesson)
+    public async Task DeleteLessonAsync(Lesson lesson)
     {
         _db.Lessons!.Remove(lesson);
-    }
-
-    public async Task<bool> ExistsAsync(int lessonId)
-    {
-        return await _db.Lessons!.AnyAsync(l => l.LessonId == lessonId);
-    }
-
-    public async Task SaveChangesAsync()
-    {
         await _db.SaveChangesAsync();
     }
 }

@@ -1,22 +1,22 @@
-@model List<EnglishLearningOnlineSystem.ViewModels.ContentManager.Lessons.LessonListItemViewModel>
+@model List<EnglishLearningOnlineSystem.ViewModels.ContentManager.Vocabularies.VocabularyListItemViewModel>
 @{
     Layout = "_ContentManagerLayout";
-    ViewData["Title"] = "Quản lý bài học (Lessons)";
-    ViewData["ActiveNav"] = "lessons";
-    ViewData["Breadcrumb"] = "Bài học";
+    ViewData["Title"] = "Quản lý từ vựng";
+    ViewData["ActiveNav"] = "vocabulary";
+    ViewData["Breadcrumb"] = "Từ vựng";
 
     var keyword = ViewBag.Keyword as string;
-    int? courseId = ViewBag.CourseId as int?;
+    int? lessonId = ViewBag.LessonId as int?;
     int pageNumber = ViewBag.PageNumber;
     int totalPages = ViewBag.TotalPages;
 }
 
 <div class="cm-page-header">
     <div>
-        <div class="cm-page-title">Quản lý bài học</div>
-        <div class="cm-page-subtitle">Tạo và quản lý các bài học thuộc khoá học</div>
+        <div class="cm-page-title">Quản lý từ vựng</div>
+        <div class="cm-page-subtitle">Tạo và quản lý danh sách từ vựng cho các bài học</div>
     </div>
-    <a asp-action="Create" asp-route-courseId="@courseId" class="cm-btn cm-btn-primary">+ Thêm bài học</a>
+    <a asp-action="Create" asp-route-lessonId="@lessonId" class="cm-btn cm-btn-primary">+ Thêm từ vựng</a>
 </div>
 
 @if (TempData["SuccessMessage"] != null)
@@ -33,11 +33,11 @@
 <div class="cm-card" style="padding:16px 20px; margin-bottom:16px;">
     <form method="get" asp-action="Index" class="row g-2 align-items-center">
         <div class="col-md-5">
-            <input type="text" name="keyword" value="@keyword" class="cm-input" placeholder="Tìm theo tiêu đề bài học..." />
+            <input type="text" name="keyword" value="@keyword" class="cm-input" placeholder="Tìm theo từ vựng hoặc nghĩa..." />
         </div>
         <div class="col-md-5">
-            <select name="courseId" class="cm-select" asp-items="ViewBag.CourseSelectList">
-                <option value="">-- Tất cả khoá học --</option>
+            <select name="lessonId" class="cm-select" asp-items="ViewBag.LessonSelectList">
+                <option value="">-- Tất cả bài học --</option>
             </select>
         </div>
         <div class="col-md-2">
@@ -51,34 +51,32 @@
         <thead>
             <tr style="background:var(--cm-surface);">
                 <th style="padding:12px 16px;">#</th>
-                <th>Tiêu đề bài học</th>
-                <th>Chủ đề</th>
+                <th>Từ vựng</th>
+                <th>Nghĩa</th>
+                <th>Bài học</th>
                 <th>Khoá học</th>
-                <th>Thời lượng</th>
                 <th class="text-end" style="padding-right:16px;">Hành động</th>
             </tr>
         </thead>
         <tbody>
             @if (!Model.Any())
             {
-                <tr><td colspan="6" class="text-center py-4" style="color:var(--cm-ink-muted);">Không có bài học nào.</td></tr>
+                <tr><td colspan="6" class="text-center py-4" style="color:var(--cm-ink-muted);">Không có từ vựng nào.</td></tr>
             }
             else
             {
                 foreach (var item in Model)
                 {
                     <tr>
-                        <td style="padding:12px 16px;">@item.LessonId</td>
-                        <td style="font-weight:600; color:var(--cm-accent);">@item.Title</td>
-                        <td><span class="cm-badge cm-badge-warning">@item.Topic</span></td>
-                        <td>@item.CourseName</td>
-                        <td>@item.EstimatedMinutes phút</td>
+                        <td style="padding:12px 16px;">@item.VocabularyId</td>
+                        <td style="font-weight:600; color:var(--cm-accent);">@item.Word</td>
+                        <td>@item.Meaning</td>
+                        <td>@item.LessonTitle</td>
+                        <td><span class="cm-badge cm-badge-muted">@item.CourseName</span></td>
                         <td class="text-end" style="padding-right:16px;">
-                            <a href="/contentmanager/vocabularies?lessonId=@item.LessonId" class="cm-btn cm-btn-secondary cm-btn-sm" style="margin-right: 4px;">Từ vựng</a>
-                            <a href="/contentmanager/quizzes?lessonId=@item.LessonId" class="cm-btn cm-btn-secondary cm-btn-sm" style="margin-right: 8px;">Quizzes</a>
-                            <a asp-action="Edit" asp-route-id="@item.LessonId" class="cm-btn cm-btn-ghost cm-btn-sm">Sửa</a>
-                            <form asp-action="Delete" asp-route-id="@item.LessonId" method="post" class="d-inline"
-                                  onsubmit="return confirm('Bạn có chắc muốn xoá bài học này?');">
+                            <a asp-action="Edit" asp-route-id="@item.VocabularyId" class="cm-btn cm-btn-ghost cm-btn-sm">Sửa</a>
+                            <form asp-action="Delete" asp-route-id="@item.VocabularyId" method="post" class="d-inline"
+                                  onsubmit="return confirm('Bạn có chắc muốn xoá từ vựng này?');">
                                 <button type="submit" class="cm-btn cm-btn-ghost cm-btn-sm" style="color:var(--cm-danger);">Xoá</button>
                             </form>
                         </td>
@@ -97,7 +95,7 @@
             {
                 <li class="page-item @(p == pageNumber ? "active" : "")">
                     <a class="page-link" asp-action="Index" asp-route-page="@p"
-                       asp-route-keyword="@keyword" asp-route-courseId="@courseId">@p</a>
+                       asp-route-keyword="@keyword" asp-route-lessonId="@lessonId">@p</a>
                 </li>
             }
         </ul>
