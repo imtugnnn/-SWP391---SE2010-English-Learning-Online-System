@@ -1,4 +1,4 @@
-﻿@*
+@*
     _ContentManagerLayout.cshtml
     Đặt tại: Views/Shared/_ContentManagerLayout.cshtml
 
@@ -574,6 +574,26 @@
                 border: 1px solid #fca5a5;
             }
 
+            /* Premium Polish */
+            .cm-card {
+                transition: transform 0.2s ease, box-shadow 0.2s ease;
+            }
+            .cm-card:hover {
+                box-shadow: 0 10px 25px rgba(0,0,0,0.03);
+            }
+            .cm-btn {
+                transform: translateY(0);
+                transition: all 0.2s ease;
+            }
+            .cm-btn:hover {
+                transform: translateY(-1px);
+                box-shadow: 0 4px 10px rgba(0,0,0,0.06);
+            }
+            .cm-btn-ghost:hover {
+                box-shadow: none;
+                transform: none;
+            }
+
             /* Responsive */
             @@media (max-width: 1024px) {
                 :root {
@@ -633,39 +653,40 @@
             <span class="cm-nav-section-label">Quản lý nội dung</span>
 
             <!-- LEVEL 1 -->
-            <a href="/contentmanager/courses" class="@Nav("courses")">
+            <a href="/contentmanager/dashboard" class="@Nav("dashboard")">
                 <span class="cm-nav-icon"></span>
-                <span>Manage Courses</span>
+                <span>Dashboard</span>
             </a>
 
-            <!-- LEVEL 2: chỉ hiện khi đang ở Courses hoặc sâu hơn -->
-            @if (activeNav == "lessons" || activeNav == "vocabulary"
-                || activeNav == "quizzes" || activeNav == "minigames")
-            {
-                <div style="padding-left:10px; margin-top:6px;">
-                    <span class="cm-nav-section-label">Course Structure</span>
+            <a href="/contentmanager/courses" class="@Nav("courses")">
+                <span class="cm-nav-icon"></span>
+                <span>Courses</span>
+            </a>
 
-                    <a href="/contentmanager/lessons" class="@Nav("lessons")">
-                        <span class="cm-nav-icon"></span>
-                        <span>Manage Lessons</span>
-                    </a>
+            <!-- LEVEL 2 -->
+            <div style="padding-left:10px; margin-top:6px;">
+                <span class="cm-nav-section-label">Course Structure</span>
 
-                    <a href="/contentmanager/vocabulary" class="@Nav("vocabulary")">
-                        <span class="cm-nav-icon"></span>
-                        <span>Vocabulary</span>
-                    </a>
+                <a href="/contentmanager/lessons" class="@Nav("lessons")">
+                    <span class="cm-nav-icon"></span>
+                    <span>Lessons</span>
+                </a>
 
-                    <a href="/contentmanager/quizzes" class="@Nav("quizzes")">
-                        <span class="cm-nav-icon"></span>
-                        <span>Quizzes</span>
-                    </a>
+                <a href="/contentmanager/vocabularies" class="@Nav("vocabulary")">
+                    <span class="cm-nav-icon"></span>
+                    <span>Vocabulary</span>
+                </a>
 
-                    <a href="/contentmanager/minigames" class="@Nav("minigames")">
-                        <span class="cm-nav-icon">🎮</span>
-                        <span>Mini Games</span>
-                    </a>
-                </div>
-            }
+                <a href="/contentmanager/quizzes" class="@Nav("quizzes")">
+                    <span class="cm-nav-icon"></span>
+                    <span>Quizzes</span>
+                </a>
+
+                <a href="#" class="@Nav("minigames")" style="opacity: 0.5;" title="Coming soon">
+                    <span class="cm-nav-icon"></span>
+                    <span>Mini Games</span>
+                </a>
+            </div>
 
             <!-- ANALYTICS & BLOG (GLOBAL) -->
             <span class="cm-nav-section-label">Phân tích & Xuất bản</span>

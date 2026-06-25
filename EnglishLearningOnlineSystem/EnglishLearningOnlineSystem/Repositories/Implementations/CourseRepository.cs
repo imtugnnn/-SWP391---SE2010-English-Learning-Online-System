@@ -1,4 +1,4 @@
-﻿using EnglishLearningOnlineSystem.Data;
+using EnglishLearningOnlineSystem.Data;
 using EnglishLearningOnlineSystem.Models;
 using EnglishLearningOnlineSystem.Repositories.Interfaces;
 using Microsoft.EntityFrameworkCore;
@@ -12,6 +12,11 @@ namespace EnglishLearningOnlineSystem.Repositories.Implementations
         public CourseRepository(AppDbContext db)
         {
             _db = db;
+        }
+
+        public async Task<List<Course>> GetAllCoursesAsync()
+        {
+            return await _db.Courses.Where(c => !c.IsDeleted).OrderBy(c => c.CourseName).ToListAsync();
         }
 
         public async Task<(List<Course> Items, int TotalCount)> GetPagedAsync(string? keyword, bool? isActive, int pageNumber, int pageSize)

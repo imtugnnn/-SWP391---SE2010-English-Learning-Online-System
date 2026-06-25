@@ -1,4 +1,4 @@
-﻿@model List<EnglishLearningOnlineSystem.ViewModels.ContentManager.Courses.CourseListItemViewModel>
+@model List<EnglishLearningOnlineSystem.ViewModels.ContentManager.Courses.CourseListItemViewModel>
 @{
     Layout = "_ContentManagerLayout";
     ViewData["Title"] = "Quản lý khoá học";
@@ -85,7 +85,7 @@
                             }
                         </td>
                         <td class="text-end" style="padding-right:16px;">
-                            <a asp-action="Details" asp-route-id="@course.CourseId" class="cm-btn cm-btn-ghost cm-btn-sm">Xem</a>
+                            <a href="/contentmanager/lessons?courseId=@course.CourseId" class="cm-btn cm-btn-secondary cm-btn-sm" style="margin-right:8px;">Bài học</a>
                             <a asp-action="Edit" asp-route-id="@course.CourseId" class="cm-btn cm-btn-ghost cm-btn-sm">Sửa</a>
                             <form asp-action="ToggleStatus" asp-route-id="@course.CourseId" method="post" class="d-inline">
                                 <button type="submit" class="cm-btn cm-btn-ghost cm-btn-sm">

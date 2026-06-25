@@ -1,9 +1,10 @@
-﻿using EnglishLearningOnlineSystem.Models;
+using EnglishLearningOnlineSystem.Models;
 
 namespace EnglishLearningOnlineSystem.Repositories.Interfaces
 {
     public interface ICourseRepository
     {
+        Task<List<Course>> GetAllCoursesAsync();
         Task<(List<Course> Items, int TotalCount)> GetPagedAsync(string? keyword, bool? isActive, int pageNumber, int pageSize);
         Task<Course?> GetByIdAsync(int courseId);
         Task<Course?> GetDetailByIdAsync(int courseId);
