@@ -100,8 +100,11 @@ public class StudentController : BaseStudentController
         return View(vm);
     }
 
-    // Quiz Flows
+    // ==========================================
+    // QUIZ FLOWS (Luồng làm bài kiểm tra)
+    // ==========================================
 
+    // Hiển thị giao diện làm bài Quiz cho một bài học cụ thể
     [HttpGet("/student/lesson/{lessonId}/quiz")]
     public async Task<IActionResult> TakeQuiz(int lessonId)
     {
@@ -114,6 +117,8 @@ public class StudentController : BaseStudentController
         return View(vm);
     }
 
+    // Xử lý logic khi học sinh bấm "Nộp bài" (Submit)
+    // - Tính điểm, kiểm tra hạn chót, thưởng XP, và lưu vào CSDL
     [HttpPost("/student/lesson/{lessonId}/quiz/submit")]
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> SubmitQuizAttempt(int lessonId, QuizSubmitViewModel model)
@@ -129,6 +134,7 @@ public class StudentController : BaseStudentController
         return RedirectToAction(nameof(QuizResult), new { attemptId = result.AttemptId });
     }
 
+    // Hiển thị màn hình Kết quả (Điểm số, XP nhận được) ngay sau khi nộp bài
     [HttpGet("/student/quiz/result/{attemptId}")]
     public async Task<IActionResult> QuizResult(int attemptId)
     {
@@ -141,6 +147,7 @@ public class StudentController : BaseStudentController
         return View(vm);
     }
 
+    // Hiển thị Lịch sử các lần làm bài của học sinh (hỗ trợ lọc theo ngày, bài học)
     [HttpGet("/student/history")]
     public async Task<IActionResult> History(int? lessonId, string? from, string? to, string sort = "date")
     {
@@ -151,6 +158,7 @@ public class StudentController : BaseStudentController
         return View(vm);
     }
 
+    // Hiển thị màn hình "Xem lại lỗi sai" để học sinh đối chiếu đáp án chọn với đáp án đúng
     [HttpGet("/student/quiz/review/{attemptId}")]
     public async Task<IActionResult> ReviewIncorrect(int attemptId, bool showAll = false)
     {
@@ -163,20 +171,24 @@ public class StudentController : BaseStudentController
         return View(vm);
     }
 
-    // Flashcard Flows 
+    // ==========================================
+    // FLASHCARD FLOWS (Luồng ôn tập thẻ từ vựng)
+    // ==========================================
 
+    // Hiển thị giao diện lật thẻ (Flashcards) cho một bài học
     [HttpGet("/student/lesson/{lessonId}/flashcards")]
-    public async Task<IActionResult> Flashcards(int lessonId)
+    public async Task<IActionResult> Flashcards(int lessonId, string mode = "")
     {
         var userId = GetCurrentUserId();
         if (userId == null) return RedirectToAction("Login", "Auth");
 
-        var vm = await _flashcardService.StartSessionAsync(lessonId, userId.Value);
+        var vm = await _flashcardService.StartSessionAsync(lessonId, userId.Value, mode == "reset");
         if (vm == null) return NotFound("Vocabulary not found for this lesson.");
 
         return View(vm);
     }
 
+    // Xử lý nộp kết quả tự đánh giá Flashcard ("Đã thuộc" / "Chưa thuộc")
     [HttpPost("/student/lesson/{lessonId}/flashcards/submit")]
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> SubmitFlashcards(int lessonId, FlashcardCompleteViewModel model)
@@ -191,6 +203,7 @@ public class StudentController : BaseStudentController
         return Redirect($"/student/flashcards/result/{model.SessionId}");
     }
 
+    // Hiển thị bảng tổng kết số lượng thẻ đã học và tỉ lệ nhớ từ vựng
     [HttpGet("/student/flashcards/result/{sessionId}")]
     public async Task<IActionResult> FlashcardResult(int sessionId)
     {

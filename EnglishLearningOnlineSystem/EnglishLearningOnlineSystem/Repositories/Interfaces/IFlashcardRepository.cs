@@ -9,4 +9,6 @@ public interface IFlashcardRepository
     Task<FlashcardSession> CreateSessionAsync(FlashcardSession session);
     Task<FlashcardSession?> GetSessionAsync(int sessionId, int studentId);
     Task CompleteSessionAsync(int sessionId, int cardsReviewed, List<FlashcardCardResult> results);
+    Task<List<int>> GetMasteredVocabularyIdsAsync(int studentId, int lessonId);
+    Task ResetMasteryAsync(int studentId, int lessonId);
 }

@@ -1,0 +1,731 @@
+﻿@*
+    _ContentManagerLayout.cshtml
+    Đặt tại: Views/Shared/_ContentManagerLayout.cshtml
+
+    ViewData cần thiết:
+        ViewData["Title"]       – tiêu đề trang
+        ViewData["ActiveNav"]   – "courses" | "lessons" | "vocabulary" | "minigames" | "media"
+        ViewData["Breadcrumb"]  – chuỗi breadcrumb phụ (tuỳ chọn)
+    ViewBag:
+        ViewBag.ManagerName     – tên người dùng
+        ViewBag.AvatarUrl       – URL avatar
+*@
+@{
+    var activeNav = ViewData["ActiveNav"]?.ToString() ?? "";
+    var managerName = ViewBag.ManagerName as string ?? "Content Manager";
+    var avatarUrl = ViewBag.AvatarUrl as string ?? "/images/default-avatar.png";
+    var breadcrumb = ViewData["Breadcrumb"]?.ToString();
+
+    string Nav(string key) => activeNav == key
+        ? "cm-nav-item cm-nav-item--active"
+        : "cm-nav-item";
+}
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"] – EduLearn CMS</title>
+
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+
+    <style>
+            *, *::before, *::after {
+                box-sizing: border-box;
+                margin: 0;
+                padding: 0;
+            }
+
+            :root {
+                /* Brand — slate/indigo palette, khác hoàn toàn với student */
+                --cm-ink: #1e1e2e;
+                --cm-ink-soft: #4a4a6a;
+                --cm-ink-muted: #8888aa;
+                --cm-surface: #f6f6fa;
+                --cm-card: #ffffff;
+                --cm-border: #e2e2f0;
+                --cm-border-md: #c8c8e0;
+                /* Accent — indigo */
+                --cm-accent: #5a5af0;
+                --cm-accent-d: #3f3fd4;
+                --cm-accent-bg: #efefff;
+                /* Semantic */
+                --cm-success: #16a34a;
+                --cm-success-bg: #dcfce7;
+                --cm-warning: #d97706;
+                --cm-warning-bg: #fef3c7;
+                --cm-danger: #dc2626;
+                --cm-danger-bg: #fee2e2;
+                /* Layout */
+                --cm-sidebar-w: 240px;
+                --cm-topbar-h: 58px;
+                --cm-radius: 10px;
+                --cm-radius-lg: 14px;
+            }
+
+            body {
+                font-family: 'Inter', sans-serif;
+                background: var(--cm-surface);
+                color: var(--cm-ink);
+                min-height: 100vh;
+                display: flex;
+            }
+
+            /* ── SIDEBAR ── */
+            .cm-sidebar {
+                width: var(--cm-sidebar-w);
+                min-height: 100vh;
+                background: var(--cm-ink);
+                display: flex;
+                flex-direction: column;
+                position: fixed;
+                top: 0;
+                left: 0;
+                bottom: 0;
+                z-index: 200;
+                flex-shrink: 0;
+            }
+
+            .cm-sidebar-logo {
+                height: var(--cm-topbar-h);
+                display: flex;
+                align-items: center;
+                gap: 10px;
+                padding: 0 20px;
+                border-bottom: 1px solid rgba(255,255,255,.07);
+                flex-shrink: 0;
+                text-decoration: none;
+            }
+
+            .cm-logo-mark {
+                width: 32px;
+                height: 32px;
+                background: var(--cm-accent);
+                border-radius: 8px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                font-size: .75rem;
+                font-weight: 700;
+                color: #fff;
+                letter-spacing: -.5px;
+                flex-shrink: 0;
+            }
+
+            .cm-logo-text {
+                font-size: .85rem;
+                font-weight: 700;
+                color: #fff;
+                line-height: 1.25;
+            }
+
+                .cm-logo-text small {
+                    display: block;
+                    font-size: .65rem;
+                    font-weight: 400;
+                    color: rgba(255,255,255,.45);
+                    letter-spacing: .06em;
+                    text-transform: uppercase;
+                }
+
+            /* Nav sections */
+            .cm-nav {
+                flex: 1;
+                padding: 16px 12px;
+                display: flex;
+                flex-direction: column;
+                gap: 2px;
+                overflow-y: auto;
+            }
+
+            .cm-nav-section-label {
+                font-size: .6rem;
+                font-weight: 600;
+                letter-spacing: .1em;
+                text-transform: uppercase;
+                color: rgba(255,255,255,.3);
+                padding: 12px 8px 4px;
+            }
+
+            .cm-nav-item {
+                display: flex;
+                align-items: center;
+                gap: 10px;
+                padding: 9px 10px;
+                border-radius: 8px;
+                color: rgba(255,255,255,.55);
+                font-size: .83rem;
+                font-weight: 500;
+                text-decoration: none;
+                transition: background .12s, color .12s;
+                cursor: pointer;
+                border: none;
+                background: none;
+                width: 100%;
+                text-align: left;
+            }
+
+                .cm-nav-item:hover {
+                    background: rgba(255,255,255,.07);
+                    color: rgba(255,255,255,.9);
+                }
+
+            .cm-nav-item--active {
+                background: var(--cm-accent);
+                color: #fff !important;
+            }
+
+            .cm-nav-icon {
+                width: 18px;
+                height: 18px;
+                opacity: .8;
+                flex-shrink: 0;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+            }
+
+            .cm-nav-item--active .cm-nav-icon {
+                opacity: 1;
+            }
+
+            /* Sidebar user */
+            .cm-sidebar-user {
+                padding: 14px 16px;
+                border-top: 1px solid rgba(255,255,255,.07);
+                display: flex;
+                align-items: center;
+                gap: 10px;
+                flex-shrink: 0;
+            }
+
+            .cm-sidebar-avatar {
+                width: 34px;
+                height: 34px;
+                border-radius: 50%;
+                object-fit: cover;
+                border: 2px solid rgba(255,255,255,.18);
+                flex-shrink: 0;
+            }
+
+            .cm-sidebar-uname {
+                font-size: .8rem;
+                font-weight: 600;
+                color: rgba(255,255,255,.85);
+                white-space: nowrap;
+                overflow: hidden;
+                text-overflow: ellipsis;
+            }
+
+            .cm-sidebar-role {
+                font-size: .65rem;
+                color: rgba(255,255,255,.35);
+            }
+
+            /* ── MAIN ── */
+            .cm-main {
+                margin-left: var(--cm-sidebar-w);
+                flex: 1;
+                display: flex;
+                flex-direction: column;
+                min-height: 100vh;
+            }
+
+            /* Topbar */
+            .cm-topbar {
+                height: var(--cm-topbar-h);
+                background: var(--cm-card);
+                border-bottom: 1px solid var(--cm-border);
+                display: flex;
+                align-items: center;
+                padding: 0 28px;
+                gap: 8px;
+                position: sticky;
+                top: 0;
+                z-index: 100;
+            }
+
+            .cm-breadcrumb {
+                display: flex;
+                align-items: center;
+                gap: 6px;
+                font-size: .82rem;
+                color: var(--cm-ink-muted);
+            }
+
+                .cm-breadcrumb a {
+                    color: var(--cm-ink-muted);
+                    text-decoration: none;
+                }
+
+                    .cm-breadcrumb a:hover {
+                        color: var(--cm-accent);
+                    }
+
+            .cm-breadcrumb-sep {
+                font-size: .7rem;
+                opacity: .5;
+            }
+
+            .cm-breadcrumb-current {
+                color: var(--cm-ink);
+                font-weight: 500;
+            }
+
+            .cm-topbar-right {
+                margin-left: auto;
+                display: flex;
+                align-items: center;
+                gap: 8px;
+            }
+
+            .cm-topbar-btn {
+                width: 34px;
+                height: 34px;
+                border-radius: 8px;
+                border: 1px solid var(--cm-border);
+                background: transparent;
+                color: var(--cm-ink-soft);
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                cursor: pointer;
+                transition: background .12s, border-color .12s;
+                text-decoration: none;
+                font-size: .9rem;
+            }
+
+                .cm-topbar-btn:hover {
+                    background: var(--cm-surface);
+                    border-color: var(--cm-border-md);
+                    color: var(--cm-ink);
+                }
+
+            /* Page body */
+            .cm-page {
+                padding: 28px 32px;
+                flex: 1;
+            }
+
+            /* Page header */
+            .cm-page-header {
+                display: flex;
+                align-items: flex-start;
+                justify-content: space-between;
+                margin-bottom: 24px;
+                gap: 16px;
+            }
+
+            .cm-page-title {
+                font-size: 1.35rem;
+                font-weight: 700;
+                color: var(--cm-ink);
+                line-height: 1.25;
+            }
+
+            .cm-page-subtitle {
+                font-size: .82rem;
+                color: var(--cm-ink-muted);
+                margin-top: 3px;
+            }
+
+            /* Shared card */
+            .cm-card {
+                background: var(--cm-card);
+                border: 1px solid var(--cm-border);
+                border-radius: var(--cm-radius-lg);
+                overflow: hidden;
+            }
+
+            /* Buttons */
+            .cm-btn {
+                display: inline-flex;
+                align-items: center;
+                gap: 6px;
+                padding: 8px 16px;
+                border-radius: var(--cm-radius);
+                font-size: .83rem;
+                font-weight: 600;
+                border: 1px solid transparent;
+                cursor: pointer;
+                transition: opacity .12s, background .12s;
+                text-decoration: none;
+                line-height: 1;
+            }
+
+                .cm-btn:hover {
+                    opacity: .88;
+                }
+
+            .cm-btn-primary {
+                background: var(--cm-accent);
+                color: #fff;
+                border-color: var(--cm-accent);
+            }
+
+            .cm-btn-secondary {
+                background: var(--cm-card);
+                color: var(--cm-ink-soft);
+                border-color: var(--cm-border-md);
+            }
+
+                .cm-btn-secondary:hover {
+                    background: var(--cm-surface);
+                    color: var(--cm-ink);
+                }
+
+            .cm-btn-danger {
+                background: var(--cm-danger);
+                color: #fff;
+                border-color: var(--cm-danger);
+            }
+
+            .cm-btn-ghost {
+                background: transparent;
+                color: var(--cm-ink-soft);
+                border-color: transparent;
+                padding-left: 8px;
+                padding-right: 8px;
+            }
+
+                .cm-btn-ghost:hover {
+                    background: var(--cm-surface);
+                    color: var(--cm-ink);
+                }
+
+            .cm-btn-sm {
+                padding: 5px 11px;
+                font-size: .76rem;
+            }
+
+            .cm-btn-icon {
+                width: 32px;
+                height: 32px;
+                padding: 0;
+                display: inline-flex;
+                align-items: center;
+                justify-content: center;
+            }
+
+            /* Badge */
+            .cm-badge {
+                display: inline-flex;
+                align-items: center;
+                gap: 4px;
+                padding: 3px 9px;
+                border-radius: 99px;
+                font-size: .7rem;
+                font-weight: 600;
+            }
+
+            .cm-badge-success {
+                background: var(--cm-success-bg);
+                color: var(--cm-success);
+            }
+
+            .cm-badge-warning {
+                background: var(--cm-warning-bg);
+                color: var(--cm-warning);
+            }
+
+            .cm-badge-muted {
+                background: var(--cm-surface);
+                color: var(--cm-ink-muted);
+                border: 1px solid var(--cm-border);
+            }
+
+            /* Form */
+            .cm-form-group {
+                margin-bottom: 20px;
+            }
+
+            .cm-label {
+                display: block;
+                font-size: .8rem;
+                font-weight: 600;
+                color: var(--cm-ink-soft);
+                margin-bottom: 6px;
+                letter-spacing: .01em;
+            }
+
+            .cm-label-required::after {
+                content: ' *';
+                color: var(--cm-danger);
+            }
+
+            .cm-input, .cm-select, .cm-textarea {
+                width: 100%;
+                padding: 9px 13px;
+                border: 1px solid var(--cm-border-md);
+                border-radius: var(--cm-radius);
+                font-size: .85rem;
+                font-family: 'Inter', sans-serif;
+                color: var(--cm-ink);
+                background: var(--cm-card);
+                transition: border-color .15s, box-shadow .15s;
+                outline: none;
+            }
+
+                .cm-input:focus, .cm-select:focus, .cm-textarea:focus {
+                    border-color: var(--cm-accent);
+                    box-shadow: 0 0 0 3px rgba(90,90,240,.1);
+                }
+
+            .cm-textarea {
+                resize: vertical;
+                min-height: 96px;
+            }
+
+            .cm-form-hint {
+                font-size: .73rem;
+                color: var(--cm-ink-muted);
+                margin-top: 4px;
+            }
+
+            .cm-input-error {
+                border-color: var(--cm-danger) !important;
+            }
+
+            .cm-field-error {
+                font-size: .73rem;
+                color: var(--cm-danger);
+                margin-top: 4px;
+            }
+
+            /* Toggle switch */
+            .cm-toggle-wrap {
+                display: flex;
+                align-items: center;
+                gap: 10px;
+            }
+
+            .cm-toggle {
+                position: relative;
+                width: 40px;
+                height: 22px;
+                flex-shrink: 0;
+            }
+
+                .cm-toggle input {
+                    opacity: 0;
+                    width: 0;
+                    height: 0;
+                    position: absolute;
+                }
+
+            .cm-toggle-slider {
+                position: absolute;
+                inset: 0;
+                background: var(--cm-border-md);
+                border-radius: 99px;
+                cursor: pointer;
+                transition: background .2s;
+            }
+
+                .cm-toggle-slider::before {
+                    content: '';
+                    position: absolute;
+                    width: 16px;
+                    height: 16px;
+                    border-radius: 50%;
+                    background: #fff;
+                    top: 3px;
+                    left: 3px;
+                    transition: transform .2s;
+                    box-shadow: 0 1px 3px rgba(0,0,0,.2);
+                }
+
+            .cm-toggle input:checked + .cm-toggle-slider {
+                background: var(--cm-accent);
+            }
+
+                .cm-toggle input:checked + .cm-toggle-slider::before {
+                    transform: translateX(18px);
+                }
+
+            .cm-toggle-label {
+                font-size: .83rem;
+                color: var(--cm-ink-soft);
+                font-weight: 500;
+            }
+
+            /* Divider */
+            .cm-divider {
+                border: none;
+                border-top: 1px solid var(--cm-border);
+                margin: 24px 0;
+            }
+
+            /* Alerts */
+            .cm-alert {
+                padding: 12px 16px;
+                border-radius: var(--cm-radius);
+                font-size: .83rem;
+                display: flex;
+                align-items: flex-start;
+                gap: 10px;
+                margin-bottom: 20px;
+            }
+
+            .cm-alert-danger {
+                background: var(--cm-danger-bg);
+                color: var(--cm-danger);
+                border: 1px solid #fca5a5;
+            }
+
+            /* Responsive */
+            @@media (max-width: 1024px) {
+                :root {
+                    --cm-sidebar-w: 56px;
+                }
+
+                .cm-logo-text,
+                .cm-nav-section-label,
+                .cm-nav-item span:not(.cm-nav-icon),
+                .cm-sidebar-uname,
+                .cm-sidebar-role {
+                    display: none !important;
+                }
+
+                .cm-nav-item {
+                    justify-content: center;
+                    padding: 10px;
+                }
+
+                .cm-sidebar-logo {
+                    justify-content: center;
+                }
+
+                .cm-sidebar-user {
+                    justify-content: center;
+                }
+
+                .cm-page {
+                    padding: 20px 16px;
+                }
+            }
+
+            @@media (max-width: 640px) {
+                .cm-page-header {
+                    flex-direction: column;
+                }
+            }
+    </style>
+
+    @await RenderSectionAsync("Styles", required: false)
+</head>
+<body>
+
+    @* ── SIDEBAR ── *@
+    <aside class="cm-sidebar">
+
+        <a href="/contentmanager/dashboard" class="cm-sidebar-logo">
+            <div class="cm-logo-mark">EL</div>
+            <div class="cm-logo-text">
+                EduLearn
+                <small>Content Studio</small>
+            </div>
+        </a>
+
+        <nav class="cm-nav" aria-label="Content Manager Menu">
+
+            <span class="cm-nav-section-label">Quản lý nội dung</span>
+
+            <!-- LEVEL 1 -->
+            <a href="/contentmanager/courses" class="@Nav("courses")">
+                <span class="cm-nav-icon"></span>
+                <span>Quản lí khóa học</span>
+            </a>
+
+            <!-- LEVEL 2: chỉ hiện khi đang ở Courses hoặc sâu hơn -->
+            @if (activeNav == "lessons" || activeNav == "vocabulary"
+                || activeNav == "quizzes" || activeNav == "minigames")
+            {
+                <div style="padding-left:10px; margin-top:6px;">
+                    <span class="cm-nav-section-label">Course Structure</span>
+
+                    <a href="/contentmanager/lessons" class="@Nav("lessons")">
+                        <span class="cm-nav-icon"></span>
+                        <span>Manage Lessons</span>
+                    </a>
+
+                    <a href="/contentmanager/vocabulary" class="@Nav("vocabulary")">
+                        <span class="cm-nav-icon"></span>
+                        <span>Vocabulary</span>
+                    </a>
+
+                    <a href="/contentmanager/quizzes" class="@Nav("quizzes")">
+                        <span class="cm-nav-icon"></span>
+                        <span>Quizzes</span>
+                    </a>
+
+                    <a href="/contentmanager/minigames" class="@Nav("minigames")">
+                        <span class="cm-nav-icon">🎮</span>
+                        <span>Mini Games</span>
+                    </a>
+                </div>
+            }
+
+            <!-- ANALYTICS & BLOG (GLOBAL) -->
+            <span class="cm-nav-section-label">Phân tích & Xuất bản</span>
+
+            <a href="/contentmanager/analytics" class="@Nav("analytics")">
+                <span class="cm-nav-icon"></span>
+                <span>Phân tích hiệu quả bài học</span>
+            </a>
+
+            <a href="/contentmanager/blog" class="@Nav("blog")">
+                <span class="cm-nav-icon"></span>
+                <span>Quản lí Blog</span>
+            </a>
+
+        </nav>
+
+        <div class="cm-sidebar-user">
+            <img src="@avatarUrl" alt="avatar" class="cm-sidebar-avatar"
+                 onerror="this.src='/images/default-avatar.png'" />
+            <div style="overflow:hidden;">
+                <div class="cm-sidebar-uname">@managerName</div>
+                <div class="cm-sidebar-role">Content Manager</div>
+            </div>
+        </div>
+    </aside>
+
+    @* ── MAIN ── *@
+    <div class="cm-main">
+
+        @* Topbar *@
+        <div class="cm-topbar">
+            <nav class="cm-breadcrumb" aria-label="Breadcrumb">
+                <a href="/contentmanager/dashboard">Trang chủ</a>
+                @if (!string.IsNullOrWhiteSpace(breadcrumb))
+                {
+                    <span class="cm-breadcrumb-sep">›</span>
+                    <span class="cm-breadcrumb-current">@breadcrumb</span>
+                }
+            </nav>
+
+            <div class="cm-topbar-right">
+                <form asp-controller="Auth" asp-action="Logout" method="post" style="margin:0">
+                    @Html.AntiForgeryToken()
+                    <button type="submit" class="cm-topbar-btn" title="Đăng xuất">
+                        ⏻
+                    </button>
+                </form>
+            </div>
+        </div>
+
+        @* Nội dung trang *@
+        <div class="cm-page">
+            @RenderBody()
+        </div>
+
+    </div>
+
+    <script src="~/lib/jquery/dist/jquery.min.js"></script>
+    <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+    @await RenderSectionAsync("Scripts", required: false)
+
+</body>
+</html>

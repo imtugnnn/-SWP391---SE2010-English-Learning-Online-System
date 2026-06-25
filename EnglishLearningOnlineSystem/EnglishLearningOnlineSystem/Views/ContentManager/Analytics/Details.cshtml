@@ -1,0 +1,234 @@
+﻿@model EnglishLearningOnlineSystem.ViewModels.ContentManager.LessonAnalytics.LessonAnalyticsDetailViewModel
+@using System.Text.Json
+@{
+    ViewData["Title"] = "Phân tích bài học – " + Model.Title;
+    Layout = "~/Views/Shared/_ContentManagerLayout.cshtml";
+
+    // Serialize dữ liệu biểu đồ cho JS
+    var dailyLabels = JsonSerializer.Serialize(Model.DailyAttemptCounts.Keys.ToList());
+    var dailyValues = JsonSerializer.Serialize(Model.DailyAttemptCounts.Values.ToList());
+    var distLabels = JsonSerializer.Serialize(Model.ScoreDistribution.Keys.ToList());
+    var distValues = JsonSerializer.Serialize(Model.ScoreDistribution.Values.ToList());
+}
+
+<div class="d-flex align-items-center gap-2 mb-1">
+    <a asp-action="Index" class="btn btn-sm btn-outline-secondary">
+        <i class="bi bi-arrow-left"></i>
+    </a>
+
+    <div>
+        <h4 class="mb-0 fw-semibold">@Model.Title</h4>
+        <small class="text-muted">
+            <a asp-controller="Lessons" asp-action="Details" asp-route-id="@Model.LessonId"
+               class="text-decoration-none text-muted">
+                @Model.CourseName
+            </a>
+
+            @if (!string.IsNullOrWhiteSpace(Model.Topic))
+            {
+                <span class="ms-2 text-muted">· @Model.Topic</span>
+            }
+        </small>
+    </div>
+
+    <div class="ms-auto d-flex align-items-center gap-2">
+        @if (Model.IsPublished)
+        {
+            <span class="badge bg-success-subtle text-success border border-success-subtle">
+                Đang hoạt động
+            </span>
+        }
+        else
+        {
+            <span class="badge bg-secondary-subtle text-secondary border border-secondary-subtle">
+                Chưa hoạt động
+            </span>
+        }
+
+        <span class="badge bg-primary-subtle text-primary border border-primary-subtle">
+            @Model.EstimatedMinutes phút · @Model.XPReward XP
+        </span>
+    </div>
+</div>
+
+<hr class="mb-4" />
+
+<div class="row g-3 mb-4">
+    <div class="col-6 col-xl-2">
+        <div class="card border-0 shadow-sm h-100 text-center p-3">
+            <div class="fs-2 fw-bold text-primary">@Model.TotalStudents</div>
+            <div class="small text-muted">Học viên</div>
+        </div>
+    </div>
+
+    <div class="col-6 col-xl-2">
+        <div class="card border-0 shadow-sm h-100 text-center p-3">
+            <div class="fs-2 fw-bold text-success">
+                @Model.AvgQuizScore<span class="fs-6 text-muted">%</span>
+            </div>
+            <div class="small text-muted">Điểm quiz trung bình</div>
+        </div>
+    </div>
+
+    <div class="col-6 col-xl-2">
+        <div class="card border-0 shadow-sm h-100 text-center p-3">
+            <div class="fs-2 fw-bold text-info">
+                @Model.FlashcardCompletionRate<span class="fs-6 text-muted">%</span>
+            </div>
+            <div class="small text-muted">Tỷ lệ hoàn thành flashcard</div>
+        </div>
+    </div>
+
+    <div class="col-6 col-xl-2">
+        <div class="card border-0 shadow-sm h-100 text-center p-3">
+            <div class="fs-2 fw-bold text-warning">@Model.TotalXpAwarded.ToString("N0")</div>
+            <div class="small text-muted">Tổng XP đã trao</div>
+        </div>
+    </div>
+
+    <div class="col-6 col-xl-2">
+        <div class="card border-0 shadow-sm h-100 text-center p-3">
+            <div class="fs-2 fw-bold text-secondary">
+                @Model.AvgStudyMinutes<span class="fs-6 text-muted"> phút</span>
+            </div>
+            <div class="small text-muted">Thời gian học TB</div>
+        </div>
+    </div>
+
+    <div class="col-6 col-xl-2">
+        <div class="card border-0 shadow-sm h-100 text-center p-3">
+            <div class="fs-2 fw-bold text-dark">@Model.TotalQuizAttempts</div>
+            <div class="small text-muted">Lượt làm quiz</div>
+            <div class="small text-muted">@Model.TotalFlashcardSessions lượt flashcard</div>
+        </div>
+    </div>
+</div>
+
+<div class="row g-4">
+    <div class="col-xl-8">
+        <div class="card shadow-sm border-0 h-100">
+            <div class="card-header bg-white fw-semibold py-3">
+                <i class="bi bi-graph-up text-primary me-2"></i>
+                Lượt làm quiz — 30 ngày gần nhất
+            </div>
+
+            <div class="card-body">
+                @if (Model.DailyAttemptCounts.Values.All(v => v == 0))
+                {
+                    <div class="text-center text-muted py-5">
+                        <i class="bi bi-bar-chart fs-1 d-block mb-2"></i>
+                        Chưa có dữ liệu quiz.
+                    </div>
+                }
+                else
+                {
+                    <canvas id="dailyChart" height="80"></canvas>
+                }
+            </div>
+        </div>
+    </div>
+
+    <div class="col-xl-4">
+        <div class="card shadow-sm border-0 h-100">
+            <div class="card-header bg-white fw-semibold py-3">
+                <i class="bi bi-pie-chart text-success me-2"></i>
+                Phân bố điểm số
+            </div>
+
+            <div class="card-body d-flex flex-column align-items-center justify-content-center">
+                @if (Model.ScoreDistribution.Values.All(v => v == 0))
+                {
+                    <div class="text-center text-muted py-5">
+                        <i class="bi bi-pie-chart fs-1 d-block mb-2"></i>
+                        Chưa có dữ liệu điểm.
+                    </div>
+                }
+                else
+                {
+                    <canvas id="distChart" style="max-height:220px;"></canvas>
+
+                    <div class="mt-3 d-flex flex-wrap gap-2 justify-content-center">
+                        @{
+                            var legendColors = new[] { "#dc3545", "#fd7e14", "#0dcaf0", "#198754" };
+                            int li = 0;
+                        }
+
+                        @foreach (var kv in Model.ScoreDistribution)
+                        {
+                            <span class="badge rounded-pill px-3 py-2"
+                                  style="background:@legendColors[li]">
+                                @kv.Key: @kv.Value
+                            </span>
+                            li++;
+                        }
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+    <script>
+        (function () {
+        'use strict';
+
+        const dailyEl = document.getElementById('dailyChart');
+        if (dailyEl) {
+        new Chart(dailyEl, {
+        type: 'line',
+        data: {
+        labels: @Html.Raw(dailyLabels),
+        datasets: [{
+        label: 'Lượt làm quiz',
+        data: @Html.Raw(dailyValues),
+        fill: true,
+        backgroundColor: 'rgba(13,110,253,0.08)',
+        borderColor: '#0d6efd',
+        borderWidth: 2,
+        pointRadius: 3,
+        pointHoverRadius: 5,
+        tension: 0.35
+        }]
+        },
+        options: {
+        responsive: true,
+        plugins: {
+        legend: { display: false },
+        tooltip: { mode: 'index', intersect: false }
+        }
+        }
+        });
+        }
+
+        const distEl = document.getElementById('distChart');
+        if (distEl) {
+        new Chart(distEl, {
+        type: 'doughnut',
+        data: {
+        labels: @Html.Raw(distLabels),
+        datasets: [{
+        data: @Html.Raw(distValues),
+        backgroundColor: ['#dc3545', '#fd7e14', '#0dcaf0', '#198754'],
+        borderWidth: 2,
+        hoverOffset: 6
+        }]
+        },
+        options: {
+        responsive: true,
+        cutout: '65%',
+        plugins: {
+        legend: { display: false },
+        tooltip: {
+        callbacks: {
+        label: ctx => ` ${ctx.label}: ${ctx.parsed} lượt`
+        }
+        }
+        }
+        }
+        });
+        }
+        })();
+    </script>
+}

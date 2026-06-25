@@ -5,6 +5,11 @@ using Microsoft.EntityFrameworkCore;
 
 namespace EnglishLearningOnlineSystem.Services.Implementations;
 
+/// <summary>
+/// Service phụ trách thuật toán Gợi ý học tập thích ứng (Adaptive Learning).
+/// Đưa ra các gợi ý bài học cá nhân hóa cho học sinh dựa trên thời hạn bài tập, 
+/// tỉ lệ nhớ từ vựng (flashcard) và điểm số làm bài quiz.
+/// </summary>
 public class AdaptiveLearningService : IAdaptiveLearningService
 {
     private readonly AppDbContext _db;
@@ -18,7 +23,8 @@ public class AdaptiveLearningService : IAdaptiveLearningService
     {
         var suggestions = new List<LessonRecommendation>();
 
-        // 1.Tìm bài tập sắp đến hạn
+        // 1. Tìm bài tập sắp đến hạn (Ưu tiên A)
+        // Những bài học được giáo viên giao có hạn chót <= 3 ngày và chưa hoàn thành.
         var urgentAssignments = await _db.WeeklyAssignments!
             .Include(wa => wa.Lesson!)
             .ThenInclude(l => l.Course!)
@@ -48,7 +54,8 @@ public class AdaptiveLearningService : IAdaptiveLearningService
             }
         }
 
-        // 2.Xác định bài tập có tỉ lệ flashcard recall < 70%
+        // 2. Phân tích Flashcard: Xác định bài tập có tỉ lệ nhớ từ vựng < 70% (Ưu tiên B)
+        // Hệ thống lấy 10 phiên flashcard gần nhất để đánh giá xem học sinh đang yếu từ vựng ở bài nào.
         var recentSessions = await _db.FlashcardSessions
             .Include(s => s.Lesson!)
             .ThenInclude(l => l.Course!)
@@ -88,7 +95,8 @@ public class AdaptiveLearningService : IAdaptiveLearningService
             }
         }
 
-        // 3.Xác định bài tập có điểm quiz < 80%
+        // 3. Phân tích Quiz: Xác định bài tập có điểm bài kiểm tra < 80% (Ưu tiên C)
+        // Tìm các bài học mà học sinh đã làm quiz nhưng kết quả chưa đạt mức xuất sắc để gợi ý ôn tập thêm.
         var bestScores = await _db.Progresses!
             .Include(p => p.Lesson!)
             .ThenInclude(l => l.Course!)
@@ -112,6 +120,8 @@ public class AdaptiveLearningService : IAdaptiveLearningService
             }
         }
 
+        // Sắp xếp các gợi ý theo mức độ ưu tiên (A -> B -> C) và điểm tinh thông (Mastery), 
+        // sau đó chỉ lấy tối đa 5 gợi ý phù hợp nhất.
         return suggestions
             .OrderBy(s => s.Priority)
             .ThenBy(s => s.Mastery)

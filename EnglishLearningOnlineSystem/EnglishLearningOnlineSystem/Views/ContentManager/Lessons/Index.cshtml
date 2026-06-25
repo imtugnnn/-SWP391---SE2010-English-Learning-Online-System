@@ -1,0 +1,195 @@
+﻿@model EnglishLearningOnlineSystem.ViewModels.ContentManager.Lessons.LessonListViewModel
+@{
+    ViewData["Title"] = "Lessons";
+    Layout = "~/Views/Shared/_ContentManagerLayout.cshtml";
+}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h4 class="mb-0 fw-semibold">Quản lí bài học</h4>
+    <a asp-action="Create"
+       asp-route-courseId="@Model.FilterCourseId"
+       class="btn btn-primary btn-sm px-3">
+        Tạo bài học mới
+    </a>
+</div>
+
+@if (TempData["SuccessMessage"] != null)
+{
+    <div class="alert alert-success alert-dismissible fade show" role="alert">
+        @TempData["SuccessMessage"]
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+}
+@if (TempData["ErrorMessage"] != null)
+{
+    <div class="alert alert-danger alert-dismissible fade show" role="alert">
+        @TempData["ErrorMessage"]
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+}
+
+<div class="card shadow-sm mb-4">
+    <div class="card-body">
+        <form method="get" asp-action="Index" class="row g-2 align-items-end" >
+            <input type="hidden"
+                   name="courseId"
+                   value="@Model.FilterCourseId" />
+            <div class="col-md-5">
+                <label class="form-label small fw-semibold">Tìm kiếm theo tiêu đề</label>
+                <input type="text" name="searchTitle" value="@Model.SearchTitle"
+                       class="form-control form-control-sm" placeholder="Nhập tiêu đề bài học…" />
+            </div>
+            
+            <div class="col-md-3 d-flex gap-2">
+                <button type="submit" class="btn btn-primary btn-sm flex-fill">
+                    <i class="bi bi-search me-1"></i>Tìm kiếm
+                </button>
+                <a asp-action="Index"
+                   asp-route-courseId="@Model.FilterCourseId"
+                   class="btn btn-outline-secondary btn-sm flex-fill">
+                    Đặt lại
+                </a>
+            </div>
+        </form>
+    </div>
+</div>
+
+<div class="card shadow-sm">
+    <div class="card-body p-0">
+        @if (!Model.Items.Any())
+        {
+            <div class="text-center py-5 text-muted">
+                <i class="bi bi-journal-x fs-1 d-block mb-2"></i>
+                Không tìm thấy bài học
+            </div>
+        }
+        else
+        {
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0">
+                    <thead class="table-light">
+                        <tr>
+                            <th>#</th>
+                            <th>Tiêu đề</th>
+                            <th>Khóa học</th>
+                            <th>Chủ đề</th>
+                            <th class="text-center">Sắp xếp</th>
+                            <th class="text-center">
+                                Khoảng thời gian
+                            </th>
+                            <th class="text-center">XP</th>
+                            <th class="text-center">Trạng thái</th>
+                            <th class="text-center">Hành động</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @{
+                            int rowIndex = (Model.CurrentPage - 1) * Model.PageSize + 1;
+                        }
+                        @foreach (var item in Model.Items)
+                        {
+                            <tr>
+                                <td class="text-muted small">@rowIndex</td>
+                                <td>
+                                    <a asp-action="Details" asp-route-id="@item.LessonId"
+                                       class="fw-semibold text-decoration-none">
+                                        @item.Title
+                                    </a>
+                                </td>
+                                <td class="small">@item.CourseName</td>
+                                <td class="small text-muted">@item.Topic</td>
+                                <td class="text-center small">@item.OrderIndex</td>
+                                <td class="text-center small">@item.EstimatedMinutes min</td>
+                                <td class="text-center small">@item.XPReward XP</td>
+                                <td class="text-center">
+                                    @if (item.IsPublished)
+                                    {
+                                        <span class="badge bg-success-subtle text-success border border-success-subtle">Hoạt động</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="badge bg-secondary-subtle text-secondary border border-secondary-subtle">
+                                            Không hoạt động
+                                        </span>
+                                    }
+                                </td>
+                                <td class="text-center">
+                                    <div class="d-flex gap-1 justify-content-center">
+                                        <a asp-action="Details" asp-route-id="@item.LessonId"
+                                           class="btn btn-outline-info btn-sm" title="Details">
+                                            Xem
+                                        </a>
+                                        <a asp-action="Edit" asp-route-id="@item.LessonId"
+                                           class="btn btn-outline-warning btn-sm" title="Edit">
+                                            Sửa
+                                        </a>
+                                        <form asp-action="TogglePublished"
+                                              asp-route-id="@item.LessonId"
+                                              asp-route-courseId="@item.CourseId"
+                                              method="post"
+                                              class="d-inline">
+                                            @Html.AntiForgeryToken()
+
+                                            <button type="submit"
+                                                    class="btn btn-sm @(item.IsPublished ? "btn-outline-secondary" : "btn-outline-success")">
+                                                @if (item.IsPublished)
+                                                {
+                                                    <i class="bi bi-toggle-on me-1"></i>
+                                                    <span>Vô hiệu hóa</span>
+                                                }
+                                                else
+                                                {
+                                                    <i class="bi bi-toggle-off me-1"></i>
+                                                    <span>Kích hoạt</span>
+                                                }
+                                            </button>
+                                        </form>
+                                        <form asp-action="Delete"
+                                              asp-route-id="@item.LessonId"
+                                              asp-route-courseId="@item.CourseId"
+                                              method="post"
+                                              class="d-inline"
+                                              onsubmit="return confirm('Are you sure you want to delete this lesson?');">
+                                            @Html.AntiForgeryToken()
+
+                                            <button type="submit"
+                                                    class="btn btn-outline-danger btn-sm"
+                                                    title="Delete">
+                                                Xóa
+                                            </button>
+                                        </form>
+                                    </div>
+                                </td>
+                            </tr>
+                            rowIndex++;
+                        }
+                    </tbody>
+                </table>
+            </div>
+
+            @if (Model.TotalPages > 1)
+            {
+                <div class="d-flex justify-content-between align-items-center px-3 py-2 border-top">
+                    <small class="text-muted">
+                        Showing @((Model.CurrentPage - 1) * Model.PageSize + 1)–@(Math.Min(Model.CurrentPage * Model.PageSize, Model.TotalCount))
+                        of @Model.TotalCount lesson(s)
+                    </small>
+                    <nav>
+                        <ul class="pagination pagination-sm mb-0">
+                            @for (int p = 1; p <= Model.TotalPages; p++)
+                            {
+                                <li class="page-item @(p == Model.CurrentPage ? "active" : "")">
+                                    <a class="page-link"
+                                       asp-action="Index"
+                                       asp-route-page="@p"
+                                       asp-route-searchTitle="@Model.SearchTitle"
+                                       asp-route-courseId="@Model.FilterCourseId">@p</a>
+                                </li>
+                            }
+                        </ul>
+                    </nav>
+                </div>
+            }
+        }
+    </div>
+</div>

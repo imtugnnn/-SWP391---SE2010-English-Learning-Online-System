@@ -3,6 +3,7 @@ using EnglishLearningOnlineSystem.Services.Interfaces;
 using EnglishLearningOnlineSystem.Services.Models;
 using EnglishLearningOnlineSystem.ViewModels;
 using EnglishLearningOnlineSystem.Controllers.Admin;
+using EnglishLearningOnlineSystem.Controllers.ContentManager;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Google;
 using Microsoft.AspNetCore.Mvc;
@@ -307,6 +308,7 @@ public class AuthController : Controller
         {
             1 => RedirectToAction(nameof(StudentController.Onboarding), "Student"),
             2 => RedirectToAction(nameof(AdminController.Dashboard), "Admin"),
+            5 => RedirectToAction(nameof(CoursesController.Index), "Courses"),  
             _ => RedirectToAction(nameof(HomeController.Homepage), "Home")
         };
     }
