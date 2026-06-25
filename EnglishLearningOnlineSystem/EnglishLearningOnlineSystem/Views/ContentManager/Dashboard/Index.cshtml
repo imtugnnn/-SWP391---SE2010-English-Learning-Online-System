@@ -1,0 +1,48 @@
+@{
+    Layout = "_ContentManagerLayout";
+    ViewData["Title"] = "Tổng quan";
+    ViewData["ActiveNav"] = "dashboard";
+    ViewData["Breadcrumb"] = "Tổng quan";
+}
+
+<div class="cm-page-header">
+    <div>
+        <div class="cm-page-title">Chào mừng trở lại, @ViewBag.ManagerName</div>
+        <div class="cm-page-subtitle">Dưới đây là thống kê tổng quan về nội dung học tập.</div>
+    </div>
+</div>
+
+<div class="row g-4 mb-4">
+    <div class="col-md-3">
+        <div class="cm-card" style="padding: 24px;">
+            <div style="font-size: 0.85rem; color: var(--cm-ink-muted); font-weight: 600; margin-bottom: 8px;">TỔNG SỐ KHOÁ HỌC</div>
+            <div style="font-size: 2rem; font-weight: 700; color: var(--cm-accent);">@ViewBag.TotalCourses</div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="cm-card" style="padding: 24px;">
+            <div style="font-size: 0.85rem; color: var(--cm-ink-muted); font-weight: 600; margin-bottom: 8px;">TỔNG SỐ BÀI HỌC</div>
+            <div style="font-size: 2rem; font-weight: 700; color: var(--cm-accent);">@ViewBag.TotalLessons</div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="cm-card" style="padding: 24px;">
+            <div style="font-size: 0.85rem; color: var(--cm-ink-muted); font-weight: 600; margin-bottom: 8px;">TỪ VỰNG</div>
+            <div style="font-size: 2rem; font-weight: 700; color: var(--cm-accent);">@ViewBag.TotalVocabularies</div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="cm-card" style="padding: 24px;">
+            <div style="font-size: 0.85rem; color: var(--cm-ink-muted); font-weight: 600; margin-bottom: 8px;">CÂU HỎI TRẮC NGHIỆM</div>
+            <div style="font-size: 2rem; font-weight: 700; color: var(--cm-accent);">@ViewBag.TotalQuizzes</div>
+        </div>
+    </div>
+</div>
+
+<div class="cm-card" style="padding: 24px; min-height: 300px; display:flex; align-items:center; justify-content:center; flex-direction:column; text-align:center;">
+    <h3 style="font-size: 1.25rem; font-weight: 600; margin-bottom: 8px;">Bắt đầu quản lý nội dung</h3>
+    <p style="color: var(--cm-ink-muted); font-size: 0.9rem; max-width: 400px; margin-bottom: 24px;">
+        Chọn một chức năng từ thanh công cụ bên trái để tạo khoá học, bài học, thêm từ vựng hoặc biên soạn câu hỏi trắc nghiệm mới.
+    </p>
+    <a href="/contentmanager/courses" class="cm-btn cm-btn-primary">Quản lý khoá học ngay</a>
+</div>

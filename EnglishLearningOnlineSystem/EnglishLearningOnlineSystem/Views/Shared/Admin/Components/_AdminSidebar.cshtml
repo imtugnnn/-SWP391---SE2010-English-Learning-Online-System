@@ -57,6 +57,15 @@
         </li>
 
         <li>
+            <a class="@(controller == "SystemNotifications" && action == "Index" ? "active" : "")"
+               asp-controller="SystemNotifications"
+               asp-action="Index">
+                <i class="bi bi-bell-fill"></i>
+                Thông báo hệ thống
+            </a>
+        </li>
+
+        <li>
             <a class="@(controller == "CourseManagement" ? "active" : "")"
                asp-controller="CourseManagement"
                asp-action="Index">

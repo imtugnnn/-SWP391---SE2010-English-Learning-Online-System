@@ -1,29 +1,24 @@
-﻿using EnglishLearningOnlineSystem.ViewModels;
+using EnglishLearningOnlineSystem.Models;
 using EnglishLearningOnlineSystem.ViewModels.ContentManager.Lessons;
 
 namespace EnglishLearningOnlineSystem.Services.Interfaces;
 
 public interface ILessonService
 {
-    Task<LessonListViewModel> GetPagedAsync(
-        int? courseId,
-        string? searchTitle,
-        int page,
-        int pageSize);
+    Task<List<Lesson>> GetAllLessonsAsync();
 
-    Task<LessonViewModel?> GetByIdAsync(int lessonId);
+    Task<(List<LessonListItemViewModel> Items, int TotalCount)> GetLessonsAsync(
+        string? keyword, int? courseId, int page, int pageSize);
+
     Task<LessonDetailsViewModel?> GetDetailsAsync(int lessonId);
-    Task<CreateLessonViewModel> BuildCreateViewModelAsync(int? preselectedCourseId = null);
-    Task<EditLessonViewModel?> BuildEditViewModelAsync(int lessonId);
 
-    /// <returns>null on success, error message string on failure.</returns>
-    Task<(int LessonId, string? Error)> CreateAsync(CreateLessonViewModel vm, int creatorId);
-    /// <returns>null on success, error message string on failure.</returns>
-    Task<string?> UpdateAsync(EditLessonViewModel vm);
+    Task<(LessonEditViewModel? Model, string? ErrorMessage)> GetLessonForEditAsync(int id);
 
-    /// <returns>null on success, error message string on failure.</returns>
-    Task<string?> DeleteAsync(int lessonId);
+    Task<(bool Success, string? ErrorMessage)> CreateLessonAsync(LessonCreateViewModel model);
 
-    /// <returns>null on success, error message string on failure.</returns>
-    Task<string?> TogglePublishedAsync(int lessonId);
+    Task<(bool Success, string? ErrorMessage)> UpdateLessonAsync(LessonEditViewModel model);
+
+    Task<(bool Success, string? ErrorMessage)> DeleteLessonAsync(int id);
+
+    Task<(bool Success, string? ErrorMessage)> TogglePublishedAsync(int lessonId);
 }

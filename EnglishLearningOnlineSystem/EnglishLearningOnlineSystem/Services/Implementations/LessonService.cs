@@ -1,8 +1,7 @@
-﻿using EnglishLearningOnlineSystem.Data;
+using EnglishLearningOnlineSystem.Data;
 using EnglishLearningOnlineSystem.Models;
 using EnglishLearningOnlineSystem.Repositories.Interfaces;
 using EnglishLearningOnlineSystem.Services.Interfaces;
-using EnglishLearningOnlineSystem.ViewModels;
 using EnglishLearningOnlineSystem.ViewModels.ContentManager.Lessons;
 using EnglishLearningOnlineSystem.ViewModels.ContentManager.Minigames;
 using Microsoft.EntityFrameworkCore;
@@ -20,58 +19,34 @@ public class LessonService : ILessonService
         _db = db;
     }
 
-    public async Task<LessonListViewModel> GetPagedAsync(
-        int? courseId,
-        string? searchTitle,
-        int page,
-        int pageSize)
+    public async Task<List<Lesson>> GetAllLessonsAsync()
     {
-        var (items, total) = await _lessonRepo.GetPagedAsync(courseId, searchTitle, page, pageSize);
-
-        var courses = await _db.Courses!
-            .AsNoTracking()
-            .Where(c => !c.IsDeleted)
-            .OrderBy(c => c.CourseName)
-            .Select(c => new CourseSelectItem { CourseId = c.CourseId, CourseName = c.CourseName })
-            .ToListAsync();
-
-        return new LessonListViewModel
-        {
-            Items = items.Select(l => new LessonListItemViewModel
-            {
-                LessonId = l.LessonId,
-                Title = l.Title,
-                Topic = l.Topic,
-                OrderIndex = l.OrderIndex,
-                EstimatedMinutes = l.EstimatedMinutes,
-                XPReward = l.XPReward,
-                IsPublished = l.IsPublished,
-                CourseName = l.Course?.CourseName ?? "—",
-                CourseId = l.CourseId
-            }).ToList(),
-            TotalCount = total,
-            CurrentPage = page,
-            PageSize = pageSize,
-            SearchTitle = searchTitle,
-            FilterCourseId = courseId,
-            Courses = courses
-        };
+        return await _lessonRepo.GetAllLessonsWithCourseAsync();
     }
 
-    public async Task<LessonViewModel?> GetByIdAsync(int lessonId)
+    public async Task<(List<LessonListItemViewModel> Items, int TotalCount)> GetLessonsAsync(
+        string? keyword, int? courseId, int page, int pageSize)
     {
-        var lesson = await _lessonRepo.GetByIdWithCourseAsync(lessonId);
-        if (lesson == null) return null;
+        var (lessons, totalCount) = await _lessonRepo.GetLessonsPaginatedAsync(keyword, courseId, page, pageSize);
 
-        return MapToViewModel(lesson);
+        var items = lessons.Select(l => new LessonListItemViewModel
+        {
+            LessonId = l.LessonId,
+            Title = l.Title,
+            Topic = l.Topic,
+            EstimatedMinutes = l.EstimatedMinutes,
+            IsPublished = l.IsPublished,
+            CourseName = l.Course?.CourseName ?? ""
+        }).ToList();
+
+        return (items, totalCount);
     }
 
     public async Task<LessonDetailsViewModel?> GetDetailsAsync(int lessonId)
     {
-        var lesson = await _lessonRepo.GetByIdWithCourseAsync(lessonId);
+        var lesson = await _lessonRepo.GetLessonByIdAsync(lessonId);
         if (lesson == null) return null;
 
-        // Load danh sách mini game của bài học này
         var miniGames = await _db.MiniGames!
             .AsNoTracking()
             .Where(g => g.LessonId == lessonId)
@@ -103,153 +78,76 @@ public class LessonService : ILessonService
         };
     }
 
-    public async Task<CreateLessonViewModel> BuildCreateViewModelAsync(int? preselectedCourseId = null)
+    public async Task<(LessonEditViewModel? Model, string? ErrorMessage)> GetLessonForEditAsync(int id)
     {
-        if (preselectedCourseId == null)
-            return new CreateLessonViewModel();
+        var l = await _lessonRepo.GetLessonByIdAsync(id);
+        if (l == null) return (null, "Không tìm thấy bài học.");
 
-        var course = await _db.Courses
-            .FirstOrDefaultAsync(x => x.CourseId == preselectedCourseId);
-
-        if (course == null)
-            return new CreateLessonViewModel();
-
-        return new CreateLessonViewModel
+        var model = new LessonEditViewModel
         {
-            CourseId = course.CourseId,
-            CourseName = course.CourseName
+            LessonId = l.LessonId,
+            CourseId = l.CourseId,
+            Title = l.Title,
+            Topic = l.Topic,
+            XPReward = l.XPReward,
+            EstimatedMinutes = l.EstimatedMinutes,
+            OrderIndex = l.OrderIndex,
+            IsPublished = l.IsPublished
         };
+
+        return (model, null);
     }
 
-    public async Task<EditLessonViewModel?> BuildEditViewModelAsync(int lessonId)
+    public async Task<(bool Success, string? ErrorMessage)> CreateLessonAsync(LessonCreateViewModel model)
     {
-        var lesson = await _lessonRepo.GetByIdWithCourseAsync(lessonId);
-        if (lesson == null) return null;
-
-        var courses = await GetActiveCourseSelectItemsAsync();
-
-        return new EditLessonViewModel
-        {
-            LessonId = lesson.LessonId,
-            Title = lesson.Title,
-            Topic = lesson.Topic,
-            OrderIndex = lesson.OrderIndex,
-            EstimatedMinutes = lesson.EstimatedMinutes,
-            XPReward = lesson.XPReward,
-            IsPublished = lesson.IsPublished,
-            CourseId = lesson.CourseId,
-            CourseName = lesson.Course?.CourseName ?? "—",
-            Courses = courses
-        };
-    }
-
-    public async Task<(int LessonId, string? Error)> CreateAsync(CreateLessonViewModel vm, int creatorId)
-    {
-        var course = await _db.Courses!
-            .AsNoTracking()
-            .FirstOrDefaultAsync(c => c.CourseId == vm.CourseId);
-
-        if (course == null || course.IsDeleted)
-            return (0, "Khóa học được chọn không tồn tại hoặc đã bị xóa.");
-
         var lesson = new Lesson
         {
-            Title = vm.Title.Trim(),
-            Topic = vm.Topic?.Trim() ?? string.Empty,
-            OrderIndex = vm.OrderIndex,
-            EstimatedMinutes = vm.EstimatedMinutes,
-            XPReward = vm.XPReward,
-            IsPublished = vm.IsPublished,
-            CourseId = vm.CourseId
+            CourseId = model.CourseId,
+            Title = model.Title,
+            Topic = model.Topic,
+            XPReward = model.XPReward,
+            EstimatedMinutes = model.EstimatedMinutes,
+            OrderIndex = model.OrderIndex,
+            IsPublished = model.IsPublished
         };
 
-        await _lessonRepo.AddAsync(lesson);
-        await _lessonRepo.SaveChangesAsync();
-
-        return (lesson.LessonId, null);   // lessonId có sau khi SaveChanges
+        await _lessonRepo.AddLessonAsync(lesson);
+        return (true, null);
     }
 
-
-
-    public async Task<string?> UpdateAsync(EditLessonViewModel vm)
+    public async Task<(bool Success, string? ErrorMessage)> UpdateLessonAsync(LessonEditViewModel model)
     {
-        // Re-fetch tracked entity
-        var lesson = await _db.Lessons!.FirstOrDefaultAsync(l => l.LessonId == vm.LessonId);
-        if (lesson == null) return "Lesson not found.";
+        var lesson = await _lessonRepo.GetLessonByIdAsync(model.LessonId);
+        if (lesson == null) return (false, "Không tìm thấy bài học.");
 
-        lesson.Title = vm.Title.Trim();
-        lesson.Topic = vm.Topic?.Trim() ?? string.Empty;
-        lesson.OrderIndex = vm.OrderIndex;
-        lesson.EstimatedMinutes = vm.EstimatedMinutes;
-        lesson.XPReward = vm.XPReward;
-        lesson.IsPublished = vm.IsPublished;
-        // CourseId is intentionally not updated after creation.
+        lesson.CourseId = model.CourseId;
+        lesson.Title = model.Title;
+        lesson.Topic = model.Topic;
+        lesson.XPReward = model.XPReward;
+        lesson.EstimatedMinutes = model.EstimatedMinutes;
+        lesson.OrderIndex = model.OrderIndex;
+        lesson.IsPublished = model.IsPublished;
 
-        _lessonRepo.Update(lesson);
-        await _lessonRepo.SaveChangesAsync();
-        return null;
+        await _lessonRepo.UpdateLessonAsync(lesson);
+        return (true, null);
     }
 
-    public async Task<string?> DeleteAsync(int lessonId)
+    public async Task<(bool Success, string? ErrorMessage)> DeleteLessonAsync(int id)
     {
-        var lesson = await _db.Lessons!
-            .FirstOrDefaultAsync(l => l.LessonId == lessonId);
+        var lesson = await _lessonRepo.GetLessonByIdAsync(id);
+        if (lesson == null) return (false, "Không tìm thấy bài học.");
 
-        if (lesson == null)
-            return "Lesson not found.";
-
-        var hasAttempts = await _db.QuizAttempts
-            .AnyAsync(x => x.LessonId == lessonId);
-
-        if (hasAttempts)
-            return "Không thể xóa bài học này vì học sinh đã làm bài kiểm tra.";
-
-        var hasAssignments = await _db.WeeklyAssignments
-            .AnyAsync(x => x.LessonId == lessonId);
-
-        if (hasAssignments)
-            return "Không thể xóa bài học này vì nó nằm trong danh sách bài tập hàng tuần.";
-
-        _lessonRepo.Delete(lesson);
-        await _lessonRepo.SaveChangesAsync();
-
-        return null;
+        await _lessonRepo.DeleteLessonAsync(lesson);
+        return (true, null);
     }
 
-    public async Task<string?> TogglePublishedAsync(int lessonId)
+    public async Task<(bool Success, string? ErrorMessage)> TogglePublishedAsync(int lessonId)
     {
-        var lesson = await _db.Lessons!.FirstOrDefaultAsync(l => l.LessonId == lessonId);
-        if (lesson == null) return "Lesson not found.";
+        var lesson = await _lessonRepo.GetLessonByIdAsync(lessonId);
+        if (lesson == null) return (false, "Không tìm thấy bài học.");
 
         lesson.IsPublished = !lesson.IsPublished;
-
-        _lessonRepo.Update(lesson);
-        await _lessonRepo.SaveChangesAsync();
-        return null;
+        await _lessonRepo.UpdateLessonAsync(lesson);
+        return (true, null);
     }
-
-    // ── Private helpers ────────────────────────────────────────────────────────
-
-    private async Task<List<CourseSelectItem>> GetActiveCourseSelectItemsAsync()
-    {
-        return await _db.Courses!
-            .AsNoTracking()
-            .Where(c => !c.IsDeleted)
-            .OrderBy(c => c.CourseName)
-            .Select(c => new CourseSelectItem { CourseId = c.CourseId, CourseName = c.CourseName })
-            .ToListAsync();
-    }
-
-    private static LessonViewModel MapToViewModel(Lesson l) => new()
-    {
-        LessonId = l.LessonId,
-        Title = l.Title,
-        Topic = l.Topic,
-        OrderIndex = l.OrderIndex,
-        EstimatedMinutes = l.EstimatedMinutes,
-        XPReward = l.XPReward,
-        IsPublished = l.IsPublished,
-        CourseId = l.CourseId,
-        CourseName = l.Course?.CourseName ?? "—"
-    };
 }

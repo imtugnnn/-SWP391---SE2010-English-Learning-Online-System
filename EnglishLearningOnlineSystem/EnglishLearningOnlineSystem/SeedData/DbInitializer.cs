@@ -9,6 +9,21 @@ public static class DbInitializer
 {
     public static async Task SeedAsync(AppDbContext context)
     {
+        // ── Content Manager ───────────────────────────────────────────────────
+        if (!await context.Users.AnyAsync(x => x.Email == "contentmanager@english.com"))
+        {
+            var cmUser = new User
+            {
+                Username = "contentmanager",
+                Email = "contentmanager@english.com",
+                Password = BCrypt.Net.BCrypt.HashPassword("123456"),
+                IsActive = true,
+                RoleId = 5
+            };
+            context.Users.Add(cmUser);
+            await context.SaveChangesAsync();
+        }
+
         if (await context.Users.AnyAsync(x => x.Email == "admin@english.com"))
             return;
 
@@ -250,5 +265,142 @@ public static class DbInitializer
             EarnedAt = DateTime.Now
         });
         await context.SaveChangesAsync();
+
+        // ── System Notifications ──────────────────────────────────────────────
+        if (context.SystemNotifications != null && !await context.SystemNotifications.AnyAsync())
+        {
+            var adminUser = await context.Users.FirstOrDefaultAsync(u => u.Username == "admin");
+            string creatorName = adminUser != null ? "Administrator" : "Admin";
+
+            // Main 6 notifications from the screenshot
+            var mainList = new List<SystemNotification>
+            {
+                new SystemNotification
+                {
+                    Title = "Bảo trì hệ thống định kỳ",
+                    Content = "Hệ thống sẽ được bảo trì từ 22:00 ngày 25/05/2025 đến 04:00 ngày 26/05/2025 để nâng cấp hệ thống và tối ưu trải nghiệm học tập.",
+                    Recipient = "Tất cả người dùng",
+                    UserType = "Tất cả",
+                    Status = "Đã phát hành",
+                    PublishTime = new DateTime(2025, 05, 24, 20, 0, 0),
+                    Creator = creatorName
+                },
+                new SystemNotification
+                {
+                    Title = "Cập nhật tính năng mới",
+                    Content = "Chúng tôi vừa cập nhật một số tính năng mới bao gồm giao diện học từ vựng trực quan hơn, tối ưu tốc độ tải trang bài học.",
+                    Recipient = "Giáo viên",
+                    UserType = "Giáo viên",
+                    Status = "Đã phát hành",
+                    PublishTime = new DateTime(2025, 05, 22, 10, 30, 0),
+                    Creator = creatorName
+                },
+                new SystemNotification
+                {
+                    Title = "Thông báo cuộc thi tiếng Anh",
+                    Content = "Cuộc thi English Challenge 2025 sẽ bắt đầu từ ngày 01/06. Vui lòng đăng ký tham gia trước hạn chót.",
+                    Recipient = "Học sinh",
+                    UserType = "Học sinh",
+                    Status = "Đã lên lịch",
+                    PublishTime = new DateTime(2025, 05, 28, 8, 0, 0),
+                    Creator = creatorName
+                },
+                new SystemNotification
+                {
+                    Title = "Nhắc nhở hoàn thành bài học",
+                    Content = "Hãy hoàn thành các bài học trong tuần này để duy trì chuỗi Streak và đạt thứ hạng cao trên bảng xếp hạng.",
+                    Recipient = "Học sinh, Phụ huynh",
+                    UserType = "Nhiều vai trò",
+                    Status = "Đã phát hành",
+                    PublishTime = new DateTime(2025, 05, 20, 9, 15, 0),
+                    Creator = creatorName
+                },
+                new SystemNotification
+                {
+                    Title = "Lịch nghỉ lễ 30/4 - 1/5",
+                    Content = "Trung tâm sẽ nghỉ lễ từ ngày 30/04 đến hết ngày 03/05. Chúc mọi người một kỳ nghỉ vui vẻ!",
+                    Recipient = "Phụ huynh, Giáo viên",
+                    UserType = "Nhiều vai trò",
+                    Status = "Bản nháp",
+                    PublishTime = null,
+                    Creator = creatorName
+                },
+                new SystemNotification
+                {
+                    Title = "Nội quy lớp học trực tuyến",
+                    Content = "Vui lòng đọc và tuân thủ nội quy lớp học trực tuyến mới để đảm bảo lớp học diễn ra nghiêm túc và hiệu quả.",
+                    Recipient = "Học sinh",
+                    UserType = "Học sinh",
+                    Status = "Đã hủy",
+                    PublishTime = new DateTime(2025, 05, 18, 14, 45, 0),
+                    Creator = creatorName
+                }
+            };
+
+            context.SystemNotifications.AddRange(mainList);
+
+            // Add additional items to match the stats in the screenshot:
+            // Need 9 more "Đã phát hành" (total 12)
+            for (int i = 1; i <= 9; i++)
+            {
+                context.SystemNotifications.Add(new SystemNotification
+                {
+                    Title = $"Thông báo phát hành bổ sung {i}",
+                    Content = $"Nội dung thông báo bổ sung {i} tự động tạo để hiển thị đủ số lượng thống kê mẫu.",
+                    Recipient = i % 2 == 0 ? "Tất cả người dùng" : "Giáo viên",
+                    UserType = i % 2 == 0 ? "Tất cả" : "Giáo viên",
+                    Status = "Đã phát hành",
+                    PublishTime = DateTime.Now.AddDays(-i),
+                    Creator = creatorName
+                });
+            }
+
+            // Need 4 more "Đã lên lịch" (total 5)
+            for (int i = 1; i <= 4; i++)
+            {
+                context.SystemNotifications.Add(new SystemNotification
+                {
+                    Title = $"Thông báo lên lịch bổ sung {i}",
+                    Content = $"Nội dung thông báo lên lịch bổ sung {i} tự động tạo để hiển thị đủ số lượng thống kê mẫu.",
+                    Recipient = "Học sinh",
+                    UserType = "Học sinh",
+                    Status = "Đã lên lịch",
+                    PublishTime = DateTime.Now.AddDays(i),
+                    Creator = creatorName
+                });
+            }
+
+            // Need 3 more "Bản nháp" (total 4)
+            for (int i = 1; i <= 3; i++)
+            {
+                context.SystemNotifications.Add(new SystemNotification
+                {
+                    Title = $"Thông báo nháp bổ sung {i}",
+                    Content = $"Nội dung thông báo nháp bổ sung {i} tự động tạo để hiển thị đủ số lượng thống kê mẫu.",
+                    Recipient = "Phụ huynh",
+                    UserType = "Nhiều vai trò",
+                    Status = "Bản nháp",
+                    PublishTime = null,
+                    Creator = creatorName
+                });
+            }
+
+            // Need 2 more "Đã hủy" (total 3)
+            for (int i = 1; i <= 2; i++)
+            {
+                context.SystemNotifications.Add(new SystemNotification
+                {
+                    Title = $"Thông báo hủy bổ sung {i}",
+                    Content = $"Nội dung thông báo hủy bổ sung {i} tự động tạo để hiển thị đủ số lượng thống kê mẫu.",
+                    Recipient = "Tất cả người dùng",
+                    UserType = "Tất cả",
+                    Status = "Đã hủy",
+                    PublishTime = DateTime.Now.AddDays(-10 - i),
+                    Creator = creatorName
+                });
+            }
+
+            await context.SaveChangesAsync();
+        }
     }
 }

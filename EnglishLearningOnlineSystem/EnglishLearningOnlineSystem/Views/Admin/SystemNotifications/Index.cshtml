@@ -1,0 +1,970 @@
+@model List<EnglishLearningOnlineSystem.Models.SystemNotification>
+
+@{
+    ViewData["Title"] = "Thông báo hệ thống";
+    Layout = "~/Views/Shared/Admin/_AdminLayout.cshtml";
+
+    // Dynamic stats computation from the model
+    var totalCount = Model.Count;
+    var publishedCount = Model.Count(n => n.Status == "Đã phát hành");
+    var scheduledCount = Model.Count(n => n.Status == "Đã lên lịch");
+    var draftCount = Model.Count(n => n.Status == "Bản nháp");
+    var canceledCount = Model.Count(n => n.Status == "Đã hủy");
+}
+
+@section Styles {
+    <link rel="stylesheet" href="~/css/admin/system-notifications.css" asp-append-version="true" />
+}
+
+<div class="system-notifications-page">
+
+    <!-- Header Section -->
+    <div class="page-header">
+        <div class="header-title-section">
+            <h2>Thông báo hệ thống</h2>
+            <p>Tạo, quản lý và phát hành thông báo tới người dùng</p>
+        </div>
+        <button class="btn-add-notification" data-bs-toggle="modal" data-bs-target="#createNotificationModal">
+            <i class="bi bi-plus-lg"></i>
+            Tạo thông báo mới
+        </button>
+    </div>
+
+    <!-- Stats Cards Row -->
+    <div class="stats-grid">
+        <!-- Card 1: Total -->
+        <div class="stat-card card-total" onclick="filterByStatus('')">
+            <div class="stat-info">
+                <span class="stat-number">@totalCount</span>
+                <span class="stat-label">Tổng thông báo</span>
+                <span class="stat-link">Xem tất cả</span>
+            </div>
+            <div class="stat-icon-wrapper">
+                <i class="bi bi-send-fill"></i>
+            </div>
+        </div>
+
+        <!-- Card 2: Published -->
+        <div class="stat-card card-published" onclick="filterByStatus('Đã phát hành')">
+            <div class="stat-info">
+                <span class="stat-number">@publishedCount</span>
+                <span class="stat-label">Đã phát hành</span>
+                <span class="stat-link">Xem chi tiết</span>
+            </div>
+            <div class="stat-icon-wrapper">
+                <i class="bi bi-check-circle-fill"></i>
+            </div>
+        </div>
+
+        <!-- Card 3: Scheduled -->
+        <div class="stat-card card-scheduled" onclick="filterByStatus('Đã lên lịch')">
+            <div class="stat-info">
+                <span class="stat-number">@scheduledCount</span>
+                <span class="stat-label">Đã lên lịch</span>
+                <span class="stat-link">Xem chi tiết</span>
+            </div>
+            <div class="stat-icon-wrapper">
+                <i class="bi bi-clock-fill"></i>
+            </div>
+        </div>
+
+        <!-- Card 4: Draft -->
+        <div class="stat-card card-draft" onclick="filterByStatus('Bản nháp')">
+            <div class="stat-info">
+                <span class="stat-number">@draftCount</span>
+                <span class="stat-label">Bản nháp</span>
+                <span class="stat-link">Xem chi tiết</span>
+            </div>
+            <div class="stat-icon-wrapper">
+                <i class="bi bi-archive-fill"></i>
+            </div>
+        </div>
+
+        <!-- Card 5: Canceled -->
+        <div class="stat-card card-canceled" onclick="filterByStatus('Đã hủy')">
+            <div class="stat-info">
+                <span class="stat-number">@canceledCount</span>
+                <span class="stat-label">Đã hủy</span>
+                <span class="stat-link">Xem chi tiết</span>
+            </div>
+            <div class="stat-icon-wrapper">
+                <i class="bi bi-trash-fill"></i>
+            </div>
+        </div>
+    </div>
+
+    <!-- Filters Section -->
+    <div class="filter-bar">
+        <div class="filter-grid" style="grid-template-columns: 2.5fr 1.2fr 1.5fr 1.2fr 1.8fr auto;">
+            <div class="filter-item">
+                <label>Tìm kiếm</label>
+                <div class="search-wrapper">
+                    <input type="text" id="searchTitleInput" class="filter-input" placeholder="Tìm theo tiêu đề hoặc nội dung..." oninput="onFilterChange()" />
+                    <i class="bi bi-search search-icon-inside"></i>
+                </div>
+            </div>
+
+            <div class="filter-item">
+                <label>Trạng thái</label>
+                <select id="statusFilter" class="filter-input form-select" onchange="onFilterChange()">
+                    <option value="">Tất cả</option>
+                    <option value="Đã phát hành">Đã phát hành</option>
+                    <option value="Đã lên lịch">Đã lên lịch</option>
+                    <option value="Bản nháp">Bản nháp</option>
+                    <option value="Đã hủy">Đã hủy</option>
+                </select>
+            </div>
+
+            <div class="filter-item">
+                <label>Đối tượng nhận</label>
+                <select id="recipientFilter" class="filter-input form-select" onchange="onFilterChange()">
+                    <option value="">Tất cả</option>
+                    <option value="1,2,3,4,5">Tất cả người dùng</option>
+                    <option value="3">Giáo viên</option>
+                    <option value="1">Học sinh</option>
+                    <option value="4">Phụ huynh</option>
+                    <option value="1,4">Học sinh, Phụ huynh</option>
+                    <option value="4,3">Phụ huynh, Giáo viên</option>
+                </select>
+            </div>
+
+            <div class="filter-item">
+                <label>Loại người dùng</label>
+                <select id="userTypeFilter" class="filter-input form-select" onchange="onFilterChange()">
+                    <option value="">Tất cả</option>
+                    <option value="Tất cả">Tất cả</option>
+                    <option value="Giáo viên">Giáo viên</option>
+                    <option value="Học sinh">Học sinh</option>
+                    <option value="Nhiều vai trò">Nhiều vai trò</option>
+                </select>
+            </div>
+
+            <div class="filter-item">
+                <label>Thời gian</label>
+                <select id="timeRangeFilter" class="filter-input form-select" onchange="onFilterChange()">
+                    <option value="">Tất cả thời gian</option>
+                    <option value="today">Hôm nay</option>
+                    <option value="week">Tuần này</option>
+                    <option value="month">Tháng này</option>
+                </select>
+            </div>
+
+            <button class="btn-filter-action btn-reset-filters" onclick="resetAllFilters()">
+                <i class="bi bi-arrow-counterclockwise"></i> Làm mới
+            </button>
+        </div>
+    </div>
+
+    <!-- Data Table -->
+    <div class="table-container">
+        <table class="notifications-table">
+            <thead>
+                <tr>
+                    <th style="width: 40px; text-align: center;">
+                        <input type="checkbox" id="selectAllCheckbox" class="form-check-input custom-checkbox" onchange="toggleSelectAll(this)" />
+                    </th>
+                    <th style="width: 35%;">Tiêu đề</th>
+                    <th style="width: 15%;">Đối tượng nhận</th>
+                    <th style="width: 12%;">Loại người dùng</th>
+                    <th style="width: 12%;">Trạng thái</th>
+                    <th style="width: 14%;">Thời gian phát hành</th>
+                    <th style="width: 12%;">Người tạo</th>
+                    <th style="width: 10%; text-align: center;">Thao tác</th>
+                </tr>
+            </thead>
+            <tbody id="notifications-table-body">
+                <!-- Rendered dynamically by JavaScript -->
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Pagination Row -->
+    <div class="pagination-footer">
+        <div class="page-size-selector">
+            <span>Hiển thị</span>
+            <select id="pageSizeSelect" onchange="onPageSizeChange(this.value)">
+                <option value="10">10</option>
+                <option value="20">20</option>
+                <option value="50">50</option>
+            </select>
+            <span>mục mỗi trang</span>
+        </div>
+
+        <div class="pagination-nav">
+            <span class="pagination-info" id="paginationInfoText">
+                1-10 của 24
+            </span>
+            <div class="pagination-buttons" id="paginationButtons">
+                <!-- Rendered dynamically by JavaScript -->
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal: View Notification Details -->
+<div class="modal fade" id="viewNotificationModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content custom-modal">
+            <div class="modal-header">
+                <h5 class="modal-title">Chi tiết thông báo hệ thống</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="detail-item">
+                    <span class="detail-label">Tiêu đề</span>
+                    <div class="detail-val" id="detailTitle" style="font-weight: 700;">-</div>
+                </div>
+                <div class="detail-item">
+                    <span class="detail-label">Nội dung chi tiết</span>
+                    <div class="detail-val" id="detailContent" style="white-space: pre-line; background-color: #f8fafc; padding: 12px; border-radius: 8px; border: 1px solid #e2e8f0;">-</div>
+                </div>
+                <div class="detail-item">
+                    <span class="detail-label">Đối tượng nhận</span>
+                    <div class="detail-val" id="detailRecipient">-</div>
+                </div>
+                <div class="detail-item">
+                    <span class="detail-label">Loại người dùng</span>
+                    <div class="detail-val" id="detailUserType">-</div>
+                </div>
+                <div class="detail-item">
+                    <span class="detail-label">Trạng thái</span>
+                    <div class="detail-val" id="detailStatus">-</div>
+                </div>
+                <div class="detail-item">
+                    <span class="detail-label">Thời gian phát hành</span>
+                    <div class="detail-val" id="detailPublishTime">-</div>
+                </div>
+                <div class="detail-item">
+                    <span class="detail-label">Người tạo</span>
+                    <div class="detail-val" id="detailCreator">-</div>
+                </div>
+                <div class="detail-item">
+                    <span class="detail-label">Thời gian tạo</span>
+                    <div class="detail-val" id="detailCreatedAt">-</div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn-modal-cancel" data-bs-dismiss="modal" style="width: 100%;">Đóng</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal: Create Notification -->
+<div class="modal fade" id="createNotificationModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content custom-modal">
+            <div class="modal-header">
+                <h5 class="modal-title">Tạo thông báo hệ thống mới</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form id="createNotificationForm" onsubmit="submitCreateNotification(event)">
+                @Html.AntiForgeryToken()
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label">Tiêu đề *</label>
+                        <input type="text" class="form-control" name="title" id="createTitle" required placeholder="Nhập tiêu đề thông báo..." />
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Nội dung chi tiết *</label>
+                        <textarea class="form-control" name="content" id="createContent" rows="4" required placeholder="Nhập nội dung thông báo..."></textarea>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label d-block">Đối tượng nhận *</label>
+                        <div class="p-2 border rounded" style="background-color: #f8fafc;">
+                            <div class="form-check form-check-inline">
+                                <input class="form-check-input recipient-checkbox" type="checkbox" value="1" id="createRoleStudent">
+                                <label class="form-check-label" for="createRoleStudent">Học sinh</label>
+                            </div>
+                            <div class="form-check form-check-inline">
+                                <input class="form-check-input recipient-checkbox" type="checkbox" value="3" id="createRoleTeacher">
+                                <label class="form-check-label" for="createRoleTeacher">Giáo viên</label>
+                            </div>
+                            <div class="form-check form-check-inline">
+                                <input class="form-check-input recipient-checkbox" type="checkbox" value="4" id="createRoleParent">
+                                <label class="form-check-label" for="createRoleParent">Phụ huynh</label>
+                            </div>
+                            <div class="form-check form-check-inline">
+                                <input class="form-check-input recipient-checkbox" type="checkbox" value="5" id="createRoleContent">
+                                <label class="form-check-label" for="createRoleContent">Quản trị nội dung</label>
+                            </div>
+                            <div class="form-check form-check-inline">
+                                <input class="form-check-input recipient-checkbox" type="checkbox" value="2" id="createRoleAdmin">
+                                <label class="form-check-label" for="createRoleAdmin">Admin</label>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Trạng thái *</label>
+                        <select class="form-select" name="status" id="createStatus" required onchange="onStatusChange('create')">
+                            <option value="Bản nháp">Bản nháp</option>
+                            <option value="Đã lên lịch">Đã lên lịch</option>
+                            <option value="Đã phát hành">Đã phát hành</option>
+                        </select>
+                    </div>
+                    <div class="mb-3" id="createPublishTimeContainer" style="display:none;">
+                        <label class="form-label">Thời gian phát hành *</label>
+                        <input type="datetime-local" class="form-control" name="publishTime" id="createPublishTime" />
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn-modal-cancel" data-bs-dismiss="modal">Hủy</button>
+                    <button type="submit" class="btn-modal-submit">Tạo mới</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Modal: Edit Notification -->
+<div class="modal fade" id="editNotificationModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content custom-modal">
+            <div class="modal-header">
+                <h5 class="modal-title">Cập nhật thông báo hệ thống</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form id="editNotificationForm" onsubmit="submitEditNotification(event)">
+                @Html.AntiForgeryToken()
+                <input type="hidden" name="id" id="editNotificationId" />
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label">Tiêu đề *</label>
+                        <input type="text" class="form-control" name="title" id="editTitle" required />
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Nội dung chi tiết *</label>
+                        <textarea class="form-control" name="content" id="editContent" rows="4" required></textarea>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label d-block">Đối tượng nhận *</label>
+                        <div class="p-2 border rounded" style="background-color: #f8fafc;">
+                            <div class="form-check form-check-inline">
+                                <input class="form-check-input recipient-checkbox" type="checkbox" value="1" id="editRoleStudent">
+                                <label class="form-check-label" for="editRoleStudent">Học sinh</label>
+                            </div>
+                            <div class="form-check form-check-inline">
+                                <input class="form-check-input recipient-checkbox" type="checkbox" value="3" id="editRoleTeacher">
+                                <label class="form-check-label" for="editRoleTeacher">Giáo viên</label>
+                            </div>
+                            <div class="form-check form-check-inline">
+                                <input class="form-check-input recipient-checkbox" type="checkbox" value="4" id="editRoleParent">
+                                <label class="form-check-label" for="editRoleParent">Phụ huynh</label>
+                            </div>
+                            <div class="form-check form-check-inline">
+                                <input class="form-check-input recipient-checkbox" type="checkbox" value="5" id="editRoleContent">
+                                <label class="form-check-label" for="editRoleContent">Quản trị nội dung</label>
+                            </div>
+                            <div class="form-check form-check-inline">
+                                <input class="form-check-input recipient-checkbox" type="checkbox" value="2" id="editRoleAdmin">
+                                <label class="form-check-label" for="editRoleAdmin">Admin</label>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Trạng thái *</label>
+                        <select class="form-select" name="status" id="editStatus" required onchange="onStatusChange('edit')">
+                            <option value="Bản nháp">Bản nháp</option>
+                            <option value="Đã lên lịch">Đã lên lịch</option>
+                            <option value="Đã phát hành">Đã phát hành</option>
+                        </select>
+                    </div>
+                    <div class="mb-3" id="editPublishTimeContainer" style="display:none;">
+                        <label class="form-label">Thời gian phát hành *</label>
+                        <input type="datetime-local" class="form-control" name="publishTime" id="editPublishTime" />
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn-modal-cancel" data-bs-dismiss="modal">Hủy</button>
+                    <button type="submit" class="btn-modal-submit" id="editSubmitButton">Lưu thay đổi</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        // Load initial notifications from Model
+        let notifications = @Html.Raw(Json.Serialize(Model.Select(n => new {
+            id = n.Id,
+            title = n.Title,
+            content = n.Content,
+            recipient = n.Recipient,
+            userType = n.UserType,
+            status = n.Status,
+            publishTime = n.PublishTime.HasValue ? n.PublishTime.Value.ToString("yyyy-MM-ddTHH:mm:ss") : null,
+            creator = n.Creator,
+            createdAt = n.CreatedAt.ToString("yyyy-MM-ddTHH:mm:ss")
+        })));
+
+        let filteredList = [...notifications];
+        let currentPage = 1;
+        let pageSize = 10;
+
+        function getFriendlyRecipients(recipient) {
+            if (!recipient) return '-';
+            if (recipient === 'Tất cả người dùng' || recipient === '1,2,3,4,5') return 'Tất cả người dùng';
+            const textMap = {
+                "1": "Học sinh",
+                "2": "Admin",
+                "3": "Giáo viên",
+                "4": "Phụ huynh",
+                "5": "Quản trị nội dung"
+            };
+            return recipient.split(',')
+                .map(r => {
+                    const trimR = r.trim();
+                    return textMap[trimR] || trimR;
+                })
+                .join(', ');
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            // Set current time as default for Create Publish Time
+            const now = new Date();
+            now.setMinutes(now.getMinutes() - now.getTimezoneOffset());
+            document.getElementById('createPublishTime').value = now.toISOString().slice(0, 16);
+
+            // Initially filter and render
+            applyFilters();
+        });
+
+        // Helper to format Date
+        function formatDateTime(dateStr) {
+            if (!dateStr) return '-';
+            try {
+                const d = new Date(dateStr);
+                if (isNaN(d.getTime())) return '-';
+                const day = String(d.getDate()).padStart(2, '0');
+                const month = String(d.getMonth() + 1).padStart(2, '0');
+                const year = d.getFullYear();
+                const hours = String(d.getHours()).padStart(2, '0');
+                const minutes = String(d.getMinutes()).padStart(2, '0');
+                return `${day}/${month}/${year} ${hours}:${minutes}`;
+            } catch {
+                return '-';
+            }
+        }
+
+        // JS logic to compute Recipient and UserType badge based on checkboxes
+        function computeRecipientAndUserType(mode) {
+            const selector = mode === 'create' ? '#createNotificationForm .recipient-checkbox' : '#editNotificationForm .recipient-checkbox';
+            const checkedBoxes = Array.from(document.querySelectorAll(selector)).filter(cb => cb.checked);
+            const checkedValues = checkedBoxes.map(cb => cb.value);
+
+            let recipient = "";
+            let userType = "";
+
+            if (checkedValues.length === 0) {
+                recipient = "";
+                userType = "";
+            } else if (checkedValues.length === 5) {
+                recipient = "1,2,3,4,5";
+                userType = "Tất cả";
+            } else {
+                recipient = checkedValues.join(",");
+                if (checkedValues.length === 1) {
+                    const singleVal = checkedValues[0];
+                    if (singleVal === "1") userType = "Học sinh";
+                    else if (singleVal === "3") userType = "Giáo viên";
+                    else userType = "Nhiều vai trò";
+                } else {
+                    userType = "Nhiều vai trò";
+                }
+            }
+            return { recipient, userType };
+        }
+
+        // Lock inputs if 'Đã phát hành' is selected, also handle draft time visibility
+        function onStatusChange(mode) {
+            const statusSelect = document.getElementById(mode === 'create' ? 'createStatus' : 'editStatus');
+            const status = statusSelect.value;
+            const isPublished = status === 'Đã phát hành';
+
+            // Elements to lock/unlock
+            const titleInput = document.getElementById(mode === 'create' ? 'createTitle' : 'editTitle');
+            const contentInput = document.getElementById(mode === 'create' ? 'createContent' : 'editContent');
+            const publishTimeInput = document.getElementById(mode === 'create' ? 'createPublishTime' : 'editPublishTime');
+            const checkboxes = document.querySelectorAll(mode === 'create' ? '#createNotificationForm .recipient-checkbox' : '#editNotificationForm .recipient-checkbox');
+
+            if (isPublished) {
+                titleInput.setAttribute('disabled', 'disabled');
+                contentInput.setAttribute('disabled', 'disabled');
+                publishTimeInput.setAttribute('disabled', 'disabled');
+                checkboxes.forEach(cb => cb.setAttribute('disabled', 'disabled'));
+                
+                // Ensure publish time has a value (default to now if blank)
+                if (!publishTimeInput.value) {
+                    const now = new Date();
+                    now.setMinutes(now.getMinutes() - now.getTimezoneOffset());
+                    publishTimeInput.value = now.toISOString().slice(0, 16);
+                }
+            } else {
+                titleInput.removeAttribute('disabled');
+                contentInput.removeAttribute('disabled');
+                publishTimeInput.removeAttribute('disabled');
+                checkboxes.forEach(cb => cb.removeAttribute('disabled'));
+            }
+
+            // Toggle publish time container (hide for Drafts)
+            const publishTimeContainer = document.getElementById(mode === 'create' ? 'createPublishTimeContainer' : 'editPublishTimeContainer');
+            if (status === 'Bản nháp') {
+                publishTimeContainer.style.display = 'none';
+                publishTimeInput.removeAttribute('required');
+            } else {
+                publishTimeContainer.style.display = 'block';
+                if (!isPublished) {
+                    publishTimeInput.setAttribute('required', 'required');
+                }
+            }
+        }
+
+        // Filter and Search Logic
+        function filterByStatus(status) {
+            document.getElementById('statusFilter').value = status;
+            applyFilters();
+        }
+
+        function resetAllFilters() {
+            document.getElementById('searchTitleInput').value = '';
+            document.getElementById('statusFilter').value = '';
+            document.getElementById('recipientFilter').value = '';
+            document.getElementById('userTypeFilter').value = '';
+            document.getElementById('timeRangeFilter').value = '';
+            applyFilters();
+        }
+
+        function onFilterChange() {
+            applyFilters();
+        }
+
+        function applyFilters() {
+            const searchText = document.getElementById('searchTitleInput').value.toLowerCase().trim();
+            const status = document.getElementById('statusFilter').value;
+            const recipient = document.getElementById('recipientFilter').value;
+            const userType = document.getElementById('userTypeFilter').value;
+            const timeRange = document.getElementById('timeRangeFilter').value;
+
+            filteredList = notifications.filter(n => {
+                const matchSearch = !searchText || n.title.toLowerCase().includes(searchText) || n.content.toLowerCase().includes(searchText);
+                const matchStatus = !status || n.status === status;
+                const matchRecipient = !recipient || n.recipient === recipient || getFriendlyRecipients(n.recipient) === getFriendlyRecipients(recipient);
+                const matchUserType = !userType || n.userType === userType;
+                
+                let matchTime = true;
+                if (timeRange && n.publishTime) {
+                    const now = new Date();
+                    const pubDate = new Date(n.publishTime);
+                    const diffTime = Math.abs(now - pubDate);
+                    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+                    
+                    if (timeRange === 'today') {
+                        matchTime = pubDate.toDateString() === now.toDateString();
+                    } else if (timeRange === 'week') {
+                        matchTime = diffDays <= 7;
+                    } else if (timeRange === 'month') {
+                        matchTime = diffDays <= 30;
+                    }
+                } else if (timeRange && !n.publishTime) {
+                    matchTime = false;
+                }
+
+                return matchSearch && matchStatus && matchRecipient && matchUserType && matchTime;
+            });
+
+            currentPage = 1;
+            renderTable();
+        }
+
+        // Table Rendering
+        function renderTable() {
+            const tbody = document.getElementById('notifications-table-body');
+            tbody.innerHTML = '';
+
+            const startIndex = (currentPage - 1) * pageSize;
+            const endIndex = Math.min(startIndex + pageSize, filteredList.length);
+            const pageItems = filteredList.slice(startIndex, endIndex);
+
+            document.getElementById('selectAllCheckbox').checked = false;
+
+            // Render pagination footer info
+            const total = filteredList.length;
+            document.getElementById('paginationInfoText').innerText = 
+                total === 0 ? '0-0 của 0' : `${startIndex + 1}-${endIndex} của ${total}`;
+
+            if (pageItems.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="8" class="text-center py-4 text-muted">Không tìm thấy thông báo nào phù hợp.</td></tr>`;
+                renderPagination();
+                return;
+            }
+
+            pageItems.forEach(n => {
+                const tr = document.createElement('tr');
+
+                // Checkbox
+                const tdCheck = document.createElement('td');
+                tdCheck.style.textAlign = 'center';
+                tdCheck.innerHTML = `<input type="checkbox" class="form-check-input custom-checkbox row-checkbox" value="${n.id}" onchange="syncSelectAll()"/>`;
+                tr.appendChild(tdCheck);
+
+                // Title and description snippet
+                const tdTitle = document.createElement('td');
+                tdTitle.className = 'title-cell';
+                tdTitle.innerHTML = `
+                    <span class="title-main">${escapeHtml(n.title)}</span>
+                    <span class="title-desc">${escapeHtml(n.content)}</span>
+                `;
+                tr.appendChild(tdTitle);
+
+                // Recipient
+                const tdRecipient = document.createElement('td');
+                tdRecipient.innerText = getFriendlyRecipients(n.recipient);
+                tr.appendChild(tdRecipient);
+
+                // User Type Badge
+                const tdUserType = document.createElement('td');
+                let userTypeClass = 'usertype-all';
+                if (n.userType === 'Giáo viên') userTypeClass = 'usertype-teacher';
+                else if (n.userType === 'Học sinh') userTypeClass = 'usertype-student';
+                else if (n.userType === 'Nhiều vai trò') userTypeClass = 'usertype-multiple';
+                tdUserType.innerHTML = `<span class="badge-usertype ${userTypeClass}">${n.userType}</span>`;
+                tr.appendChild(tdUserType);
+
+                // Status Badge
+                const tdStatus = document.createElement('td');
+                let statusClass = 'status-draft';
+                let statusIcon = 'bi-archive-fill';
+                if (n.status === 'Đã phát hành') {
+                    statusClass = 'status-published';
+                    statusIcon = 'bi-check-circle-fill';
+                } else if (n.status === 'Đã lên lịch') {
+                    statusClass = 'status-scheduled';
+                    statusIcon = 'bi-clock-fill';
+                } else if (n.status === 'Đã hủy') {
+                    statusClass = 'status-canceled';
+                    statusIcon = 'bi-x-circle-fill';
+                }
+                tdStatus.innerHTML = `<span class="badge-status ${statusClass}"><i class="bi ${statusIcon}"></i> ${n.status}</span>`;
+                tr.appendChild(tdStatus);
+
+                // Publish Time
+                const tdPublishTime = document.createElement('td');
+                tdPublishTime.innerText = n.publishTime ? formatDateTime(n.publishTime) : '-';
+                tr.appendChild(tdPublishTime);
+
+                // Creator
+                const tdCreator = document.createElement('td');
+                tdCreator.innerText = n.creator || 'Administrator';
+                tr.appendChild(tdCreator);
+
+                // Actions
+                const tdActions = document.createElement('td');
+                tdActions.style.textAlign = 'center';
+                
+                const viewBtn = `<button class="btn-action btn-action-view" onclick="openDetailsModal(${n.id})" title="Xem chi tiết"><i class="bi bi-eye"></i></button>`;
+                const editBtn = `<button class="btn-action btn-action-edit" onclick="openEditModal(${n.id})" title="Chỉnh sửa"><i class="bi bi-pencil"></i></button>`;
+                
+                // Show cancel (trash) icon only if not already canceled
+                const deleteBtn = `<button class="btn-action btn-action-delete" onclick="deleteNotification(${n.id})" title="Hủy thông báo" ${n.status === 'Đã hủy' ? 'disabled style="opacity: 0.5; cursor: not-allowed;"' : ''}><i class="bi bi-trash"></i></button>`;
+                
+                tdActions.innerHTML = `<div class="actions-cell justify-content-center">${viewBtn} ${editBtn} ${deleteBtn}</div>`;
+                tr.appendChild(tdActions);
+
+                // Row click selects checkbox (excluding button/input clicks)
+                tr.addEventListener('click', (e) => {
+                    if (e.target.tagName !== 'INPUT' && e.target.tagName !== 'BUTTON' && !e.target.closest('button') && !e.target.closest('input')) {
+                        const checkbox = tr.querySelector('.row-checkbox');
+                        checkbox.checked = !checkbox.checked;
+                        syncSelectAll();
+                    }
+                });
+
+                tbody.appendChild(tr);
+            });
+
+            renderPagination();
+        }
+
+        // Pagination Rendering
+        function renderPagination() {
+            const container = document.getElementById('paginationButtons');
+            container.innerHTML = '';
+
+            const totalPages = Math.ceil(filteredList.length / pageSize);
+            if (totalPages <= 1) return;
+
+            // Previous button
+            const prevBtn = document.createElement('button');
+            prevBtn.className = `btn-page ${currentPage === 1 ? 'disabled' : ''}`;
+            prevBtn.innerHTML = '<i class="bi bi-chevron-left"></i>';
+            if (currentPage > 1) {
+                prevBtn.onclick = () => { currentPage--; renderTable(); };
+            }
+            container.appendChild(prevBtn);
+
+            // Pages
+            for (let i = 1; i <= totalPages; i++) {
+                const btn = document.createElement('button');
+                btn.className = `btn-page ${currentPage === i ? 'active' : ''}`;
+                btn.innerText = i;
+                btn.onclick = () => { currentPage = i; renderTable(); };
+                container.appendChild(btn);
+            }
+
+            // Next button
+            const nextBtn = document.createElement('button');
+            nextBtn.className = `btn-page ${currentPage === totalPages ? 'disabled' : ''}`;
+            nextBtn.innerHTML = '<i class="bi bi-chevron-right"></i>';
+            if (currentPage < totalPages) {
+                nextBtn.onclick = () => { currentPage++; renderTable(); };
+            }
+            container.appendChild(nextBtn);
+        }
+
+        function onPageSizeChange(val) {
+            pageSize = parseInt(val, 10);
+            currentPage = 1;
+            renderTable();
+        }
+
+        // Checkbox Multi-selection
+        function toggleSelectAll(master) {
+            const checkboxes = document.querySelectorAll('.row-checkbox');
+            checkboxes.forEach(c => c.checked = master.checked);
+        }
+
+        function syncSelectAll() {
+            const checkboxes = document.querySelectorAll('.row-checkbox');
+            const checkedCount = Array.from(checkboxes).filter(c => c.checked).length;
+            const master = document.getElementById('selectAllCheckbox');
+
+            if (checkedCount === 0) {
+                master.checked = false;
+                master.indeterminate = false;
+            } else if (checkedCount === checkboxes.length) {
+                master.checked = true;
+                master.indeterminate = false;
+            } else {
+                master.checked = false;
+                master.indeterminate = true;
+            }
+        }
+
+        // Modal triggers
+        function openDetailsModal(id) {
+            const n = notifications.find(x => x.id === id);
+            if (!n) return;
+
+            document.getElementById('detailTitle').innerText = n.title;
+            document.getElementById('detailContent').innerText = n.content;
+            document.getElementById('detailRecipient').innerText = getFriendlyRecipients(n.recipient);
+            document.getElementById('detailUserType').innerText = n.userType;
+            document.getElementById('detailStatus').innerText = n.status;
+            document.getElementById('detailPublishTime').innerText = n.publishTime ? formatDateTime(n.publishTime) : '-';
+            document.getElementById('detailCreator').innerText = n.creator || 'Administrator';
+            document.getElementById('detailCreatedAt').innerText = formatDateTime(n.createdAt);
+
+            const modal = new bootstrap.Modal(document.getElementById('viewNotificationModal'));
+            modal.show();
+        }
+
+        function openEditModal(id) {
+            const n = notifications.find(x => x.id === id);
+            if (!n) return;
+
+            document.getElementById('editNotificationId').value = n.id;
+            document.getElementById('editTitle').value = n.title;
+            document.getElementById('editContent').value = n.content;
+
+            // Reset checkboxes
+            const checkboxes = document.querySelectorAll('#editNotificationForm .recipient-checkbox');
+            checkboxes.forEach(cb => cb.checked = false);
+
+            // Populate checkboxes based on recipient value
+            if (n.recipient) {
+                const recipientsList = n.recipient.split(',').map(r => r.trim());
+                checkboxes.forEach(cb => {
+                    const val = cb.value;
+                    const textMap = {
+                        "1": "Học sinh",
+                        "2": "Admin",
+                        "3": "Giáo viên",
+                        "4": "Phụ huynh",
+                        "5": "Quản trị nội dung"
+                    };
+                    if (recipientsList.includes(val) || (textMap[val] && recipientsList.includes(textMap[val])) || (n.recipient === 'Tất cả người dùng')) {
+                        cb.checked = true;
+                    }
+                });
+            }
+
+            document.getElementById('editStatus').value = n.status;
+
+            // Set PublishTime
+            const timeInput = document.getElementById('editPublishTime');
+            if (n.publishTime) {
+                timeInput.value = n.publishTime.substring(0, 16);
+            } else {
+                timeInput.value = '';
+            }
+
+            // Sync field status locks
+            onStatusChange('edit');
+
+            // Handle read-only locks for already published/canceled notifications
+            if (n.status === 'Đã phát hành') {
+                document.getElementById('editStatus').setAttribute('disabled', 'disabled');
+                document.getElementById('editSubmitButton').setAttribute('disabled', 'disabled');
+                document.getElementById('editSubmitButton').innerText = 'Không thể chỉnh sửa (Đã phát hành)';
+            } else if (n.status === 'Đã hủy') {
+                document.getElementById('editStatus').setAttribute('disabled', 'disabled');
+                document.getElementById('editSubmitButton').setAttribute('disabled', 'disabled');
+                document.getElementById('editSubmitButton').innerText = 'Không thể chỉnh sửa (Đã hủy)';
+            } else {
+                document.getElementById('editStatus').removeAttribute('disabled');
+                document.getElementById('editSubmitButton').removeAttribute('disabled');
+                document.getElementById('editSubmitButton').innerText = 'Lưu thay đổi';
+            }
+
+            const modal = new bootstrap.Modal(document.getElementById('editNotificationModal'));
+            modal.show();
+        }
+
+        // CRUD AJAX submissions
+        function submitCreateNotification(e) {
+            e.preventDefault();
+            const form = e.target;
+            const token = form.querySelector('input[name="__RequestVerificationToken"]').value;
+            
+            // Auto generate recipient string and user type badge based on check boxes
+            const { recipient, userType } = computeRecipientAndUserType('create');
+
+            if (!recipient) {
+                alert("Vui lòng chọn ít nhất một đối tượng nhận.");
+                return;
+            }
+
+            const data = {
+                title: form.title.value,
+                content: form.content.value,
+                recipient: recipient,
+                userType: userType,
+                status: form.status.value,
+                publishTime: form.status === 'Bản nháp' ? null : form.publishTime.value
+            };
+
+            fetch('/SystemNotifications/Create', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'RequestVerificationToken': token
+                },
+                body: JSON.stringify(data)
+            })
+            .then(res => res.json())
+            .then(res => {
+                if (res.success) {
+                    bootstrap.Modal.getInstance(document.getElementById('createNotificationModal')).hide();
+                    form.reset();
+                    location.reload();
+                } else {
+                    alert(res.message);
+                }
+            })
+            .catch(err => {
+                console.error(err);
+                alert("Lỗi kết nối máy chủ.");
+            });
+        }
+
+        function submitEditNotification(e) {
+            e.preventDefault();
+            const form = e.target;
+            const token = form.querySelector('input[name="__RequestVerificationToken"]').value;
+
+            // Auto generate recipient string and user type badge based on check boxes
+            const { recipient, userType } = computeRecipientAndUserType('edit');
+
+            if (!recipient) {
+                alert("Vui lòng chọn ít nhất một đối tượng nhận.");
+                return;
+            }
+
+            // Read values even if disabled
+            const statusVal = document.getElementById('editStatus').value;
+            const titleVal = document.getElementById('editTitle').value;
+            const contentVal = document.getElementById('editContent').value;
+            const publishTimeVal = document.getElementById('editPublishTime').value;
+
+            const data = {
+                id: parseInt(form.id.value, 10),
+                title: titleVal,
+                content: contentVal,
+                recipient: recipient,
+                userType: userType,
+                status: statusVal,
+                publishTime: statusVal === 'Bản nháp' ? null : publishTimeVal
+            };
+
+            fetch('/SystemNotifications/Edit', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'RequestVerificationToken': token
+                },
+                body: JSON.stringify(data)
+            })
+            .then(res => res.json())
+            .then(res => {
+                if (res.success) {
+                    bootstrap.Modal.getInstance(document.getElementById('editNotificationModal')).hide();
+                    location.reload();
+                } else {
+                    alert(res.message);
+                }
+            })
+            .catch(err => {
+                console.error(err);
+                alert("Lỗi kết nối máy chủ.");
+            });
+        }
+
+        function deleteNotification(id) {
+            const n = notifications.find(x => x.id === id);
+            if (!n) return;
+            if (n.status === 'Đã hủy') {
+                alert("Thông báo này đã được hủy trước đó.");
+                return;
+            }
+            if (!confirm("Bạn có chắc chắn muốn hủy thông báo này không? Trạng thái sẽ chuyển thành 'Đã hủy'.")) return;
+
+            fetch(`/SystemNotifications/Delete?id=${id}`, {
+                method: 'POST'
+            })
+            .then(res => res.json())
+            .then(res => {
+                if (res.success) {
+                    location.reload();
+                } else {
+                    alert(res.message);
+                }
+            })
+            .catch(err => {
+                console.error(err);
+                alert("Lỗi kết nối máy chủ.");
+            });
+        }
+
+        // HTML Escape Helper
+        function escapeHtml(text) {
+            if (!text) return '';
+            return text.toString()
+                .replace(/&/g, "&amp;")
+                .replace(/</g, "&lt;")
+                .replace(/>/g, "&gt;")
+                .replace(/"/g, "&quot;")
+                .replace(/'/g, "&#039;");
+        }
+    </script>
+}

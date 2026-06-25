@@ -1,9 +1,10 @@
-﻿using EnglishLearningOnlineSystem.ViewModels.ContentManager.Courses;
+using EnglishLearningOnlineSystem.ViewModels.ContentManager.Courses;
 
 namespace EnglishLearningOnlineSystem.Services.Interfaces
 {
     public interface ICourseService
     {
+        Task<List<EnglishLearningOnlineSystem.Models.Course>> GetAllCoursesAsync();
         Task<(List<CourseListItemViewModel> Items, int TotalCount)> GetCoursesAsync(string? keyword, bool? isActive, int pageNumber, int pageSize);
         Task<CourseDetailViewModel?> GetCourseDetailAsync(int courseId);
         Task<(CourseEditViewModel? Model, string? ErrorMessage)> GetCourseForEditAsync(int courseId);

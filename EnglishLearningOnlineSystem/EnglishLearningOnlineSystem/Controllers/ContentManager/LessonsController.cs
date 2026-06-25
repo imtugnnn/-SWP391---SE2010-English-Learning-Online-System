@@ -1,184 +1,141 @@
-﻿using EnglishLearningOnlineSystem.Data;
-using EnglishLearningOnlineSystem.Models;
+using EnglishLearningOnlineSystem.Data;
 using EnglishLearningOnlineSystem.Services.Interfaces;
 using EnglishLearningOnlineSystem.ViewModels.ContentManager.Lessons;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
+using Microsoft.AspNetCore.Mvc.Rendering;
 
 namespace EnglishLearningOnlineSystem.Controllers.ContentManager;
 
+[Route("contentmanager/lessons")]
 public class LessonsController : BaseContentManagerController
 {
+    private const int DefaultPageSize = 10;
     private readonly ILessonService _lessonService;
-    private const int PageSize = 10;
+    private readonly ICourseService _courseService;
 
-    public LessonsController(AppDbContext db, ILessonService lessonService)
-        : base(db)
+    public LessonsController(AppDbContext db, ILessonService lessonService, ICourseService courseService) : base(db)
     {
         _lessonService = lessonService;
+        _courseService = courseService;
     }
 
-    // GET: /ContentManager/Lessons
-    public async Task<IActionResult> Index(int? courseId, string? searchTitle, int page = 1)
+    [HttpGet]
+    public async Task<IActionResult> Index(string? keyword, int? courseId, int page = 1)
     {
-        if (!IsAuthorized()) return RedirectToLogin();
-
         if (page < 1) page = 1;
 
-        var vm = await _lessonService.GetPagedAsync(courseId, searchTitle, page, PageSize);
+        var (items, totalCount) = await _lessonService.GetLessonsAsync(keyword, courseId, page, DefaultPageSize);
 
-        return View("~/Views/ContentManager/Lessons/Index.cshtml", vm);
+        ViewBag.Keyword = keyword;
+        ViewBag.CourseId = courseId;
+        ViewBag.PageNumber = page;
+        ViewBag.TotalPages = (int)Math.Ceiling(totalCount / (double)DefaultPageSize);
+
+        var courses = await _courseService.GetAllCoursesAsync();
+        ViewBag.CourseSelectList = new SelectList(courses, "CourseId", "CourseName", courseId);
+
+        return View("~/Views/ContentManager/Lessons/Index.cshtml", items);
     }
 
-    // GET: /ContentManager/Lessons/Details/5
+    [HttpGet("{id:int}")]
     public async Task<IActionResult> Details(int id)
     {
-        if (!IsAuthorized()) return RedirectToLogin();
+        var model = await _lessonService.GetDetailsAsync(id);
 
-        var vm = await _lessonService.GetDetailsAsync(id);
+        if (model == null)
+        {
+            TempData["ErrorMessage"] = "Không tìm thấy bài học.";
+            return RedirectToAction(nameof(Index));
+        }
 
-        if (vm == null)
-            return NotFound();
-
-        return View("~/Views/ContentManager/Lessons/Details.cshtml", vm);
+        return View("~/Views/ContentManager/Lessons/Details.cshtml", model);
     }
 
-    // GET: /ContentManager/Lessons/Create
-    public async Task<IActionResult> Create(int courseId)
+    [HttpGet("create")]
+    public async Task<IActionResult> Create(int? courseId)
     {
-        if (!IsAuthorized()) return RedirectToLogin();
-
-        var vm = await _lessonService.BuildCreateViewModelAsync(courseId);
-
-        if (vm == null)
-            return NotFound();
-
-        return View("~/Views/ContentManager/Lessons/Create.cshtml", vm);
+        await PopulateCoursesDropdownAsync(courseId);
+        return View("~/Views/ContentManager/Lessons/Create.cshtml", new LessonCreateViewModel { CourseId = courseId ?? 0 });
     }
 
-    // POST: /ContentManager/Lessons/Create
-    [HttpPost]
+    [HttpPost("create")]
     [ValidateAntiForgeryToken]
-    public async Task<IActionResult> Create(CreateLessonViewModel vm)
+    public async Task<IActionResult> Create(LessonCreateViewModel model)
     {
-        if (!IsAuthorized()) return RedirectToLogin();
-
         if (!ModelState.IsValid)
         {
-            var vmRebuild = await _lessonService.BuildCreateViewModelAsync(vm.CourseId);
-            vm.CourseName = vmRebuild?.CourseName ?? string.Empty;
-            return View("~/Views/ContentManager/Lessons/Create.cshtml", vm);
+            await PopulateCoursesDropdownAsync(model.CourseId);
+            return View("~/Views/ContentManager/Lessons/Create.cshtml", model);
         }
 
-        var managerId = GetCurrentUserId();
-        var (lessonId, error) = await _lessonService.CreateAsync(vm, managerId);
+        var (success, errorMessage) = await _lessonService.CreateLessonAsync(model);
 
-        if (error != null)
+        if (!success)
         {
-            ModelState.AddModelError(string.Empty, error);
-            var vmRebuild = await _lessonService.BuildCreateViewModelAsync(vm.CourseId);
-            vm.CourseName = vmRebuild?.CourseName ?? string.Empty;
-            return View("~/Views/ContentManager/Lessons/Create.cshtml", vm);
+            ModelState.AddModelError(string.Empty, errorMessage ?? "Không thể tạo bài học.");
+            await PopulateCoursesDropdownAsync(model.CourseId);
+            return View("~/Views/ContentManager/Lessons/Create.cshtml", model);
         }
 
-        TempData["SuccessMessage"] = "Bài học đã được tạo thành công. Bạn có thể thêm Mini Game bên dưới.";
-        return RedirectToAction(nameof(Details), new { id = lessonId });
+        TempData["SuccessMessage"] = "Thêm bài học thành công.";
+        return RedirectToAction(nameof(Index), new { courseId = model.CourseId });
     }
 
-    // GET: /ContentManager/Lessons/Edit/5
+    [HttpGet("{id:int}/edit")]
     public async Task<IActionResult> Edit(int id)
     {
-        if (!IsAuthorized()) return RedirectToLogin();
+        var (model, errorMessage) = await _lessonService.GetLessonForEditAsync(id);
 
-        var vm = await _lessonService.BuildEditViewModelAsync(id);
-        if (vm == null) return NotFound();
+        if (model == null)
+        {
+            TempData["ErrorMessage"] = errorMessage;
+            return RedirectToAction(nameof(Index));
+        }
 
-        return View("~/Views/ContentManager/Lessons/Edit.cshtml", vm);
+        await PopulateCoursesDropdownAsync(model.CourseId);
+        return View("~/Views/ContentManager/Lessons/Edit.cshtml", model);
     }
 
-    // POST: /ContentManager/Lessons/Edit/5
-    [HttpPost]
+    [HttpPost("{id:int}/edit")]
     [ValidateAntiForgeryToken]
-    public async Task<IActionResult> Edit(int id, EditLessonViewModel vm)
+    public async Task<IActionResult> Edit(int id, LessonEditViewModel model)
     {
-        if (!IsAuthorized()) return RedirectToLogin();
-
-        if (id != vm.LessonId) return BadRequest();
+        if (id != model.LessonId) return BadRequest();
 
         if (!ModelState.IsValid)
         {
-            var rebuilt = await _lessonService.BuildEditViewModelAsync(id);
-            if (rebuilt != null)
-            {
-                vm.CourseName = rebuilt.CourseName;
-                vm.Courses = rebuilt.Courses;
-            }
-            return View("~/Views/ContentManager/Lessons/Edit.cshtml", vm);
+            await PopulateCoursesDropdownAsync(model.CourseId);
+            return View("~/Views/ContentManager/Lessons/Edit.cshtml", model);
         }
 
-        var error = await _lessonService.UpdateAsync(vm);
-        if (error != null)
+        var (success, errorMessage) = await _lessonService.UpdateLessonAsync(model);
+
+        if (!success)
         {
-            ModelState.AddModelError(string.Empty, error);
-            var rebuilt = await _lessonService.BuildEditViewModelAsync(id);
-            if (rebuilt != null)
-            {
-                vm.CourseName = rebuilt.CourseName;
-                vm.Courses = rebuilt.Courses;
-            }
-            return View("~/Views/ContentManager/Lessons/Edit.cshtml", vm);
+            ModelState.AddModelError(string.Empty, errorMessage ?? "Không thể cập nhật bài học.");
+            await PopulateCoursesDropdownAsync(model.CourseId);
+            return View("~/Views/ContentManager/Lessons/Edit.cshtml", model);
         }
 
         TempData["SuccessMessage"] = "Cập nhật bài học thành công.";
-        return RedirectToAction(nameof(Details), new { id = vm.LessonId });
+        return RedirectToAction(nameof(Details), new { id = model.LessonId });
     }
 
-    // POST: /ContentManager/Lessons/Delete/5
-    [HttpPost]
+    [HttpPost("{id:int}/delete")]
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> Delete(int id, int? courseId)
     {
-        if (!IsAuthorized()) return RedirectToLogin();
+        var (success, errorMessage) = await _lessonService.DeleteLessonAsync(id);
 
-        var error = await _lessonService.DeleteAsync(id);
-
-        if (error != null)
-            TempData["ErrorMessage"] = error;
-        else
-            TempData["SuccessMessage"] = "Xóa bài học thành công.";
+        TempData[success ? "SuccessMessage" : "ErrorMessage"]
+            = success ? "Đã xoá bài học." : errorMessage;
 
         return RedirectToAction(nameof(Index), new { courseId });
     }
 
-    // POST: /ContentManager/Lessons/TogglePublished/5
-    [HttpPost]
-    [ValidateAntiForgeryToken]
-    public async Task<IActionResult> TogglePublished(int id, int? courseId)
+    private async Task PopulateCoursesDropdownAsync(int? selectedCourseId = null)
     {
-        if (!IsAuthorized()) return RedirectToLogin();
-
-        var error = await _lessonService.TogglePublishedAsync(id);
-
-        if (error != null)
-            TempData["ErrorMessage"] = error;
-
-        return RedirectToAction(nameof(Index), new { courseId });
-    }
-
-    // ── Private helpers ────────────────────────────────────────────────────────
-
-    private bool IsAuthorized()
-    {
-        var role = HttpContext.Session.GetString("UserRole");
-        return int.TryParse(role, out var roleId) && (roleId == 5 || roleId == 2);
-    }
-
-    private IActionResult RedirectToLogin() =>
-        RedirectToAction("Login", "Auth");
-
-    private int GetCurrentUserId()
-    {
-        var str = HttpContext.Session.GetString("UserId");
-        return int.TryParse(str, out var id) ? id : 0;
+        var courses = await _courseService.GetAllCoursesAsync();
+        ViewBag.CourseSelectList = new SelectList(courses, "CourseId", "CourseName", selectedCourseId);
     }
 }

@@ -1,4 +1,4 @@
-﻿using EnglishLearningOnlineSystem.Models;
+using EnglishLearningOnlineSystem.Models;
 using EnglishLearningOnlineSystem.Repositories.Interfaces;
 using EnglishLearningOnlineSystem.Services.Interfaces;
 using EnglishLearningOnlineSystem.ViewModels.ContentManager.Courses;
@@ -12,6 +12,11 @@ namespace EnglishLearningOnlineSystem.Services.Implementations
         public CourseService(ICourseRepository courseRepository)
         {
             _courseRepository = courseRepository;
+        }
+
+        public async Task<List<EnglishLearningOnlineSystem.Models.Course>> GetAllCoursesAsync()
+        {
+            return await _courseRepository.GetAllCoursesAsync();
         }
 
         public async Task<(List<CourseListItemViewModel> Items, int TotalCount)> GetCoursesAsync(string? keyword, bool? isActive, int pageNumber, int pageSize)

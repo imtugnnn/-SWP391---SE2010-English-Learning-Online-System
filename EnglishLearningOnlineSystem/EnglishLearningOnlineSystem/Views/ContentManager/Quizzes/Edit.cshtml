@@ -1,0 +1,260 @@
+@model EnglishLearningOnlineSystem.ViewModels.ContentManager.Quizzes.QuizEditViewModel
+@{
+    Layout = "_ContentManagerLayout";
+    ViewData["Title"] = "Cập nhật câu hỏi";
+    ViewData["ActiveNav"] = "quizzes";
+    ViewData["Breadcrumb"] = "Câu hỏi / Cập nhật";
+}
+
+<div class="cm-page-header">
+    <div>
+        <div class="cm-page-title">Cập nhật câu hỏi</div>
+        <div class="cm-page-subtitle">Sửa thông tin câu hỏi trắc nghiệm</div>
+    </div>
+</div>
+
+<div class="cm-card" style="padding:24px; max-width:640px;">
+    <div asp-validation-summary="ModelOnly" class="cm-field-error mb-3"></div>
+
+    <form asp-action="Edit" method="post">
+        <input type="hidden" asp-for="QuizId" />
+
+        <div class="cm-form-group">
+            <label asp-for="LessonId" class="cm-label cm-label-required"></label>
+            <select asp-for="LessonId" class="cm-select" asp-items="ViewBag.LessonSelectList">
+                <option value="">-- Chọn bài học --</option>
+            </select>
+            <span asp-validation-for="LessonId" class="cm-field-error"></span>
+        </div>
+
+        <div class="cm-form-group">
+            <label asp-for="QuizType" class="cm-label cm-label-required"></label>
+            <select asp-for="QuizType" class="cm-select" id="QuizTypeSelect" onchange="onQuizTypeChange()">
+                <option value="MultipleChoice">Trắc nghiệm (Nhiều lựa chọn)</option>
+                <option value="IMAGE_CHOICE">Trắc nghiệm Hình ảnh (Image Choice)</option>
+                <option value="TrueFalse">Đúng/Sai</option>
+                <option value="FillInTheBlank">Điền vào chỗ trống</option>
+            </select>
+            <span asp-validation-for="QuizType" class="cm-field-error"></span>
+        </div>
+
+        <div class="cm-form-group">
+            <label asp-for="Question" class="cm-label cm-label-required"></label>
+            <textarea asp-for="Question" class="cm-textarea" placeholder="Nội dung câu hỏi..."></textarea>
+            <span asp-validation-for="Question" class="cm-field-error"></span>
+        </div>
+
+        <div class="cm-form-group" id="optionsGroup">
+            <label class="cm-label cm-label-required">Các lựa chọn</label>
+            <div class="d-flex justify-content-between align-items-center mb-2">
+                <span style="font-size: 0.85rem; color: var(--cm-ink-muted);">Bạn có thể nhập JSON thô hoặc dùng giao diện.</span>
+                <button type="button" class="cm-btn cm-btn-ghost cm-btn-sm" onclick="toggleInputMode()" id="toggleModeBtn">Dùng JSON</button>
+            </div>
+            
+            <!-- Hidden real input bound to model -->
+            <input type="hidden" asp-for="Options" id="OptionsHidden" />
+
+            <!-- UI Mode Container -->
+            <div id="ui-mode-container">
+                <div id="options-container" class="d-flex flex-column gap-2 mb-2">
+                    <!-- JS will render inputs here -->
+                </div>
+                <div>
+                    <button type="button" class="cm-btn cm-btn-secondary cm-btn-sm" onclick="addOption()">+ Thêm lựa chọn</button>
+                </div>
+            </div>
+
+            <!-- JSON Mode Container -->
+            <div id="json-mode-container" style="display: none;">
+                <textarea id="OptionsJsonTextarea" class="cm-textarea" placeholder='VD: ["Apple", "Banana"]' rows="4" onchange="syncJsonToHidden(this.value)"></textarea>
+                <div class="cm-form-hint">Nhập các lựa chọn dưới dạng mảng JSON.</div>
+            </div>
+
+            <span asp-validation-for="Options" class="cm-field-error"></span>
+        </div>
+
+        <div class="cm-form-group">
+            <label asp-for="CorrectAnswer" class="cm-label cm-label-required"></label>
+            <input asp-for="CorrectAnswer" id="CorrectAnswerText" class="cm-input" placeholder="Câu trả lời đúng" />
+            <select id="CorrectAnswerSelect" class="cm-select" style="display:none;" onchange="document.getElementById('CorrectAnswerText').value = this.value;">
+                <option value="Đúng">Đúng</option>
+                <option value="Sai">Sai</option>
+            </select>
+            <div class="cm-form-hint" id="CorrectAnswerHint">Nhập chính xác text của câu trả lời đúng.</div>
+            <span asp-validation-for="CorrectAnswer" class="cm-field-error"></span>
+        </div>
+
+        <hr class="cm-divider" />
+
+        <div class="d-flex gap-2">
+            <button type="submit" class="cm-btn cm-btn-primary">Lưu thay đổi</button>
+            <a asp-action="Index" class="cm-btn cm-btn-secondary">Hủy</a>
+        </div>
+    </form>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+    <script>
+        let options = [];
+        let isJsonMode = false;
+
+        try {
+            const existing = document.getElementById('OptionsHidden').value;
+            if(existing && existing !== '[]') options = JSON.parse(existing);
+        } catch(e) {}
+        
+        if(options.length === 0) {
+            options = ["", "", "", ""];
+        }
+
+        function toggleInputMode() {
+            isJsonMode = !isJsonMode;
+            if (isJsonMode) {
+                document.getElementById('ui-mode-container').style.display = 'none';
+                document.getElementById('json-mode-container').style.display = 'block';
+                document.getElementById('toggleModeBtn').innerText = 'Dùng giao diện UI';
+                document.getElementById('OptionsJsonTextarea').value = JSON.stringify(options, null, 2);
+            } else {
+                document.getElementById('ui-mode-container').style.display = 'block';
+                document.getElementById('json-mode-container').style.display = 'none';
+                document.getElementById('toggleModeBtn').innerText = 'Dùng JSON';
+                
+                try {
+                    const parsed = JSON.parse(document.getElementById('OptionsHidden').value);
+                    if (Array.isArray(parsed)) options = parsed;
+                } catch(e) {}
+                renderOptions();
+            }
+        }
+
+        function syncJsonToHidden(val) {
+            document.getElementById('OptionsHidden').value = val;
+            try {
+                options = JSON.parse(val);
+                renderCorrectAnswerDropdown();
+            } catch(e) {}
+        }
+
+        function renderOptions() {
+            const container = document.getElementById('options-container');
+            container.innerHTML = '';
+            options.forEach((opt, index) => {
+                const div = document.createElement('div');
+                div.className = 'd-flex gap-2';
+                div.innerHTML = `
+                    <input type="text" class="cm-input" value="${opt.replace(/"/g, '&quot;')}" onchange="updateOption(${index}, this.value)" placeholder="Lựa chọn ${index + 1}" required />
+                    <button type="button" class="cm-btn cm-btn-ghost" style="color:var(--cm-danger); padding:0 12px;" onclick="removeOption(${index})">Xoá</button>
+                `;
+                container.appendChild(div);
+            });
+            updateHidden();
+        }
+
+        function updateOption(index, val) {
+            options[index] = val;
+            updateHidden();
+        }
+
+        function addOption() {
+            options.push("");
+            renderOptions();
+        }
+
+        function removeOption(index) {
+            options.splice(index, 1);
+            renderOptions();
+        }
+
+        function updateHidden() {
+            document.getElementById('OptionsHidden').value = JSON.stringify(options);
+            if (isJsonMode) {
+                document.getElementById('OptionsJsonTextarea').value = JSON.stringify(options, null, 2);
+            }
+            renderCorrectAnswerDropdown();
+        }
+
+        function renderCorrectAnswerDropdown() {
+            const answerSelect = document.getElementById('CorrectAnswerSelect');
+            const type = document.getElementById('QuizTypeSelect').value;
+            const currentVal = document.getElementById('CorrectAnswerText').value;
+            
+            if (type === 'MultipleChoice' || type === 'IMAGE_CHOICE') {
+                answerSelect.innerHTML = '';
+                
+                if (options.length === 0) {
+                    const emptyOption = document.createElement('option');
+                    emptyOption.value = "";
+                    emptyOption.text = "-- Chưa có lựa chọn nào --";
+                    answerSelect.appendChild(emptyOption);
+                } else {
+                    options.forEach((opt, idx) => {
+                        const optionElem = document.createElement('option');
+                        optionElem.value = opt;
+                        optionElem.text = opt ? (type === 'IMAGE_CHOICE' ? `Hình ảnh ${idx + 1}: ${opt.substring(0, 50)}...` : opt) : `Lựa chọn ${idx + 1} (chưa nhập)`;
+                        answerSelect.appendChild(optionElem);
+                    });
+                }
+                
+                if (options.includes(currentVal)) {
+                    answerSelect.value = currentVal;
+                } else if (options.length > 0) {
+                    answerSelect.value = options[0];
+                    document.getElementById('CorrectAnswerText').value = options[0];
+                } else {
+                    document.getElementById('CorrectAnswerText').value = '';
+                }
+            }
+        }
+
+        function onQuizTypeChange() {
+            const type = document.getElementById('QuizTypeSelect').value;
+            const optionsGroup = document.getElementById('optionsGroup');
+            const answerText = document.getElementById('CorrectAnswerText');
+            const answerSelect = document.getElementById('CorrectAnswerSelect');
+            const answerHint = document.getElementById('CorrectAnswerHint');
+
+            if (type === 'MultipleChoice' || type === 'IMAGE_CHOICE') {
+                optionsGroup.style.display = 'block';
+                answerText.style.display = 'none'; // changed
+                answerSelect.style.display = 'block'; // changed
+                answerHint.innerText = 'Chọn đáp án đúng từ các lựa chọn bên trên.';
+                
+                if(options.length === 0 || (options.length === 2 && options[0] === 'Đúng' && options[1] === 'Sai')) {
+                    options = ["", "", "", ""];
+                    renderOptions();
+                } else {
+                    renderCorrectAnswerDropdown();
+                }
+            } else if (type === 'TrueFalse') {
+                optionsGroup.style.display = 'none';
+                answerText.style.display = 'none';
+                answerSelect.style.display = 'block';
+                answerHint.innerText = 'Chọn Đúng hoặc Sai.';
+                
+                options = ["Đúng", "Sai"];
+                updateHidden();
+                
+                answerSelect.innerHTML = '<option value="Đúng">Đúng</option><option value="Sai">Sai</option>';
+
+                if(answerText.value !== 'Đúng' && answerText.value !== 'Sai') {
+                    answerText.value = 'Đúng';
+                }
+                answerSelect.value = answerText.value;
+            } else if (type === 'FillInTheBlank') {
+                optionsGroup.style.display = 'none';
+                answerText.style.display = 'block';
+                answerSelect.style.display = 'none';
+                answerHint.innerText = 'Nhập từ/cụm từ cần điền vào chỗ trống.';
+                
+                options = [];
+                updateHidden();
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            renderOptions();
+            onQuizTypeChange();
+        });
+    </script>
+}

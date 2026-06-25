@@ -54,11 +54,24 @@ builder.Services.AddScoped<IWordScrambleService, WordScrambleService>();
 builder.Services.AddScoped<IStudentGameProgressRepository, StudentGameProgressRepository>();
 builder.Services.AddScoped<IMatchingGameService, MatchingGameService>();
 
+builder.Services.AddScoped<ILessonRepository, LessonRepository>();
+builder.Services.AddScoped<ILessonService, LessonService>();
+
+builder.Services.AddScoped<IQuizRepository, QuizRepository>();
+builder.Services.AddScoped<IQuizService, QuizService>();
+
 builder.Services.AddScoped<IQuizAttemptRepository, QuizAttemptRepository>();
 builder.Services.AddScoped<IQuizAttemptService, QuizAttemptService>();
 builder.Services.AddScoped<IFlashcardRepository, FlashcardRepository>();
 builder.Services.AddScoped<IFlashcardService, FlashcardService>();
 builder.Services.AddScoped<IAdaptiveLearningService, AdaptiveLearningService>();
+
+builder.Services.AddScoped<IClassRepository, ClassRepository>();
+builder.Services.AddScoped<IClassService, ClassService>();
+builder.Services.AddScoped<IStudentManagementService, StudentManagementService>();
+builder.Services.AddScoped<IAssignmentRepository, AssignmentRepository>();
+builder.Services.AddScoped<ITeacherAssignmentService, TeacherAssignmentService>();
+builder.Services.AddScoped<ITeacherDashboardService, TeacherDashboardService>();
 
 // Cấu hình Session
 builder.Services.AddHttpContextAccessor();
