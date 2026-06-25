@@ -1,0 +1,104 @@
+﻿@model EnglishLearningOnlineSystem.ViewModels.ContentManager.Courses.CourseDetailViewModel
+@{
+    Layout = "_ContentManagerLayout";
+    ViewData["Title"] = "Chi tiết khoá học";
+    ViewData["ActiveNav"] = "courses";
+    ViewData["Breadcrumb"] = "Khoá học / Chi tiết";
+}
+
+<div class="cm-page-header">
+    <div>
+        <div class="cm-page-title">@Model.CourseName</div>
+        <div class="cm-page-subtitle">@Model.GradeLevel</div>
+    </div>
+    <div class="d-flex gap-2">
+        @if (!Model.IsDeleted)
+        {
+            <a asp-action="Edit" asp-route-id="@Model.CourseId" class="cm-btn cm-btn-secondary">Sửa</a>
+        }
+        <a asp-action="Index" class="cm-btn cm-btn-ghost">Quay lại</a>
+    </div>
+</div>
+
+@if (Model.IsDeleted)
+{
+    <div class="cm-alert cm-alert-danger">Khoá học này đã bị xoá.</div>
+}
+
+<div class="cm-card" style="padding:24px; margin-bottom:20px;">
+    <dl class="row mb-0">
+        <dt class="col-sm-3" style="color:var(--cm-ink-muted);font-weight:500;">Mô tả</dt>
+        <dd class="col-sm-9">@(Model.Description ?? "—")</dd>
+
+        <dt class="col-sm-3" style="color:var(--cm-ink-muted);font-weight:500;">Học phí</dt>
+        <dd class="col-sm-9"><span class="cm-badge cm-badge-success">Miễn phí</span></dd>
+
+        <dt class="col-sm-3" style="color:var(--cm-ink-muted);font-weight:500;">Người tạo</dt>
+        <dd class="col-sm-9">@(Model.CreatorName ?? "—")</dd>
+
+        <dt class="col-sm-3" style="color:var(--cm-ink-muted);font-weight:500;">Trạng thái</dt>
+        <dd class="col-sm-9">
+            @if (Model.IsPublished)
+            {
+                <span class="cm-badge cm-badge-success">Đang hoạt động</span>
+            }
+            else
+            {
+
+                <span class="cm-badge cm-badge-muted">Chưa kích hoạt</span>
+            }
+        </dd>
+
+        <dt class="col-sm-3" style="color:var(--cm-ink-muted);font-weight:500;">Số bài học</dt>
+        <dd class="col-sm-9">@Model.LessonCount</dd>
+
+        <dt class="col-sm-3" style="color:var(--cm-ink-muted);font-weight:500;">Tổng thời lượng</dt>
+        <dd class="col-sm-9">@Model.TotalDurationMinutes phút</dd>
+    </dl>
+</div>
+
+<div class="cm-card">
+    <div style="padding:16px 20px; border-bottom:1px solid var(--cm-border); font-weight:600;">
+        Danh sách bài học
+    </div>
+    @if (!Model.Lessons.Any())
+    {
+        <div class="text-center py-4" style="color:var(--cm-ink-muted);">Khoá học chưa có bài học nào.</div>
+    }
+    else
+    {
+        <table class="table align-middle mb-0">
+            <thead>
+                <tr style="background:var(--cm-surface);">
+                    <th style="padding:12px 16px;">#</th>
+                    <th>Tên bài học</th>
+                    <th>Chủ đề</th>
+                    <th>Thời lượng</th>
+                    <th>Trạng thái</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var lesson in Model.Lessons)
+                {
+                    <tr>
+                        <td style="padding:12px 16px;">@lesson.OrderIndex</td>
+                        <td>@lesson.Title</td>
+                        <td>@lesson.Topic</td>
+                        <td>@lesson.EstimatedMinutes phút</td>
+                        <td>
+                            @if (lesson.IsPublished)
+                            {
+                                <span class="cm-badge cm-badge-success">Đã xuất bản</span>
+                            }
+                            else
+                            {
+
+                                <span class="cm-badge cm-badge-muted">Bản nháp</span>
+                            }
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    }
+</div>

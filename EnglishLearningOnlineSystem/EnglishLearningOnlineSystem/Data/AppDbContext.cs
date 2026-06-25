@@ -12,11 +12,14 @@ public class AppDbContext : Microsoft.EntityFrameworkCore.DbContext
     // Core user & role tables (existing)
     public DbSet<User> Users { get; set; }
     public DbSet<Role> Roles { get; set; }
+    public DbSet<PasswordResetToken> PasswordResetTokens { get; set; }
 
     // Optional additional domain tables (add if corresponding model classes exist)
+    public DbSet<AcademicYear>? AcademicYears { get; set; }
     public DbSet<StudentProfile>? StudentProfiles { get; set; }
     public DbSet<Course>? Courses { get; set; }
     public DbSet<Class>? Classes { get; set; }
+    public DbSet<ClassEnrollment>? ClassEnrollments { get; set; }
     public DbSet<Lesson>? Lessons { get; set; }
     public DbSet<WeeklyAssignment>? WeeklyAssignments { get; set; }
     public DbSet<MiniGame>? MiniGames { get; set; }
@@ -67,6 +70,15 @@ public class AppDbContext : Microsoft.EntityFrameworkCore.DbContext
             // If types are not present, ignore fluent configuration errors at startup compile-time.
         }
 
+        try
+        {
+            modelBuilder.Entity<AcademicYear>(eb =>
+            {
+                eb.HasIndex(y => y.YearLabel).IsUnique();
+            });
+        }
+        catch { }
+
         // Prevent accidental cascade-delete cycles for known relationships if those entities exist.
         // 1. Role - User: deleting a Role should not delete Users.
         try
@@ -87,6 +99,50 @@ public class AppDbContext : Microsoft.EntityFrameworkCore.DbContext
                 .WithMany(u => u.TaughtClasses)
                 .HasForeignKey(c => c.TeacherId)
                 .OnDelete(DeleteBehavior.SetNull);
+        }
+        catch { }
+
+        try
+        {
+            modelBuilder.Entity<Class>()
+                .HasOne(c => c.AcademicYear)
+                .WithMany(y => y.Classes)
+                .HasForeignKey(c => c.AcademicYearId)
+                .OnDelete(DeleteBehavior.Cascade);
+        }
+        catch { }
+
+        try
+        {
+            modelBuilder.Entity<ClassEnrollment>(eb =>
+            {
+                eb.HasIndex(x => new { x.ClassId, x.StudentId }).IsUnique();
+
+                eb.HasOne(x => x.Class)
+                  .WithMany(c => c.Enrollments)
+                  .HasForeignKey(x => x.ClassId)
+                  .OnDelete(DeleteBehavior.Cascade);
+
+                eb.HasOne(x => x.Student)
+                  .WithMany(u => u.ClassEnrollments)
+                  .HasForeignKey(x => x.StudentId)
+                  .OnDelete(DeleteBehavior.Cascade);
+            });
+        }
+        catch { }
+
+        try
+        {
+            modelBuilder.Entity<PasswordResetToken>(eb =>
+            {
+                eb.HasIndex(t => t.Token).IsUnique();
+                eb.HasIndex(t => t.UserId);
+
+                eb.HasOne(t => t.User)
+                  .WithMany()
+                  .HasForeignKey(t => t.UserId)
+                  .OnDelete(DeleteBehavior.Cascade);
+            });
         }
         catch { }
 
@@ -197,5 +253,46 @@ public class AppDbContext : Microsoft.EntityFrameworkCore.DbContext
             new Role { Id = 4, Name = "Parent" },
             new Role { Id = 5, Name = "Content Manager" }
         );
+    }
+
+    public override int SaveChanges(bool acceptAllChangesOnSuccess)
+    {
+        UpdateTimestamps();
+        return base.SaveChanges(acceptAllChangesOnSuccess);
+    }
+
+    public override int SaveChanges()
+    {
+        UpdateTimestamps();
+        return base.SaveChanges();
+    }
+
+    public override Task<int> SaveChangesAsync(bool acceptAllChangesOnSuccess, CancellationToken cancellationToken = default)
+    {
+        UpdateTimestamps();
+        return base.SaveChangesAsync(acceptAllChangesOnSuccess, cancellationToken);
+    }
+
+    public override Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)
+    {
+        UpdateTimestamps();
+        return base.SaveChangesAsync(cancellationToken);
+    }
+
+    private void UpdateTimestamps()
+    {
+        var entries = ChangeTracker.Entries<User>();
+        foreach (var entry in entries)
+        {
+            if (entry.State == EntityState.Added)
+            {
+                entry.Entity.CreateAt = DateTime.UtcNow;
+                entry.Entity.UpdateAt = DateTime.UtcNow;
+            }
+            else if (entry.State == EntityState.Modified)
+            {
+                entry.Entity.UpdateAt = DateTime.UtcNow;
+            }
+        }
     }
 }

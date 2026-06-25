@@ -3,6 +3,7 @@ using EnglishLearningOnlineSystem.Repositories.Implementations;
 using EnglishLearningOnlineSystem.Repositories.Interfaces;
 using EnglishLearningOnlineSystem.Services.Implementations;
 using EnglishLearningOnlineSystem.Services.Interfaces;
+using EnglishLearningOnlineSystem.Services.Options;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authentication.Google;
 
@@ -20,16 +21,35 @@ builder.Services.AddDbContext<EnglishLearningOnlineSystem.Data.AppDbContext>(opt
 builder.Services.AddScoped<IUserRepository, UserRepository>();
 builder.Services.AddScoped<IRoleRepository, RoleRepository>();
 builder.Services.AddScoped<IAuthService, AuthService>();
+
+builder.Services.Configure<SmtpOptions>(builder.Configuration.GetSection("Smtp"));
+builder.Services.AddScoped<IEmailSender, SmtpEmailSender>();
+builder.Services.AddScoped<IPasswordResetService, PasswordResetService>();
+
+builder.Services.AddScoped<IUserService, UserService>();
+builder.Services.AddScoped<IRoleService, RoleService>();
+
 builder.Services.AddScoped<IStudentDashboardRepository, StudentDashboardRepository>();
 builder.Services.AddScoped<IStudentDashboardService, StudentDashboardService>();
+builder.Services.AddScoped<IStudentProfileRepository, StudentProfileRepository>();
+builder.Services.AddScoped<IStudentProfileService, StudentProfileService>();
+builder.Services.AddScoped<IStudentCourseRepository, StudentCourseRepository>();
+builder.Services.AddScoped<IStudentCourseService, StudentCourseService>();
+builder.Services.AddScoped<IStudentLessonRepository, StudentLessonRepository>();
+builder.Services.AddScoped<IStudentLessonService, StudentLessonService>();
+builder.Services.AddScoped<IStudentLessonDetailRepository, StudentLessonDetailRepository>();
+builder.Services.AddScoped<IStudentLessonDetailService, StudentLessonDetailService>();
+builder.Services.AddScoped<IVocabularyRepository, VocabularyRepository>();
+builder.Services.AddScoped<IVocabularyService, VocabularyService>();
+
+builder.Services.AddScoped<ICourseRepository, CourseRepository>();
+builder.Services.AddScoped<ICourseService, CourseService>();
+
 builder.Services.AddScoped<IQuizAttemptRepository, QuizAttemptRepository>();
 builder.Services.AddScoped<IQuizAttemptService, QuizAttemptService>();
 builder.Services.AddScoped<IFlashcardRepository, FlashcardRepository>();
 builder.Services.AddScoped<IFlashcardService, FlashcardService>();
 builder.Services.AddScoped<IAdaptiveLearningService, AdaptiveLearningService>();
-
-builder.Services.AddScoped<IStudentProfileRepository, StudentProfileRepository>();
-builder.Services.AddScoped<IStudentProfileService, StudentProfileService>();
 
 // Cấu hình Session
 builder.Services.AddHttpContextAccessor();
@@ -46,12 +66,12 @@ builder.Services
         options.DefaultScheme = CookieAuthenticationDefaults.AuthenticationScheme;
         options.DefaultChallengeScheme = GoogleDefaults.AuthenticationScheme;
     })
-    .AddCookie();
-    // .AddGoogle(options =>
-    // {
-    //     options.ClientId = builder.Configuration["Authentication:Google:ClientId"]!;
-    //     options.ClientSecret = builder.Configuration["Authentication:Google:ClientSecret"]!;
-    // });
+    .AddCookie()
+    .AddGoogle(options =>
+    {
+        options.ClientId = builder.Configuration["Authentication:Google:ClientId"]!;
+        options.ClientSecret = builder.Configuration["Authentication:Google:ClientSecret"]!;
+    });
 // ===================================================================================
 
 var app = builder.Build();

@@ -48,7 +48,6 @@ public static class DbInitializer
         });
         await context.SaveChangesAsync();
 
-
         // ── Teacher ───────────────────────────────────────────────────────────
         var teacherUser = new User
         {
@@ -120,21 +119,30 @@ public static class DbInitializer
 
         // ── Quizzes ───────────────────────────────────────────────────────────
         context.Quizzes!.AddRange(
-            new Quiz { LessonId = lesson1.LessonId, Question = "What is 'Con mèo' in English?", QuizType = "MultipleChoice", Options = "[\"Cat\",\"Dog\",\"Bird\",\"Fish\"]", CorrectAnswer = "Cat" },
-            new Quiz { LessonId = lesson1.LessonId, Question = "What is 'Con chó' in English?", QuizType = "MultipleChoice", Options = "[\"Cat\",\"Dog\",\"Rabbit\",\"Fish\"]", CorrectAnswer = "Dog" },
-            new Quiz { LessonId = lesson1.LessonId, Question = "What is 'Con chim' in English?", QuizType = "MultipleChoice", Options = "[\"Fish\",\"Dog\",\"Bird\",\"Cat\"]", CorrectAnswer = "Bird" },
-            new Quiz { LessonId = lesson1.LessonId, Question = "Which animal has a long trunk?", QuizType = "MultipleChoice", Options = "[\"Tiger\",\"Elephant\",\"Lion\",\"Rabbit\"]", CorrectAnswer = "Elephant" },
+            new Quiz { LessonId = lesson1.LessonId, Question = "What is 'Con mèo' in English?", QuizType = "IMAGE_CHOICE", Options = "[\"Cat\",\"Dog\",\"Bird\",\"Fish\"]", CorrectAnswer = "Cat" },
+            new Quiz { LessonId = lesson1.LessonId, Question = "What is 'Con chó' in English?", QuizType = "IMAGE_CHOICE", Options = "[\"Cat\",\"Dog\",\"Rabbit\",\"Fish\"]", CorrectAnswer = "Dog" },
+            new Quiz { LessonId = lesson1.LessonId, Question = "What is 'Con chim' in English?", QuizType = "IMAGE_CHOICE", Options = "[\"Fish\",\"Dog\",\"Bird\",\"Cat\"]", CorrectAnswer = "Bird" },
+            new Quiz { LessonId = lesson1.LessonId, Question = "Which animal has a long trunk?", QuizType = "IMAGE_CHOICE", Options = "[\"Tiger\",\"Elephant\",\"Lion\",\"Rabbit\"]", CorrectAnswer = "Elephant" },
             
-            new Quiz { LessonId = lesson2.LessonId, Question = "What color is 'Màu đỏ'?", QuizType = "MultipleChoice", Options = "[\"Red\",\"Blue\",\"Green\",\"Yellow\"]", CorrectAnswer = "Red" },
-            new Quiz { LessonId = lesson2.LessonId, Question = "What shape is 'Hình tròn'?", QuizType = "MultipleChoice", Options = "[\"Circle\",\"Square\",\"Triangle\",\"Rectangle\"]", CorrectAnswer = "Circle" },
+            new Quiz { LessonId = lesson2.LessonId, Question = "What color is 'Màu đỏ'?", QuizType = "IMAGE_CHOICE", Options = "[\"Red\",\"Blue\",\"Green\",\"Yellow\"]", CorrectAnswer = "Red" },
+            new Quiz { LessonId = lesson2.LessonId, Question = "What shape is 'Hình tròn'?", QuizType = "IMAGE_CHOICE", Options = "[\"Circle\",\"Square\",\"Triangle\",\"Rectangle\"]", CorrectAnswer = "Circle" },
             
-            new Quiz { LessonId = lesson3.LessonId, Question = "How do you say 'Số ba' in English?", QuizType = "MultipleChoice", Options = "[\"One\",\"Two\",\"Three\",\"Four\"]", CorrectAnswer = "Three" },
+            new Quiz { LessonId = lesson3.LessonId, Question = "How do you say 'Số ba' in English?", QuizType = "IMAGE_CHOICE", Options = "[\"One\",\"Two\",\"Three\",\"Four\"]", CorrectAnswer = "Three" },
             
-            new Quiz { LessonId = lesson4.LessonId, Question = "Who is your mother's husband?", QuizType = "MultipleChoice", Options = "[\"Brother\",\"Father\",\"Uncle\",\"Grandfather\"]", CorrectAnswer = "Father" },
-            new Quiz { LessonId = lesson4.LessonId, Question = "What is 'Chị gái' in English?", QuizType = "MultipleChoice", Options = "[\"Mother\",\"Aunt\",\"Sister\",\"Grandmother\"]", CorrectAnswer = "Sister" },
+            new Quiz { LessonId = lesson4.LessonId, Question = "Who is your mother's husband?", QuizType = "IMAGE_CHOICE", Options = "[\"Brother\",\"Father\",\"Uncle\",\"Grandfather\"]", CorrectAnswer = "Father" },
+            new Quiz { LessonId = lesson4.LessonId, Question = "What is 'Chị gái' in English?", QuizType = "IMAGE_CHOICE", Options = "[\"Mother\",\"Aunt\",\"Sister\",\"Grandmother\"]", CorrectAnswer = "Sister" },
             
-            new Quiz { LessonId = lesson5.LessonId, Question = "Who works in a hospital?", QuizType = "MultipleChoice", Options = "[\"Teacher\",\"Farmer\",\"Doctor\",\"Police\"]", CorrectAnswer = "Doctor" },
-            new Quiz { LessonId = lesson5.LessonId, Question = "Who grows crops in the field?", QuizType = "MultipleChoice", Options = "[\"Teacher\",\"Farmer\",\"Doctor\",\"Police\"]", CorrectAnswer = "Farmer" }
+            new Quiz { LessonId = lesson5.LessonId, Question = "Who works in a hospital?", QuizType = "IMAGE_CHOICE", Options = "[\"Teacher\",\"Farmer\",\"Doctor\",\"Police\"]", CorrectAnswer = "Doctor" },
+            new Quiz { LessonId = lesson5.LessonId, Question = "Who grows crops in the field?", QuizType = "IMAGE_CHOICE", Options = "[\"Teacher\",\"Farmer\",\"Doctor\",\"Police\"]", CorrectAnswer = "Farmer" }
+        );
+        await context.SaveChangesAsync();
+
+        // ── Mini Games ────────────────────────────────────────────────────────
+        context.MiniGames!.AddRange(
+            new MiniGame { LessonId = lesson1.LessonId, Title = "Animal Word Match", GameType = "WORD_MATCH", XPReward = 20 },
+            new MiniGame { LessonId = lesson1.LessonId, Title = "Animal Memory Card", GameType = "MEMORY_CARD", XPReward = 20 },
+            new MiniGame { LessonId = lesson2.LessonId, Title = "Color Fill Blank", GameType = "FILL_BLANK", XPReward = 20 },
+            new MiniGame { LessonId = lesson3.LessonId, Title = "Number Drag Drop", GameType = "DRAG_DROP", XPReward = 20 }
         );
         await context.SaveChangesAsync();
 
@@ -175,6 +183,7 @@ public static class DbInitializer
             CompletedAt = DateTime.Now.AddDays(-1),
             IsBestAttempt = true
         });
+        await context.SaveChangesAsync();
 
         // ── Flashcard Session ─────────────────────────────────────────────────
         // Seed a flashcard session with low recall for Lesson 2 (triggers AI recommendation)

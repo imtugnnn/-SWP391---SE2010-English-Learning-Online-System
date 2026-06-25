@@ -1,0 +1,513 @@
+@model EnglishLearningOnlineSystem.ViewModels.StudentProfileViewModel
+@{
+    ViewData["Title"] = "My Profile";
+    ViewData["ActiveNav"] = "profile";
+    Layout = "_StudentLayout";
+}
+
+@section Styles {
+    <style>
+        .profile-grid {
+            display: grid;
+            grid-template-columns: 300px 1fr;
+            gap: 24px;
+        }
+
+        .profile-card {
+            background: var(--card);
+            border-radius: var(--radius);
+            border: 2px solid var(--border);
+            box-shadow: var(--shadow);
+            padding: 28px 24px;
+            text-align: center;
+        }
+
+        .avatar-img {
+            width: 110px;
+            height: 110px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 4px solid var(--sky);
+            box-shadow: 0 4px 16px rgba(14,165,233,.25);
+            margin-bottom: 16px;
+        }
+
+        .profile-name {
+            font-size: 1.3rem;
+            font-weight: 900;
+            color: var(--text);
+            margin-bottom: 4px;
+        }
+
+        .profile-username {
+            font-size: .85rem;
+            color: var(--muted);
+            font-weight: 600;
+            margin-bottom: 16px;
+        }
+
+        .level-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            background: linear-gradient(135deg,#0ea5e9,#6366f1);
+            color: #fff;
+            font-size: .8rem;
+            font-weight: 900;
+            padding: 5px 14px;
+            border-radius: 99px;
+            margin-bottom: 20px;
+        }
+
+        .stat-row {
+            display: flex;
+            justify-content: space-around;
+            padding: 16px 0;
+            border-top: 2px solid var(--border);
+            border-bottom: 2px solid var(--border);
+            margin-bottom: 20px;
+        }
+
+        .stat-item .s-val {
+            font-size: 1.4rem;
+            font-weight: 900;
+        }
+
+        .stat-item .s-lbl {
+            font-size: .7rem;
+            color: var(--muted);
+            font-weight: 700;
+            margin-top: 2px;
+        }
+
+        .stat-item:nth-child(1) .s-val {
+            color: #ea580c;
+        }
+
+        .stat-item:nth-child(2) .s-val {
+            color: #d97706;
+        }
+
+        .stat-item:nth-child(3) .s-val {
+            color: #7c3aed;
+        }
+
+        .info-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 9px 0;
+            border-bottom: 1px solid #f1f5f9;
+            font-size: .85rem;
+        }
+
+            .info-item:last-child {
+                border-bottom: none;
+            }
+
+            .info-item .i-icon {
+                font-size: 1.1rem;
+                width: 24px;
+                text-align: center;
+                flex-shrink: 0;
+            }
+
+            .info-item .i-val {
+                font-weight: 700;
+                color: var(--text);
+            }
+
+            .info-item .i-lbl {
+                font-size: .72rem;
+                color: var(--muted);
+                margin-top: 1px;
+            }
+
+        /* ── Right card ── */
+        .edit-card {
+            background: var(--card);
+            border-radius: var(--radius);
+            border: 2px solid var(--border);
+            box-shadow: var(--shadow);
+            padding: 28px;
+        }
+
+            .edit-card h4 {
+                font-size: 1rem;
+                font-weight: 900;
+                color: var(--text);
+                margin-bottom: 20px;
+                display: flex;
+                align-items: center;
+                gap: 8px;
+            }
+
+        /* ── View mode ── */
+        #view-mode .view-row {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 12px 0;
+            border-bottom: 1px solid #f1f5f9;
+            font-size: .9rem;
+        }
+
+            #view-mode .view-row:last-of-type {
+                border-bottom: none;
+            }
+
+        #view-mode .vr-label {
+            font-size: .75rem;
+            font-weight: 800;
+            color: var(--muted);
+            text-transform: uppercase;
+            letter-spacing: .05em;
+            min-width: 110px;
+        }
+
+        #view-mode .vr-val {
+            font-weight: 700;
+            color: var(--text);
+        }
+
+        .btn-edit {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            background: linear-gradient(135deg,#0ea5e9,#6366f1);
+            color: #fff;
+            border: none;
+            border-radius: 12px;
+            padding: 10px 24px;
+            font-family: 'Nunito', sans-serif;
+            font-size: .9rem;
+            font-weight: 800;
+            cursor: pointer;
+            transition: opacity .15s, transform .12s;
+            margin-top: 20px;
+        }
+
+            .btn-edit:hover {
+                opacity: .9;
+                transform: translateY(-1px);
+            }
+
+        /* ── Edit mode ── */
+        #edit-mode {
+            display: none;
+        }
+
+        .form-label {
+            font-size: .8rem;
+            font-weight: 800;
+            color: var(--muted);
+            text-transform: uppercase;
+            letter-spacing: .05em;
+            margin-bottom: 6px;
+            display: block;
+        }
+
+        .form-group {
+            margin-bottom: 18px;
+        }
+
+        .form-control-custom {
+            width: 100%;
+            padding: 10px 14px;
+            border: 2px solid var(--border);
+            border-radius: 12px;
+            font-family: 'Nunito', sans-serif;
+            font-size: .9rem;
+            font-weight: 700;
+            color: var(--text);
+            background: var(--bg);
+            transition: border-color .15s, box-shadow .15s;
+            outline: none;
+        }
+
+            .form-control-custom:focus {
+                border-color: var(--sky);
+                box-shadow: 0 0 0 3px rgba(56,189,248,.15);
+            }
+
+            .form-control-custom:disabled {
+                opacity: .6;
+                cursor: not-allowed;
+            }
+
+        .avatar-preview-wrap {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            margin-bottom: 18px;
+        }
+
+        .avatar-preview {
+            width: 72px;
+            height: 72px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 3px solid var(--border);
+        }
+
+        .avatar-upload-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            background: var(--bg);
+            border: 2px solid var(--border);
+            border-radius: 12px;
+            padding: 8px 16px;
+            font-family: 'Nunito', sans-serif;
+            font-size: .82rem;
+            font-weight: 800;
+            color: var(--sky-d);
+            cursor: pointer;
+            transition: border-color .15s;
+        }
+
+            .avatar-upload-btn:hover {
+                border-color: var(--sky);
+            }
+
+        .btn-row {
+            display: flex;
+            gap: 10px;
+            margin-top: 4px;
+        }
+
+        .btn-save {
+            background: linear-gradient(135deg,#0ea5e9,#6366f1);
+            color: #fff;
+            border: none;
+            border-radius: 12px;
+            padding: 10px 24px;
+            font-family: 'Nunito', sans-serif;
+            font-size: .9rem;
+            font-weight: 800;
+            cursor: pointer;
+            transition: opacity .15s, transform .12s;
+        }
+
+            .btn-save:hover {
+                opacity: .9;
+                transform: translateY(-1px);
+            }
+
+        .btn-cancel {
+            background: var(--bg);
+            color: var(--muted);
+            border: 2px solid var(--border);
+            border-radius: 12px;
+            padding: 10px 20px;
+            font-family: 'Nunito', sans-serif;
+            font-size: .9rem;
+            font-weight: 800;
+            cursor: pointer;
+            transition: border-color .15s;
+        }
+
+            .btn-cancel:hover {
+                border-color: var(--sky-d);
+                color: var(--sky-d);
+            }
+
+        .alert-success-custom {
+            background: #f0fdf4;
+            border: 2px solid #bbf7d0;
+            border-radius: 12px;
+            padding: 12px 16px;
+            color: #15803d;
+            font-weight: 700;
+            font-size: .88rem;
+            margin-bottom: 18px;
+        }
+
+        .alert-error-custom {
+            background: #fef2f2;
+            border: 2px solid #fecaca;
+            border-radius: 12px;
+            padding: 12px 16px;
+            color: #dc2626;
+            font-weight: 700;
+            font-size: .88rem;
+            margin-bottom: 18px;
+        }
+
+        @@media (max-width: 992px) {
+            .profile-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+}
+
+<div class="profile-grid">
+
+    <!-- LEFT: Profile card -->
+    <div>
+        <div class="profile-card">
+            <img id="avatarDisplay" src="@Model.AvatarUrl" alt="avatar" class="avatar-img"
+                 onerror="this.src='/images/default-avatar.png'" />
+            <div class="profile-name">@Model.Nickname</div>
+            <div class="profile-username">@@@Model.Username</div>
+            <div class="level-badge"> Level @Model.Level</div>
+
+            <div class="stat-row">
+                <div class="stat-item">
+                    <div class="s-val"> @Model.CurrentStreakDays</div>
+                    <div class="s-lbl">Streak</div>
+                </div>
+                <div class="stat-item">
+                    <div class="s-val">@Model.XP</div>
+                    <div class="s-lbl">Total XP</div>
+                </div>
+                <div class="stat-item">
+                    <div class="s-val">@Model.Level</div>
+                    <div class="s-lbl">Level</div>
+                </div>
+            </div>
+
+            <div class="info-item">
+                <div class="i-icon"></div>
+                <div>
+                    <div class="i-val">@Model.Email</div>
+                    <div class="i-lbl">Email</div>
+                </div>
+            </div>
+            @if (Model.BirthDate.HasValue)
+            {
+                <div class="info-item">
+                    <div class="i-icon"></div>
+                    <div>
+                        <div class="i-val">@Model.BirthDate.Value.ToString("dd/MM/yyyy")</div>
+                        <div class="i-lbl">Date of Birth</div>
+                    </div>
+                </div>
+            }
+        </div>
+    </div>
+
+    <!-- RIGHT: View / Edit card -->
+    <div>
+        <div class="edit-card">
+
+            @if (!string.IsNullOrEmpty(Model.SuccessMessage))
+            {
+                <div class="alert-success-custom"> @Model.SuccessMessage</div>
+            }
+            @if (!string.IsNullOrEmpty(Model.ErrorMessage))
+            {
+                <div class="alert-error-custom"> @Model.ErrorMessage</div>
+            }
+
+            <!-- ── VIEW MODE ── -->
+            <div id="view-mode">
+                <h4> Thông tin hồ sơ</h4>
+
+                <div class="view-row">
+                    <span class="vr-label">Nickname</span>
+                    <span class="vr-val">@Model.Nickname</span>
+                </div>
+                <div class="view-row">
+                    <span class="vr-label">Username</span>
+                    <span class="vr-val">@@@Model.Username</span>
+                </div>
+                <div class="view-row">
+                    <span class="vr-label">Email</span>
+                    <span class="vr-val">@Model.Email</span>
+                </div>
+                @if (Model.BirthDate.HasValue)
+                {
+                    <div class="view-row">
+                        <span class="vr-label">Ngày sinh</span>
+                        <span class="vr-val">@Model.BirthDate.Value.ToString("dd/MM/yyyy")</span>
+                    </div>
+                }
+                <div class="view-row">
+                    <span class="vr-label">Cấp độ</span>
+                    <span class="vr-val">Level @Model.Level · @Model.XP XP</span>
+                </div>
+
+                <button type="button" class="btn-edit" onclick="switchToEdit()"> Chỉnh sửa</button>
+            </div>
+
+            <!-- ── EDIT MODE ── -->
+            <div id="edit-mode">
+                <h4> Chỉnh sửa hồ sơ</h4>
+
+                <form method="post" enctype="multipart/form-data">
+                    @Html.AntiForgeryToken()
+
+                    <!-- Avatar -->
+                    <div class="form-group">
+                        <label class="form-label">Ảnh đại diện</label>
+                        <div class="avatar-preview-wrap">
+                            <img id="avatarPreview" src="@Model.AvatarUrl" alt="preview" class="avatar-preview"
+                                 onerror="this.src='/images/default-avatar.png'" />
+                            <label class="avatar-upload-btn" for="avatarFileInput">
+                                 Chọn ảnh
+                            </label>
+                            <input type="file" id="avatarFileInput" name="AvatarFile"
+                                   accept="image/jpeg,image/png,image/gif,image/webp"
+                                   onchange="previewAvatar(event)"
+                                   style="display:none" />
+                        </div>
+                    </div>
+
+                    <!-- Nickname -->
+                    <div class="form-group">
+                        <label class="form-label" for="nicknameInput">Nickname</label>
+                        <input type="text" id="nicknameInput" name="NewNickname"
+                               class="form-control-custom" value="@Model.Nickname"
+                               maxlength="50" placeholder="Tên hiển thị của bạn" required />
+                    </div>
+
+                    <!-- Read-only -->
+                    <div class="form-group">
+                        <label class="form-label">Username</label>
+                        <input type="text" class="form-control-custom" value="@Model.Username" disabled />
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Email</label>
+                        <input type="text" class="form-control-custom" value="@Model.Email" disabled />
+                    </div>
+
+                    <div class="btn-row">
+                        <button type="submit" class="btn-save"> Lưu thay đổi</button>
+                        <button type="button" class="btn-cancel" onclick="switchToView()">Huỷ</button>
+                    </div>
+                </form>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        function switchToEdit() {
+            document.getElementById('view-mode').style.display = 'none';
+            document.getElementById('edit-mode').style.display = 'block';
+        }
+
+        function switchToView() {
+            document.getElementById('edit-mode').style.display = 'none';
+            document.getElementById('view-mode').style.display = 'block';
+        }
+
+        function previewAvatar(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+            const url = URL.createObjectURL(file);
+            document.getElementById('avatarPreview').src = url;
+            document.getElementById('avatarDisplay').src = url;
+        }
+
+        // Nếu có lỗi hoặc save thành công → mở sẵn view mode
+        @if (!string.IsNullOrEmpty(Model.ErrorMessage))
+        {
+                <text>switchToEdit();</text>
+        }
+    </script>
+}

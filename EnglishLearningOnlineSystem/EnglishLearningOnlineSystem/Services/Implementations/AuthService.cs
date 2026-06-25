@@ -24,18 +24,21 @@ public class AuthService : IAuthService
 
         if (user == null)
         {
-            return AuthServiceResult.Failure((nameof(model.Email), "Email is not registered."));
+            return AuthServiceResult.Failure((nameof(model.Email), "Email chưa được đăng ký."));
         }
 
         if (!user.IsActive)
         {
-            return AuthServiceResult.Failure((string.Empty, "Your account is inactive. Please contact support."));
+            return AuthServiceResult.Failure((string.Empty, "Tài khoản của bạn đã bị vô hiệu hóa. Vui lòng liên hệ quản trị viên."));
         }
 
         if (!BCrypt.Net.BCrypt.Verify(model.Password, user.Password))
         {
-            return AuthServiceResult.Failure((nameof(model.Password), "Password is incorrect."));
+            return AuthServiceResult.Failure((nameof(model.Password), "Mật khẩu không chính xác."));
         }
+
+        user.LastLoginAt = DateTime.UtcNow;
+        await _userRepository.UpdateAsync(user);
 
         return AuthServiceResult.Success();
     }
@@ -49,24 +52,58 @@ public class AuthService : IAuthService
         {
             if (!user.IsActive)
             {
-                return (AuthServiceResult.Failure((string.Empty, "Your account is inactive. Please contact support.")), null);
+                return (AuthServiceResult.Failure((string.Empty, "Tài khoản của bạn đã bị vô hiệu hóa. Vui lòng liên hệ quản trị viên.")), null);
             }
+
+            user.LastLoginAt = DateTime.UtcNow;
+            await _userRepository.UpdateAsync(user);
 
             await EnsureStudentProfileAsync(user, displayName, avatarUrl);
             return (AuthServiceResult.Success(), user);
         }
 
-        user = new User
+        return (AuthServiceResult.Failure((string.Empty, "Vui lòng hoàn tất thông tin tài khoản để tiếp tục.")), null);
+    }
+
+    public async Task<(AuthServiceResult Result, User? User)> CompleteGoogleLoginAsync(GoogleLoginCompletionViewModel model, string? displayName, string? avatarUrl)
+    {
+        var username = model.Username.Trim();
+        var email = model.Email.Trim().ToLower();
+        var errors = new List<(string Field, string Message)>();
+
+        if (await _roleRepository.FindRegistrationRoleAsync(model.RoleId) == null)
         {
-            Username = await GenerateUniqueUsernameAsync(normalizedEmail),
-            Email = normalizedEmail,
-            Password = BCrypt.Net.BCrypt.HashPassword(Guid.NewGuid().ToString("N")),
+            errors.Add((nameof(model.RoleId), "Vui lòng chọn vai trò."));
+        }
+
+        if (await _userRepository.UsernameExistsAsync(username))
+        {
+            errors.Add((nameof(model.Username), "Tên đăng nhập đã tồn tại."));
+        }
+
+        if (await _userRepository.EmailExistsAsync(email))
+        {
+            errors.Add((nameof(model.Email), "Email đã được đăng ký. Vui lòng sử dụng chức năng Đăng nhập bằng Google."));
+        }
+
+        if (errors.Count > 0)
+        {
+            return (AuthServiceResult.Failure(errors.ToArray()), null);
+        }
+
+        var user = new User
+        {
+            Username = username,
+            Email = email,
+            Password = BCrypt.Net.BCrypt.HashPassword(model.Password),
+            BirthDate = model.BirthDate,
             IsActive = true,
-            RoleId = 1
+            RoleId = model.RoleId,
+            LastLoginAt = DateTime.UtcNow
         };
 
         await _userRepository.AddAsync(user);
-        await EnsureStudentProfileAsync(user, displayName, avatarUrl);
+        await EnsureStudentProfileAsync(user, string.IsNullOrWhiteSpace(displayName) ? username : displayName, avatarUrl);
 
         return (AuthServiceResult.Success(), user);
     }
@@ -79,17 +116,17 @@ public class AuthService : IAuthService
 
         if (await _roleRepository.FindRegistrationRoleAsync(model.RoleId) == null)
         {
-            errors.Add((nameof(model.RoleId), "Please choose Student or Parent."));
+            errors.Add((nameof(model.RoleId), "Vui lòng chọn vai trò."));
         }
 
         if (await _userRepository.UsernameExistsAsync(username))
         {
-            errors.Add((nameof(model.Username), "Username is already taken."));
+            errors.Add((nameof(model.Username), "Tên đăng nhập đã tồn tại."));
         }
 
         if (await _userRepository.EmailExistsAsync(email))
         {
-            errors.Add((nameof(model.Email), "Email is already registered."));
+            errors.Add((nameof(model.Email), "Email đã được đăng ký."));
         }
 
         if (errors.Count > 0)
@@ -108,6 +145,7 @@ public class AuthService : IAuthService
         };
 
         await _userRepository.AddAsync(user);
+        await EnsureStudentProfileAsync(user, username, null);
 
         return AuthServiceResult.Success();
     }
@@ -136,23 +174,5 @@ public class AuthService : IAuthService
             CurrentStreakDays = 0,
             LastActiveDate = null
         });
-    }
-
-    private async Task<string> GenerateUniqueUsernameAsync(string email)
-    {
-        var baseUsername = email.Split('@')[0].Trim();
-        if (string.IsNullOrWhiteSpace(baseUsername))
-        {
-            baseUsername = "googleuser";
-        }
-
-        var username = baseUsername;
-        var suffix = 1;
-        while (await _userRepository.UsernameExistsAsync(username))
-        {
-            username = $"{baseUsername}{suffix++}";
-        }
-
-        return username;
     }
 }

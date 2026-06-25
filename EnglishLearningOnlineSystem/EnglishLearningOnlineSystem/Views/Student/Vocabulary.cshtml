@@ -1,0 +1,214 @@
+@model EnglishLearningOnlineSystem.ViewModels.VocabularyHubViewModel
+@{
+    ViewData["Title"] = "Từ vựng";
+    ViewData["ActiveNav"] = "vocabulary";
+    Layout = "_StudentLayout";
+}
+
+@section Styles {
+    <style>
+        /* Header */
+        .vocab-hub-header {
+            background: linear-gradient(135deg, #0ea5e9, #6366f1);
+            border-radius: 20px;
+            padding: 24px 28px;
+            color: #fff;
+            margin-bottom: 24px;
+            box-shadow: 0 6px 24px rgba(99,102,241,.22);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 16px;
+        }
+        .vh-title { font-size: 1.3rem; font-weight: 900; margin-bottom: 4px; }
+        .vh-sub   { font-size: .82rem; opacity: .85; font-weight: 700; }
+        .vh-total {
+            background: rgba(255,255,255,.18);
+            border-radius: 14px;
+            padding: 12px 20px;
+            text-align: center;
+            flex-shrink: 0;
+        }
+        .vh-total .t-val { font-size: 1.8rem; font-weight: 900; }
+        .vh-total .t-lbl { font-size: .7rem; opacity: .85; }
+
+        /* Search */
+        .search-bar {
+            background: var(--card);
+            border: 2px solid var(--border);
+            border-radius: var(--radius);
+            padding: 12px 18px;
+            margin-bottom: 20px;
+            box-shadow: var(--shadow);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .search-input {
+            flex: 1;
+            border: none;
+            outline: none;
+            font-family: 'Nunito', sans-serif;
+            font-size: .9rem;
+            font-weight: 700;
+            color: var(--text);
+            background: transparent;
+        }
+        .search-input::placeholder { color: var(--muted); }
+        .search-count { font-size: .78rem; font-weight: 800; color: var(--muted); white-space: nowrap; }
+
+        /* Word list */
+        .word-list { display: flex; flex-direction: column; gap: 10px; }
+
+        .word-row {
+            background: var(--card);
+            border: 2px solid var(--border);
+            border-radius: 14px;
+            padding: 14px 20px;
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            box-shadow: var(--shadow);
+            transition: border-color .15s, transform .12s;
+        }
+        .word-row:hover { border-color: var(--sky); transform: translateX(4px); }
+
+        .word-img {
+            width: 52px; height: 52px;
+            border-radius: 10px;
+            object-fit: contain;
+            background: #f0f9ff;
+            flex-shrink: 0;
+        }
+        .word-img-placeholder {
+            width: 52px; height: 52px;
+            border-radius: 10px;
+            background: #e0f2fe;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.4rem;
+            flex-shrink: 0;
+        }
+
+        .word-body { flex: 1; min-width: 0; }
+        .word-text    { font-size: 1rem; font-weight: 900; color: var(--text); margin-bottom: 2px; }
+        .word-meaning { font-size: .82rem; font-weight: 700; color: var(--muted); margin-bottom: 4px; }
+        .word-source  {
+            font-size: .7rem; font-weight: 800;
+            color: var(--sky-d);
+            background: #e0f2fe;
+            padding: 1px 8px;
+            border-radius: 99px;
+            display: inline-block;
+        }
+
+        .word-idx {
+            width: 28px; height: 28px;
+            border-radius: 50%;
+            background: #f1f5f9;
+            color: #64748b;
+            font-size: .72rem;
+            font-weight: 900;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+        }
+
+        /* Empty */
+        .empty-box {
+            background: var(--card);
+            border: 2px dashed var(--border);
+            border-radius: var(--radius);
+            padding: 60px 20px;
+            text-align: center;
+            color: var(--muted);
+        }
+        .empty-box p { font-size: .95rem; font-weight: 700; }
+    </style>
+}
+
+<!-- Header -->
+<div class="vocab-hub-header">
+    <div>
+        <div class="vh-title">Từ vựng của tôi</div>
+        <div class="vh-sub">Tất cả từ vựng từ các bài học được giao</div>
+    </div>
+    <div class="vh-total">
+        <div class="t-val">@Model.Words.Count</div>
+        <div class="t-lbl">từ vựng</div>
+    </div>
+</div>
+
+@if (!Model.Words.Any())
+{
+    <div class="empty-box"><p>Chưa có từ vựng nào. Hãy bắt đầu học bài đầu tiên!</p></div>
+}
+else
+{
+    <!-- Search -->
+    <div class="search-bar">
+        <span>🔍</span>
+        <input type="text"
+               id="searchInput"
+               class="search-input"
+               placeholder="Tìm từ hoặc nghĩa..."
+               oninput="filterWords()" />
+        <span class="search-count" id="searchCount">@Model.Words.Count từ</span>
+    </div>
+
+    <!-- List -->
+    <div class="word-list" id="wordList">
+        @for (int i = 0; i < Model.Words.Count; i++)
+        {
+            var w = Model.Words[i];
+            <div class="word-row"
+                 data-word="@w.Word.ToLower()"
+                 data-meaning="@w.Meaning.ToLower()"
+                 data-lesson="@w.LessonTitle.ToLower()">
+                @if (!string.IsNullOrEmpty(w.ImageUrl))
+                {
+                    <img src="@w.ImageUrl" alt="@w.Word" class="word-img" onerror="this.style.display='none'" />
+                }
+                else
+                {
+                    <div class="word-img-placeholder">📖</div>
+                }
+                <div class="word-body">
+                    <div class="word-text">@w.Word</div>
+                    <div class="word-meaning">@w.Meaning</div>
+                    <span class="word-source">@w.LessonTitle</span>
+                </div>
+                <div class="word-idx">@(i + 1)</div>
+            </div>
+        }
+    </div>
+
+    <div class="empty-box" id="noResult" style="display:none">
+        <p>Không tìm thấy từ vựng phù hợp.</p>
+    </div>
+}
+
+@section Scripts {
+    <script>
+        function filterWords() {
+            const q = document.getElementById('searchInput').value.toLowerCase().trim();
+            const rows = document.querySelectorAll('#wordList .word-row');
+            let visible = 0;
+
+            rows.forEach(row => {
+                const match = !q
+                    || row.dataset.word.includes(q)
+                    || row.dataset.meaning.includes(q)
+                    || row.dataset.lesson.includes(q);
+                row.style.display = match ? '' : 'none';
+                if (match) visible++;
+            });
+
+            document.getElementById('searchCount').textContent = visible + ' từ';
+            document.getElementById('noResult').style.display  = visible === 0 ? 'block' : 'none';
+            document.getElementById('wordList').style.display  = visible === 0 ? 'none'  : '';
+        }
+    </script>
+}

@@ -1,0 +1,101 @@
+.admin-navbar {
+    height: 72px;
+
+    background: white;
+
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+
+    padding: 0 30px;
+
+    border-bottom: 1px solid #d8ebff;
+
+    position: sticky;
+    top: 0;
+    z-index: 100;
+}
+
+.admin-navbar h3 {
+    margin: 0;
+    font-weight: 700;
+    color: #16355d;
+}
+
+/* right */
+
+.navbar-right {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+}
+
+.navbar-pill {
+    padding: 10px 18px;
+
+    border-radius: 999px;
+
+    border: 2px solid #ffd6a5;
+
+    background: #fff8f0;
+
+    font-weight: 600;
+}
+
+.xp-pill {
+    border-color: #ffe58f;
+    background: #fffdf0;
+}
+
+.icon-btn {
+    position: relative;
+
+    width: 44px;
+    height: 44px;
+
+    border: none;
+    border-radius: 50%;
+
+    background: #f5f9ff;
+
+    cursor: pointer;
+}
+
+.badge {
+    position: absolute;
+    top: -3px;
+    right: -3px;
+
+    width: 18px;
+    height: 18px;
+
+    border-radius: 50%;
+
+    background: #ff4d4f;
+    color: white;
+
+    font-size: 11px;
+
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.user-avatar {
+    width: 48px;
+    height: 48px;
+
+    border-radius: 50%;
+
+    border: 2px solid #bfe3ff;
+
+    background: white;
+
+    display: flex;
+    justify-content: center;
+    align-items: center;
+
+    font-weight: 700;
+
+    color: #1496db;
+}

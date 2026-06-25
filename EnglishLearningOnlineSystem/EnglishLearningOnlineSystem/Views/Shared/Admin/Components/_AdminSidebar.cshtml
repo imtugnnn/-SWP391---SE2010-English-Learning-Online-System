@@ -1,0 +1,124 @@
+<div class="admin-sidebar">
+    @{
+        var controller = ViewContext.RouteData.Values["controller"]?.ToString();
+        var action = ViewContext.RouteData.Values["action"]?.ToString();
+    }
+    <!-- Logo -->
+    <div class="sidebar-logo">
+        <img src="/images/logo/els logo.png" alt="ELS Logo">
+
+        <div>
+            <h4>EduLearn</h4>
+            <span>Admin Panel</span>
+        </div>
+    </div>
+
+    <!-- Profile -->
+    <div class="sidebar-profile">
+
+        <div class="profile-avatar">
+            A
+        </div>
+
+        <h5>Administrator</h5>
+
+        <span>System Manager</span>
+
+    </div>
+
+    <!-- Menu -->
+    <ul class="sidebar-menu">
+
+        <li>
+            <a class="@(controller == "Admin" && action == "Dashboard" ? "active" : "")"
+               asp-controller="Admin"
+               asp-action="Dashboard">
+                <i class="bi bi-grid-fill"></i>
+                Bảng điều khiển
+            </a>
+        </li>
+
+        <li>
+            <a class="@(controller == "Admin" && action == "UserManagement" ? "active" : "")"
+               asp-controller="Admin"
+               asp-action="UserManagement">
+                <i class="bi bi-people-fill"></i>
+                Người dùng
+            </a>
+        </li>
+
+        <li>
+            <a class="@(controller == "AcademicYears" ? "active" : "")"
+               asp-controller="AcademicYears"
+               asp-action="Index">
+                <i class="bi bi-calendar3-range-fill"></i>
+                Academic Years
+            </a>
+        </li>
+
+        <li>
+            <a class="@(controller == "CourseManagement" ? "active" : "")"
+               asp-controller="CourseManagement"
+               asp-action="Index">
+                <i class="bi bi-book-fill"></i>
+                Khóa học
+            </a>
+        </li>
+
+        <li>
+            <a class="@(controller == "LessonManagement" ? "active" : "")"
+               asp-controller="LessonManagement"
+               asp-action="Index">
+                <i class="bi bi-journal-text"></i>
+                Bài học
+            </a>
+        </li>
+
+        <li>
+            <a class="@(controller == "TeacherManagement" ? "active" : "")"
+               asp-controller="TeacherManagement"
+               asp-action="Index">
+                <i class="bi bi-mortarboard-fill"></i>
+                Giáo viên
+            </a>
+        </li>
+
+        <li>
+            <a class="@(controller == "Reports" ? "active" : "")"
+               asp-controller="Reports"
+               asp-action="Index">
+                <i class="bi bi-bar-chart-fill"></i>
+                Báo cáo
+            </a>
+        </li>
+
+        <li>
+            <a class="@(controller == "Settings" ? "active" : "")"
+               asp-controller="Settings"
+               asp-action="Index">
+                <i class="bi bi-gear-fill"></i>
+                Cài đặt
+            </a>
+        </li>
+
+    </ul>
+
+    <!-- Logout -->
+    <div class="sidebar-footer">
+
+        <form asp-controller="Auth"
+              asp-action="Logout"
+              method="post">
+
+            @Html.AntiForgeryToken()
+
+            <button type="submit">
+                <i class="bi bi-box-arrow-right"></i>
+                Đăng xuất
+            </button>
+
+        </form>
+
+    </div>
+
+</div>

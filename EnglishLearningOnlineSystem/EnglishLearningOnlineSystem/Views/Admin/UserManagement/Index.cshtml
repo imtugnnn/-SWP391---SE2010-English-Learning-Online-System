@@ -1,0 +1,217 @@
+@{
+    ViewData["Title"] = "Quản lý người dùng";
+    Layout = "~/Views/Shared/Admin/_AdminLayout.cshtml";
+}
+
+@section Styles
+{
+    <link rel="stylesheet" href="~/css/admin/user-management.css" />
+}
+
+<div class="user-management-page">
+
+    <div class="page-header">
+
+        <h2>Quản lý người dùng</h2>
+
+        <button class="btn-add"
+                data-bs-toggle="modal"
+                data-bs-target="#createUserModal">
+
+            <i class="bi bi-plus"></i>
+            THÊM NGƯỜI DÙNG
+
+        </button>
+
+    </div>
+
+    <div class="user-table-wrapper">
+
+        <table class="user-table">
+
+            <thead>
+            <tr>
+                <th>TÊN</th>
+                <th>TÀI KHOẢN</th>
+                <th>EMAIL</th>
+                <th>VAI TRÒ</th>
+                <th>NGÀY TẠO</th>
+                <th>HÀNH ĐỘNG</th>
+            </tr>
+            </thead>
+
+            <tbody>
+
+            <tr>
+                <td>Nguyễn Văn A</td>
+                <td>nguyenvana</td>
+                <td>nguyenvana@example.com</td>
+
+                <td>
+                    <span class="role admin">
+                        Admin
+                    </span>
+                </td>
+
+                <td>2024-01-15</td>
+
+                <td class="actions">
+                    <button class="action-btn">✏</button>
+                    <button class="action-btn">🗑</button>
+                </td>
+            </tr>
+
+            <tr>
+                <td>Trần Thị B</td>
+                <td>tranthib</td>
+                <td>tranthib@example.com</td>
+
+                <td>
+                    <span class="role teacher">
+                        Teacher
+                    </span>
+                </td>
+
+                <td>2024-02-20</td>
+
+                <td class="actions">
+                    <button class="action-btn">✏</button>
+                    <button class="action-btn">🗑</button>
+                </td>
+            </tr>
+
+            <tr>
+                <td>Lê Văn C</td>
+                <td>levanc</td>
+                <td>levanc@example.com</td>
+
+                <td>
+                    <span class="role student">
+                        Student
+                    </span>
+                </td>
+
+                <td>2024-03-10</td>
+
+                <td class="actions">
+                    <button class="action-btn">✏</button>
+                    <button class="action-btn">🗑</button>
+                </td>
+            </tr>
+
+            </tbody>
+
+        </table>
+
+    </div>
+
+</div>
+
+<!-- Modal Add User -->
+
+<div class="modal fade"
+     id="createUserModal"
+     tabindex="-1">
+
+    <div class="modal-dialog modal-dialog-centered">
+
+        <div class="modal-content custom-modal">
+
+            <div class="modal-header border-0">
+
+                <h5 class="modal-title">
+                    Thêm người dùng mới
+                </h5>
+
+                <button type="button"
+                        class="btn-close"
+                        data-bs-dismiss="modal">
+                </button>
+
+            </div>
+
+            <form>
+
+                <div class="modal-body">
+
+                    <div class="mb-3">
+
+                        <input class="form-control"
+                               placeholder="Tên đầy đủ *">
+
+                    </div>
+
+                    <div class="mb-1">
+
+                        <input class="form-control"
+                               placeholder="Tài khoản *">
+
+                    </div>
+
+                    <small class="field-hint">
+                        Tên đăng nhập của người dùng
+                    </small>
+
+                    <div class="mb-3 mt-3">
+
+                        <input class="form-control"
+                               placeholder="Email *">
+
+                    </div>
+
+                    <div class="mb-1">
+
+                        <input type="password"
+                               class="form-control"
+                               placeholder="Mật khẩu *">
+
+                    </div>
+
+                    <small class="field-hint">
+                        Mật khẩu cho tài khoản
+                    </small>
+
+                    <div class="mt-3">
+
+                        <label class="form-label">
+                            Vai trò
+                        </label>
+
+                        <select class="form-select">
+
+                            <option>Student</option>
+                            <option>Teacher</option>
+                            <option>Admin</option>
+
+                        </select>
+
+                    </div>
+
+                </div>
+
+                <div class="modal-footer border-0">
+
+                    <button type="button"
+                            class="btn btn-link"
+                            data-bs-dismiss="modal">
+
+                        HỦY
+
+                    </button>
+
+                    <button type="submit"
+                            class="btn btn-light disabled">
+
+                        THÊM
+
+                    </button>
+
+                </div>
+
+            </form>
+
+        </div>
+
+    </div>
+
+</div>

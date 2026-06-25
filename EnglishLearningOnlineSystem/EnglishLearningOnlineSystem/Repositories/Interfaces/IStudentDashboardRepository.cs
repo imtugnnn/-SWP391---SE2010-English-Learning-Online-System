@@ -11,4 +11,5 @@ public interface IStudentDashboardRepository
     Task<List<StudentBadge>> GetRecentBadgesAsync(int studentId, int take = 3);
     Task<int> GetTotalLessonsCompletedAsync(int studentId);
     Task UpdateLastActiveDateAsync(int studentId);
+    Task CreateDefaultProfileAsync(int userId);
 }

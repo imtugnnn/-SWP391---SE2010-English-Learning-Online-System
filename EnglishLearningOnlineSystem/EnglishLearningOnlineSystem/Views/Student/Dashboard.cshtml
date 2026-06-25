@@ -8,8 +8,8 @@
 @section Styles {
     <style>
         /* ════════════════════════════════════════
-               HERO BANNER
-            ════════════════════════════════════════ */
+                       HERO BANNER
+                    ════════════════════════════════════════ */
         .hero-banner {
             background: linear-gradient(135deg, #0ea5e9 0%, #6366f1 100%);
             border-radius: 24px;
@@ -50,6 +50,7 @@
         .hero-left {
             position: relative;
             z-index: 1;
+            flex: 1;
         }
 
         .hero-greeting {
@@ -94,6 +95,7 @@
             position: relative;
             z-index: 1;
             animation: bounce 2s infinite;
+            flex-shrink: 0;
         }
 
         @@keyframes bounce {
@@ -107,8 +109,8 @@
         }
 
         /* ════════════════════════════════════════
-               STAT CARDS
-            ════════════════════════════════════════ */
+                       STAT CARDS
+                    ════════════════════════════════════════ */
         .stat-grid {
             display: grid;
             grid-template-columns: repeat(4,1fr);
@@ -172,7 +174,7 @@
             background: #fefce8;
         }
 
-        .missions .stat-icon {
+        .missions.stat-icon {
             background: #f5f3ff;
         }
 
@@ -194,7 +196,7 @@
             color: #d97706;
         }
 
-        .missions .val {
+        .missions.val {
             color: #7c3aed;
         }
 
@@ -212,8 +214,8 @@
         }
 
         /* ════════════════════════════════════════
-               SECTION HEADER
-            ════════════════════════════════════════ */
+                       SECTION HEADER
+                    ════════════════════════════════════════ */
         .section-hd {
             display: flex;
             align-items: center;
@@ -251,8 +253,8 @@
                 }
 
         /* ════════════════════════════════════════
-               LESSON CARDS
-            ════════════════════════════════════════ */
+                       LESSON CARDS
+                    ════════════════════════════════════════ */
         .lesson-list {
             display: flex;
             flex-direction: column;
@@ -291,11 +293,13 @@
             background: #e2e8f0;
         }
 
-        .status-In\ Progress, .status-IN_PROGRESS {
+        .status-In\ Progress,
+        .status-IN_PROGRESS {
             background: var(--yellow);
         }
 
-        .status-Completed, .status-COMPLETED {
+        .status-Completed,
+        .status-COMPLETED {
             background: var(--green);
         }
 
@@ -356,8 +360,8 @@
         }
 
         /* ════════════════════════════════════════
-               MISSION CARDS
-            ════════════════════════════════════════ */
+                       MISSION CARDS
+                    ════════════════════════════════════════ */
         .mission-list {
             display: flex;
             flex-direction: column;
@@ -437,8 +441,8 @@
         }
 
         /* ════════════════════════════════════════
-               PROGRESS TABLE
-            ════════════════════════════════════════ */
+                       PROGRESS TABLE
+                    ════════════════════════════════════════ */
         .prog-table-wrap {
             background: var(--card);
             border-radius: var(--radius);
@@ -510,8 +514,8 @@
         }
 
         /* ════════════════════════════════════════
-               BADGE CHIPS
-            ════════════════════════════════════════ */
+                       BADGE CHIPS
+                    ════════════════════════════════════════ */
         .badge-grid {
             display: grid;
             grid-template-columns: repeat(auto-fill,minmax(160px,1fr));
@@ -547,8 +551,8 @@
             }
 
         /* ════════════════════════════════════════
-               EMPTY STATE
-            ════════════════════════════════════════ */
+                       EMPTY STATE
+                    ════════════════════════════════════════ */
         .empty-box {
             background: var(--card);
             border: 2px dashed var(--border);
@@ -592,7 +596,9 @@
     int xpPct = xpTotal > 0 ? (int)((double)Model.XP / xpTotal * 100) : 100;
 }
 
-<!-- Hero Banner -->
+<!-- ══════════════════════════════════════════
+     HERO BANNER
+     ══════════════════════════════════════════ -->
 <div class="hero-banner">
     <div class="hero-left">
         <div class="hero-greeting">Hãy tiếp tục phát huy những thành quả tuyệt vời hôm nay!</div>
@@ -604,10 +610,12 @@
             </div>
         </div>
     </div>
-    <div class="hero-mascot"></div>
+    <div class="hero-mascot">🦉</div>
 </div>
 
-<!-- Stat Cards -->
+<!-- ══════════════════════════════════════════
+     STAT CARDS
+     ══════════════════════════════════════════ -->
 <div class="stat-grid">
     <div class="stat-card streak">
         <div class="stat-icon"></div>
@@ -641,11 +649,10 @@
             <div class="sub">
                 @if (Model.DailyMissions.All(m => m.IsCompleted) && Model.DailyMissions.Any())
                 {
-                    <text>Hoàn thành tất cả!</text>
+                    <text>Hoàn thành tất cả! </text>
                 }
                 else
                 {
-
                     <text>Tiếp tục cố gắng!</text>
                 }
             </div>
@@ -653,15 +660,19 @@
     </div>
 </div>
 
-<!-- Two column layout -->
+<!-- ══════════════════════════════════════════
+     TWO-COLUMN LAYOUT
+     ══════════════════════════════════════════ -->
 <div class="row g-4">
+
+    <!-- ── LEFT COLUMN ── -->
     <div class="col-lg-7">
 
-        <!-- AI Recommended for You -->
+        <!-- AI Recommendations -->
         @if (Model.Recommendations.Any())
         {
             <div class="section-hd">
-                <h3>Gợi ý học tập (AI) <span class="count-pill">@Model.Recommendations.Count</span></h3>
+                <h3> Gợi ý học tập (AI) <span class="count-pill">@Model.Recommendations.Count</span></h3>
             </div>
             <div class="lesson-list">
                 @foreach (var rec in Model.Recommendations)
@@ -687,7 +698,10 @@
         </div>
         @if (!Model.AssignedLessons.Any())
         {
-            <div class="empty-box"><div class="e-icon"></div><p>Chưa có bài học nào được giao.</p></div>
+            <div class="empty-box">
+                <div class="e-icon"></div>
+                <p>Chưa có bài học nào được giao.</p>
+            </div>
         }
         else
         {
@@ -695,16 +709,22 @@
                 @foreach (var lesson in Model.AssignedLessons)
                 {
                     var tagClass = lesson.CompletionStatus is "Completed" or "COMPLETED"
-                        ? "Đã hoàn thành" : lesson.CompletionStatus is "In Progress" or "IN_PROGRESS"
-                        ? "Đang học" : "Chưa bắt đầu";
+                        ? "tag-done"
+                        : lesson.CompletionStatus is "In Progress" or "IN_PROGRESS"
+                            ? "tag-doing"
+                            : "tag-pending";
+
                     var tagText = lesson.CompletionStatus is "Completed" or "COMPLETED"
-                        ? " Hoàn thành" : lesson.CompletionStatus is "In Progress" or "IN_PROGRESS"
-                        ? " Đang học" : " Chưa làm";
+                        ? " Hoàn thành"
+                        : lesson.CompletionStatus is "In Progress" or "IN_PROGRESS"
+                            ? " Đang học"
+                            : " Chưa làm";
+
                     <a href="/student/lesson/@lesson.LessonId/quiz" class="lesson-card">
                         <div class="lesson-dot status-@lesson.CompletionStatus"></div>
                         <div class="lesson-info">
                             <div class="l-title">@lesson.Title</div>
-                            <div class="l-meta">@lesson.Topic ·  @lesson.EstimatedMinutes phút</div>
+                            <div class="l-meta">@lesson.Topic · @lesson.EstimatedMinutes phút</div>
                             <span class="l-status-tag @tagClass">@tagText</span>
                         </div>
                         <div class="lesson-right">
@@ -723,7 +743,10 @@
         </div>
         @if (!Model.RecentProgress.Any())
         {
-            <div class="empty-box"><div class="e-icon"></div><p>Hãy bắt đầu bài học đầu tiên của bạn!</p></div>
+            <div class="empty-box">
+                <div class="e-icon"></div>
+                <p>Hãy bắt đầu bài học đầu tiên của bạn!</p>
+            </div>
         }
         else
         {
@@ -740,12 +763,16 @@
                     <tbody>
                         @foreach (var p in Model.RecentProgress)
                         {
-                            var sc = p.QuizScore >= 80 ? "score-high" : p.QuizScore >= 50 ? "score-mid" : "score-low";
+                            var sc = p.QuizScore >= 80 ? "score-high"
+                                   : p.QuizScore >= 50 ? "score-mid"
+                                   : "score-low";
                             <tr>
                                 <td>@p.LessonTitle</td>
                                 <td><span class="score-pill @sc">@p.QuizScore%</span></td>
                                 <td style="color:var(--yellow)">+@p.XPEarned</td>
-                                <td style="color:var(--muted)">@(p.CompletedAt == DateTime.MinValue ? "—" : p.CompletedAt.ToString("dd/MM/yy"))</td>
+                                <td style="color:var(--muted)">
+                                    @(p.CompletedAt == DateTime.MinValue ? "—" : p.CompletedAt.ToString("dd/MM/yy"))
+                                </td>
                             </tr>
                         }
                     </tbody>
@@ -754,6 +781,8 @@
         }
 
     </div>
+    <!-- ── END LEFT COLUMN ── -->
+    <!-- ── RIGHT COLUMN ── -->
     <div class="col-lg-5">
 
         <!-- Daily Missions -->
@@ -763,7 +792,10 @@
         </div>
         @if (!Model.DailyMissions.Any())
         {
-            <div class="empty-box"><div class="e-icon"></div><p>Hôm nay chưa có nhiệm vụ nào.</p></div>
+            <div class="empty-box">
+                <div class="e-icon"></div>
+                <p>Hôm nay chưa có nhiệm vụ nào.</p>
+            </div>
         }
         else
         {
@@ -771,14 +803,16 @@
                 @foreach (var m in Model.DailyMissions)
                 {
                     int mp = m.TargetValue > 0 ? (int)((double)m.CurrentValue / m.TargetValue * 100) : 0;
+
                     var mIcon = m.Type switch
                     {
                         "COMPLETE_LESSON" => "",
                         "PLAY_MINIGAME" => "",
                         "QUIZ_PERFECT" => "",
                         "LOGIN_STREAK" => "",
-                        _ => ""
+                        _ => "⚡"
                     };
+
                     <div class="mission-card @(m.IsCompleted ? "done" : "")">
                         <div class="mission-icon">@mIcon</div>
                         <div class="mission-body">
@@ -788,7 +822,7 @@
                             </div>
                             <div class="mission-nums">@m.CurrentValue / @m.TargetValue</div>
                         </div>
-                        <div class="mission-xp-tag">+@m.XPReward </div>
+                        <div class="mission-xp-tag">+@m.XPReward ⭐</div>
                     </div>
                 }
             </div>
@@ -808,11 +842,10 @@
                         <div class="b-icon">
                             @if (!string.IsNullOrEmpty(b.IconUrl))
                             {
-                                <img src="@b.IconUrl" style="width:2rem;height:2rem;object-fit:contain" />
+                                <img src="@b.IconUrl" style="width:2rem;height:2rem;object-fit:contain" alt="@b.BadgeName" />
                             }
                             else
                             {
-
                                 <text></text>
                             }
                         </div>
@@ -826,4 +859,6 @@
         }
 
     </div>
+    <!-- ── END RIGHT COLUMN ── -->
+
 </div>

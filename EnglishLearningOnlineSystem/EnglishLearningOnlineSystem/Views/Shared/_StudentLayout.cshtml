@@ -1,4 +1,4 @@
-﻿@* =========================================================
+@* =========================================================
    _StudentLayout.cshtml  –  Layout dùng chung cho khu vực Student
    Đặt tại: Views/Shared/_StudentLayout.cshtml
    Dùng ở đầu mỗi view con:
@@ -236,7 +236,7 @@
 
     @* Logo  *@
     <div class="sb-logo">
-        <div class="sb-logo-icon"></div>
+        <div class="sb-logo-icon">🦉</div>
         <div class="sb-logo-text">
             EduLearn
             <small>English for Kids</small>
@@ -260,13 +260,6 @@
         </a>
         <a href="/student/courses"     class="@Nav("courses")">
             <span class="nav-icon"></span><span>Khoá học</span>
-        </a>
-        <a href="/student/lessons"     class="@Nav("lessons")">
-            <span class="nav-icon"></span><span>Bài học</span>
-            @if (ViewBag.PendingLessons is int p && p > 0)
-            {
-                <span class="nav-badge">@p</span>
-            }
         </a>
         <a href="/student/vocabulary"  class="@Nav("vocabulary")">
             <span class="nav-icon"></span><span>Từ vựng</span>
@@ -307,7 +300,7 @@
         <div class="topbar-title">@(ViewData["Title"] ?? "EduLearn")</div>
         <div class="topbar-right">
             <div class="topbar-pill pill-streak"> @streakDays ngày</div>
-            <div class="topbar-pill pill-xp"> @xp XP</div>
+            <div class="topbar-pill pill-xp">⭐ @xp XP</div>
             <a href="/student/notifications" class="topbar-bell" title="Thông báo">
                 
                 <span class="bell-dot"></span>
