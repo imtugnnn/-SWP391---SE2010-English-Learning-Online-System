@@ -20,6 +20,11 @@ public class Course
     [ForeignKey("CreatorId")]
     public User Creator { get; set; }
 
+    [MaxLength(2000)]
+    public string? Description { get; set; }
+
+    public bool IsDeleted { get; set; } = false;
+
     public ICollection<Class> Classes { get; set; }
     public ICollection<Lesson> Lessons { get; set; }
     public ICollection<WeeklyAssignment> WeeklyAssignments { get; set; }
