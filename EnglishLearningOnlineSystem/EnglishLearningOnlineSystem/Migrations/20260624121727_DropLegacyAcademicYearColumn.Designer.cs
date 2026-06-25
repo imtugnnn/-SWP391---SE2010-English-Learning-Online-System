@@ -4,6 +4,7 @@ using EnglishLearningOnlineSystem.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace EnglishLearningOnlineSystem.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260624121727_DropLegacyAcademicYearColumn")]
+    partial class DropLegacyAcademicYearColumn
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -32,9 +35,6 @@ namespace EnglishLearningOnlineSystem.Migrations
 
                     b.Property<DateTime?>("EndDate")
                         .HasColumnType("datetime2");
-
-                    b.Property<bool>("IsActive")
-                        .HasColumnType("bit");
 
                     b.Property<DateTime?>("StartDate")
                         .HasColumnType("datetime2");
@@ -367,37 +367,6 @@ namespace EnglishLearningOnlineSystem.Migrations
                     b.HasIndex("UserId");
 
                     b.ToTable("Notifications");
-                });
-
-            modelBuilder.Entity("EnglishLearningOnlineSystem.Models.ParentStudentLink", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<DateTime>("LinkedAt")
-                        .HasColumnType("datetime2");
-
-                    b.Property<int>("ParentId")
-                        .HasColumnType("int");
-
-                    b.Property<string>("Relationship")
-                        .HasMaxLength(50)
-                        .HasColumnType("nvarchar(50)");
-
-                    b.Property<int>("StudentId")
-                        .HasColumnType("int");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("StudentId");
-
-                    b.HasIndex("ParentId", "StudentId")
-                        .IsUnique();
-
-                    b.ToTable("ParentStudentLinks");
                 });
 
             modelBuilder.Entity("EnglishLearningOnlineSystem.Models.PasswordResetToken", b =>
@@ -733,18 +702,10 @@ namespace EnglishLearningOnlineSystem.Migrations
                         .HasMaxLength(255)
                         .HasColumnType("nvarchar(255)");
 
-                    b.Property<string>("StudentCode")
-                        .HasMaxLength(20)
-                        .HasColumnType("nvarchar(20)");
-
                     b.Property<int>("XP")
                         .HasColumnType("int");
 
                     b.HasKey("StudentId");
-
-                    b.HasIndex("StudentCode")
-                        .IsUnique()
-                        .HasFilter("[StudentCode] IS NOT NULL");
 
                     b.ToTable("StudentProfiles");
                 });
@@ -1048,25 +1009,6 @@ namespace EnglishLearningOnlineSystem.Migrations
                         .IsRequired();
 
                     b.Navigation("User");
-                });
-
-            modelBuilder.Entity("EnglishLearningOnlineSystem.Models.ParentStudentLink", b =>
-                {
-                    b.HasOne("EnglishLearningOnlineSystem.Models.User", "Parent")
-                        .WithMany()
-                        .HasForeignKey("ParentId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("EnglishLearningOnlineSystem.Models.StudentProfile", "Student")
-                        .WithMany()
-                        .HasForeignKey("StudentId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
-                    b.Navigation("Parent");
-
-                    b.Navigation("Student");
                 });
 
             modelBuilder.Entity("EnglishLearningOnlineSystem.Models.PasswordResetToken", b =>

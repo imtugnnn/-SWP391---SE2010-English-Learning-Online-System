@@ -37,6 +37,9 @@ public class AuthService : IAuthService
             return AuthServiceResult.Failure((nameof(model.Password), "Mật khẩu không chính xác."));
         }
 
+        user.LastLoginAt = DateTime.UtcNow;
+        await _userRepository.UpdateAsync(user);
+
         return AuthServiceResult.Success();
     }
 
@@ -51,6 +54,9 @@ public class AuthService : IAuthService
             {
                 return (AuthServiceResult.Failure((string.Empty, "Tài khoản của bạn đã bị vô hiệu hóa. Vui lòng liên hệ quản trị viên.")), null);
             }
+
+            user.LastLoginAt = DateTime.UtcNow;
+            await _userRepository.UpdateAsync(user);
 
             await EnsureStudentProfileAsync(user, displayName, avatarUrl);
             return (AuthServiceResult.Success(), user);
@@ -92,7 +98,8 @@ public class AuthService : IAuthService
             Password = BCrypt.Net.BCrypt.HashPassword(model.Password),
             BirthDate = model.BirthDate,
             IsActive = true,
-            RoleId = model.RoleId
+            RoleId = model.RoleId,
+            LastLoginAt = DateTime.UtcNow
         };
 
         await _userRepository.AddAsync(user);
