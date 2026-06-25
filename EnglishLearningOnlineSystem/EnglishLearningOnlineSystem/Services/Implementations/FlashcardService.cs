@@ -21,13 +21,31 @@ public class FlashcardService : IFlashcardService
         _dashboardRepo = dashboardRepo;
     }
 
-    public async Task<FlashcardPracticeViewModel?> StartSessionAsync(int lessonId, int studentId)
+    public async Task<FlashcardPracticeViewModel?> StartSessionAsync(int lessonId, int studentId, bool resetProgress = false)
     {
         var lesson = await _flashcardRepo.GetLessonByIdAsync(lessonId);
         if (lesson == null) return null;
 
         var vocabularies = await _flashcardRepo.GetVocabularyByLessonAsync(lessonId);
         if (!vocabularies.Any()) return null;
+
+        if (resetProgress)
+        {
+            await _flashcardRepo.ResetMasteryAsync(studentId, lessonId);
+        }
+
+        // Adaptive Learning: Lấy danh sách các từ vựng học sinh đã đánh dấu là "Thuộc" trong các phiên trước
+        var masteredIds = await _flashcardRepo.GetMasteredVocabularyIdsAsync(studentId, lessonId);
+        
+        // Lọc ra những từ chưa thuộc
+        var vocabulariesToPractice = vocabularies.Where(v => !masteredIds.Contains(v.VocabularyId)).ToList();
+
+        // Nếu học sinh đã thuộc hết (hoặc danh sách trống), trả về rỗng để hiển thị thông báo chúc mừng trên UI
+        // Không tự động reset lại full list nữa
+        if (!vocabulariesToPractice.Any())
+        {
+            vocabulariesToPractice = new List<Vocabulary>();
+        }
 
         // Bắt đầu một phiên luyện tập (Session) mới cho học sinh
         var session = new FlashcardSession
@@ -45,7 +63,7 @@ public class FlashcardService : IFlashcardService
             SessionId = session.SessionId,
             LessonId = lessonId,
             LessonTitle = lesson.Title,
-            Cards = vocabularies.Select(v => new FlashcardItem
+            Cards = vocabulariesToPractice.Select(v => new FlashcardItem
             {
                 VocabularyId = v.VocabularyId,
                 Word = v.Word,

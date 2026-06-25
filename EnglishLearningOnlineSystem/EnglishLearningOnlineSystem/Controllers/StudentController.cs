@@ -177,12 +177,12 @@ public class StudentController : BaseStudentController
 
     // Hiển thị giao diện lật thẻ (Flashcards) cho một bài học
     [HttpGet("/student/lesson/{lessonId}/flashcards")]
-    public async Task<IActionResult> Flashcards(int lessonId)
+    public async Task<IActionResult> Flashcards(int lessonId, string mode = "")
     {
         var userId = GetCurrentUserId();
         if (userId == null) return RedirectToAction("Login", "Auth");
 
-        var vm = await _flashcardService.StartSessionAsync(lessonId, userId.Value);
+        var vm = await _flashcardService.StartSessionAsync(lessonId, userId.Value, mode == "reset");
         if (vm == null) return NotFound("Vocabulary not found for this lesson.");
 
         return View(vm);

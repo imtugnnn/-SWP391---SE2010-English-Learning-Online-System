@@ -138,6 +138,27 @@
         .btn-dontknow:hover { filter: brightness(1.05); transform: translateY(-2px); border-bottom-width: 6px; margin-top: -2px; }
         .btn-dontknow:active { transform: translateY(4px); border-bottom-width: 0; margin-top: 4px; }
         
+        .btn-action-primary {
+            background: var(--sky);
+            border-bottom: 4px solid var(--sky-d);
+            display: inline-block;
+            text-align: center;
+            text-decoration: none;
+        }
+        .btn-action-primary:hover { filter: brightness(1.05); transform: translateY(-2px); border-bottom-width: 6px; margin-top: -2px; color: white;}
+        .btn-action-primary:active { transform: translateY(4px); border-bottom-width: 0; margin-top: 4px; color: white;}
+        
+        .btn-action-secondary {
+            background: #e2e8f0;
+            color: #475569;
+            border-bottom: 4px solid #cbd5e1;
+            display: inline-block;
+            text-align: center;
+            text-decoration: none;
+        }
+        .btn-action-secondary:hover { filter: brightness(1.02); transform: translateY(-2px); border-bottom-width: 6px; margin-top: -2px; color: #475569;}
+        .btn-action-secondary:active { transform: translateY(4px); border-bottom-width: 0; margin-top: 4px; color: #475569;}
+        
         .card-wrapper {
             display: none;
         }
@@ -216,8 +237,17 @@
     }
     else
     {
-        <div class="text-center p-5 bg-white rounded-4 shadow-sm border">
-            <h4>Không có thẻ từ vựng nào trong bài học này.</h4>
+        <div class="text-center p-5 bg-white shadow-sm border" style="border-radius: 24px; max-width: 500px; margin: 0 auto;">
+            <h3 style="color: var(--sky-d); font-weight: 900; margin-bottom: 15px;">Tuyệt vời!</h3>
+            <p style="color: var(--muted); font-size: 1.1rem; font-weight: 600; margin-bottom: 30px;">Bạn đã thuộc toàn bộ từ vựng của bài này!</p>
+            <div class="d-flex justify-content-center gap-3">
+                <a href="/student/lesson/@Model.LessonId" class="btn-action btn-action-secondary">
+                    Trở lại bài học
+                </a>
+                <a href="/student/lesson/@Model.LessonId/flashcards?mode=reset" class="btn-action btn-action-primary">
+                    Ôn tập lại từ đầu
+                </a>
+            </div>
         </div>
     }
 </div>
