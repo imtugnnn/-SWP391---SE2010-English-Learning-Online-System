@@ -8,4 +8,5 @@ public interface IClassRepository
     Task<List<ClassEnrollment>> GetActiveStudentsByClassIdAsync(int classId);
     Task<List<WeeklyAssignment>> GetAssignmentsByClassCourseAsync(int? courseId);
     Task<List<Progress>> GetProgressByStudentIdsAndLessonIdsAsync(List<int> studentIds, List<int> lessonIds);
+    Task<List<ClassEnrollment>> GetStudentsByClassIdAsync(int classId);
 }

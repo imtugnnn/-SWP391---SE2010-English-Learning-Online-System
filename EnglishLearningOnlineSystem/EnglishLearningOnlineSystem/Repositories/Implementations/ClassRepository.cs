@@ -60,4 +60,13 @@ public class ClassRepository : IClassRepository
             .AsNoTracking()
             .ToListAsync();
     }
+
+    public async Task<List<ClassEnrollment>> GetStudentsByClassIdAsync(int classId)
+    {
+        return await _context.ClassEnrollments!
+            .Include(e => e.Student)
+            .Where(e => e.ClassId == classId)
+            .AsNoTracking()
+            .ToListAsync();
+    }
 }

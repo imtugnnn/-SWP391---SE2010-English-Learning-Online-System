@@ -50,6 +50,7 @@ builder.Services.AddScoped<IAdaptiveLearningService, AdaptiveLearningService>();
 
 builder.Services.AddScoped<IClassRepository, ClassRepository>();
 builder.Services.AddScoped<IClassService, ClassService>();
+builder.Services.AddScoped<IStudentManagementService, StudentManagementService>();
 
 // Cấu hình Session
 builder.Services.AddHttpContextAccessor();
