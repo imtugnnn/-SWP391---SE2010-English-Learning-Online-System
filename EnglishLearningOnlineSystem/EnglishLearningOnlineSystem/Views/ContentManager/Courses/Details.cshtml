@@ -9,7 +9,6 @@
 <div class="cm-page-header">
     <div>
         <div class="cm-page-title">@Model.CourseName</div>
-        <div class="cm-page-subtitle">@Model.GradeLevel</div>
     </div>
     <div class="d-flex gap-2">
         @if (!Model.IsDeleted)
@@ -60,6 +59,20 @@
 <div class="cm-card">
     <div style="padding:16px 20px; border-bottom:1px solid var(--cm-border); font-weight:600;">
         Danh sách bài học
+    </div>
+    <div class="cm-card" style="padding:20px; margin-bottom:20px;">
+        <div class="d-flex justify-content-between align-items-center">
+            <div>
+                <strong>@Model.LessonCount</strong> bài học trong khóa học này
+            </div>
+
+            <a asp-controller="Lessons"
+               asp-action="Index"
+               asp-route-courseId="@Model.CourseId"
+               class="cm-btn cm-btn-primary">
+                Xem tất cả bài học
+            </a>
+        </div>
     </div>
     @if (!Model.Lessons.Any())
     {

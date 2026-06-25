@@ -1,0 +1,60 @@
+﻿@model EnglishLearningOnlineSystem.ViewModels.ContentManager.Lessons.CreateLessonViewModel
+
+@{
+    Layout = "_ContentManagerLayout";
+    ViewData["Title"] = "Create Lesson";
+}
+
+<form asp-action="Create" method="post">
+
+    <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
+
+    <div class="mb-3">
+        <label class="form-label">Khóa học</label>
+        <input class="form-control" value="@Model.CourseName" readonly />
+        <input type="hidden" asp-for="CourseId" />
+    </div>
+
+    <div class="mb-3">
+        <label class="form-label">Tiêu đề bài học</label>
+        <input asp-for="Title" class="form-control" />
+    </div>
+
+    <div class="mb-3">
+        <label class="form-label">Chủ đề</label>
+        <input asp-for="Topic" class="form-control" />
+    </div>
+
+    <div class="row">
+        <div class="col-md-6">
+            <label class="form-label">Thời gian dự kiến (phút)</label>
+            <input asp-for="EstimatedMinutes" class="form-control" />
+        </div>
+
+        <div class="col-md-6">
+            <label class="form-label">XP thưởng</label>
+            <input asp-for="XPReward" class="form-control" />
+        </div>
+    </div>
+
+    <div class="form-check mb-3">
+        <input asp-for="IsPublished" class="form-check-input" />
+        <label class="form-check-label">
+            Trạng thái hiển thị
+        </label>
+    </div>
+
+    <button type="submit" class="btn btn-primary">
+        Tạo
+    </button>
+
+    <a asp-action="Index"
+       asp-route-courseId="@Model.CourseId"
+       class="btn btn-secondary">
+        Hủy
+    </a>
+</form>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}
