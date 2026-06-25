@@ -1,5 +1,4 @@
-﻿@model EnglishLearningOnlineSystem.ViewModels.ContentManager.Minigames.EditMiniGameViewModel
-@using EnglishLearningOnlineSystem.ViewModels.ContentManager.Minigames
+@model EnglishLearningOnlineSystem.ViewModels.ContentManager.Minigames.EditMiniGameViewModel
 @{
     Layout = "_ContentManagerLayout";
     ViewData["Title"] = "Chỉnh sửa Mini Game";
@@ -32,8 +31,7 @@
 
                 <div class="mb-3">
                     <label class="form-label">Loại game</label>
-                    <input type="text" class="form-control" value="@GameTypeOptions.GetLabel(Model.GameType)" readonly />
-                    <div class="form-text">Loại game không thể thay đổi sau khi tạo.</div>
+                    <input type="text" class="form-control" value="Word Scramble" readonly />
                 </div>
 
                 <div class="mb-3">

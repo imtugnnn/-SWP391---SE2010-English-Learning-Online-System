@@ -17,8 +17,7 @@ public interface ILessonService
     Task<EditLessonViewModel?> BuildEditViewModelAsync(int lessonId);
 
     /// <returns>null on success, error message string on failure.</returns>
-    Task<string?> CreateAsync(CreateLessonViewModel vm, int creatorId);
-
+    Task<(int LessonId, string? Error)> CreateAsync(CreateLessonViewModel vm, int creatorId);
     /// <returns>null on success, error message string on failure.</returns>
     Task<string?> UpdateAsync(EditLessonViewModel vm);
 

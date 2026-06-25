@@ -1,0 +1,142 @@
+@model EnglishLearningOnlineSystem.ViewModels.ContentManager.Minigames.MiniGameListViewModel
+@{
+    Layout = "_ContentManagerLayout";
+
+    ViewData["Title"] = "Quản lý Mini Game";
+}
+
+<div class="container-fluid py-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2 class="mb-0">Mini Game - Word Scramble</h2>
+    </div>
+
+    @if (TempData["SuccessMessage"] != null)
+    {
+        <div class="alert alert-success alert-dismissible fade show" role="alert">
+            @TempData["SuccessMessage"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    }
+    @if (TempData["ErrorMessage"] != null)
+    {
+        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+            @TempData["ErrorMessage"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    }
+
+    <!-- Bộ lọc-->
+    <div class="card mb-4">
+        <div class="card-body">
+            <form method="get" class="row g-3 align-items-end">
+                <div class="col-md-4">
+                    <label class="form-label">Bài học</label>
+                    <select name="lessonId" class="form-select">
+                        <option value="">— Tất cả bài học —</option>
+                        @foreach (var lesson in Model.Lessons)
+                        {
+                            <option value="@lesson.LessonId"
+                                    selected="@(Model.FilterLessonId == lesson.LessonId)">
+                                @lesson.Title
+                            </option>
+                        }
+                    </select>
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label">Tìm theo tiêu đề</label>
+                    <input type="text" name="searchTitle" value="@Model.SearchTitle"
+                           class="form-control" placeholder="Nhập tiêu đề..." />
+                </div>
+                <div class="col-md-4">
+                    <button type="submit" class="btn btn-primary me-2">
+                        <i class="bi bi-search"></i> Tìm kiếm
+                    </button>
+                    <a href="@Url.Action("Index")" class="btn btn-outline-secondary">Đặt lại</a>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Bảng danh sách-->
+    <div class="card">
+        <div class="card-body p-0">
+            @if (!Model.Items.Any())
+            {
+                <div class="text-center py-5 text-muted">
+                    <i class="bi bi-controller fs-1 d-block mb-2"></i>
+                    Chưa có trò chơi nào. Hãy mở bài học và tạo trò chơi từ đó.
+                </div>
+            }
+            else
+            {
+                <table class="table table-hover mb-0">
+                    <thead class="table-light">
+                        <tr>
+                            <th>#</th>
+                            <th>Tiêu đề</th>
+                            <th>Loại game</th>
+                            <th>Bài học</th>
+                            <th class="text-center">XP Thưởng</th>
+                            <th class="text-end">Thao tác</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var item in Model.Items)
+                        {
+                            <tr>
+                                <td>@item.GameId</td>
+                                <td>@item.Title</td>
+                                <td><span class="badge bg-info text-dark">@item.GameType</span></td>
+                                <td>@item.LessonTitle</td>
+                                <td class="text-center">
+                                    <span class="badge bg-warning text-dark">+@item.XPReward XP</span>
+                                </td>
+                                <td class="text-end">
+                                    <a asp-action="Details" asp-route-id="@item.GameId"
+                                       class="btn btn-sm btn-outline-secondary me-1">
+                                        <i class="bi bi-eye"></i> Xem
+                                    </a>
+                                    <a asp-action="Edit" asp-route-id="@item.GameId"
+                                       class="btn btn-sm btn-outline-primary me-1">
+                                        <i class="bi bi-pencil"></i> Sửa
+                                    </a>
+                                    <form asp-action="Delete" asp-route-id="@item.GameId"
+                                          asp-route-lessonId="@item.LessonId"
+                                          method="post" class="d-inline"
+                                          onsubmit="return confirm('Bạn có chắc chắn muốn xóa trò chơi này không?');">
+                                        @Html.AntiForgeryToken()
+                                        <button type="submit" class="btn btn-sm btn-outline-danger">
+                                            <i class="bi bi-trash"></i> Xóa
+                                        </button>
+                                    </form>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            }
+        </div>
+    </div>
+
+    <!-- Phân trang-->
+    @if (Model.TotalPages > 1)
+    {
+        <nav class="mt-4">
+            <ul class="pagination justify-content-center">
+                @for (var i = 1; i <= Model.TotalPages; i++)
+                {
+                    <li class="page-item @(i == Model.CurrentPage ? "active" : "")">
+                        <a class="page-link"
+                           href="@Url.Action("Index", new { lessonId = Model.FilterLessonId, searchTitle = Model.SearchTitle, page = i })">
+                            @i
+                        </a>
+                    </li>
+                }
+            </ul>
+        </nav>
+    }
+
+    <div class="text-muted small mt-2">
+        Tổng cộng: @Model.TotalCount trò chơi
+    </div>
+</div>

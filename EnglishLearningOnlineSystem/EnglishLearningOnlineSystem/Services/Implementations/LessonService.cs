@@ -4,6 +4,7 @@ using EnglishLearningOnlineSystem.Repositories.Interfaces;
 using EnglishLearningOnlineSystem.Services.Interfaces;
 using EnglishLearningOnlineSystem.ViewModels;
 using EnglishLearningOnlineSystem.ViewModels.ContentManager.Lessons;
+using EnglishLearningOnlineSystem.ViewModels.ContentManager.Minigames;
 using Microsoft.EntityFrameworkCore;
 
 namespace EnglishLearningOnlineSystem.Services.Implementations;
@@ -70,6 +71,22 @@ public class LessonService : ILessonService
         var lesson = await _lessonRepo.GetByIdWithCourseAsync(lessonId);
         if (lesson == null) return null;
 
+        // Load danh sách mini game của bài học này
+        var miniGames = await _db.MiniGames!
+            .AsNoTracking()
+            .Where(g => g.LessonId == lessonId)
+            .OrderBy(g => g.Title)
+            .Select(g => new MiniGameListItemViewModel
+            {
+                GameId = g.GameId,
+                Title = g.Title,
+                GameType = g.GameType,
+                XPReward = g.XPReward,
+                LessonId = g.LessonId,
+                LessonTitle = lesson.Title
+            })
+            .ToListAsync();
+
         return new LessonDetailsViewModel
         {
             LessonId = lesson.LessonId,
@@ -81,7 +98,8 @@ public class LessonService : ILessonService
             IsPublished = lesson.IsPublished,
             CourseId = lesson.CourseId,
             CourseName = lesson.Course?.CourseName ?? "—",
-            CourseGradeLevel = lesson.Course?.GradeLevel ?? "—"
+            CourseGradeLevel = lesson.Course?.GradeLevel ?? "—",
+            MiniGames = miniGames
         };
     }
 
@@ -125,14 +143,14 @@ public class LessonService : ILessonService
         };
     }
 
-    public async Task<string?> CreateAsync(CreateLessonViewModel vm, int creatorId)
+    public async Task<(int LessonId, string? Error)> CreateAsync(CreateLessonViewModel vm, int creatorId)
     {
         var course = await _db.Courses!
             .AsNoTracking()
             .FirstOrDefaultAsync(c => c.CourseId == vm.CourseId);
 
         if (course == null || course.IsDeleted)
-            return "The selected course does not exist or has been deleted.";
+            return (0, "Khóa học được chọn không tồn tại hoặc đã bị xóa.");
 
         var lesson = new Lesson
         {
@@ -147,8 +165,11 @@ public class LessonService : ILessonService
 
         await _lessonRepo.AddAsync(lesson);
         await _lessonRepo.SaveChangesAsync();
-        return null;
+
+        return (lesson.LessonId, null);   // lessonId có sau khi SaveChanges
     }
+
+
 
     public async Task<string?> UpdateAsync(EditLessonViewModel vm)
     {

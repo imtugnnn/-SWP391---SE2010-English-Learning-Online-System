@@ -1,5 +1,6 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿using EnglishLearningOnlineSystem.ViewModels.ContentManager.Minigames;
 using Microsoft.AspNetCore.Mvc.Rendering;
+using System.ComponentModel.DataAnnotations;
 
 namespace EnglishLearningOnlineSystem.ViewModels.ContentManager.Lessons;
 
@@ -40,6 +41,9 @@ public class LessonDetailsViewModel
     public int CourseId { get; set; }
     public string CourseName { get; set; } = string.Empty;
     public string CourseGradeLevel { get; set; } = string.Empty;
+
+    // Danh sách mini game thuộc bài học này (hiển thị trong tab/section bên dưới)
+    public List<MiniGameListItemViewModel> MiniGames { get; set; } = [];
 }
 
 // ── LessonListItemViewModel ───────────────────────────────────────────────────

@@ -1,8 +1,8 @@
-﻿@model EnglishLearningOnlineSystem.ViewModels.ContentManager.Minigames.EditMiniGameViewModel
+@model EnglishLearningOnlineSystem.ViewModels.ContentManager.Minigames.CreateMiniGameViewModel
 @using EnglishLearningOnlineSystem.ViewModels.ContentManager.Minigames
 @{
     Layout = "_ContentManagerLayout";
-    ViewData["Title"] = "Chỉnh sửa Mini Game";
+    ViewData["Title"] = "Tạo Mini Game";
 }
 
 <div class="container py-4" style="max-width: 640px;">
@@ -11,34 +11,39 @@
            class="btn btn-outline-secondary btn-sm">
             <i class="bi bi-arrow-left"></i> Quay lại bài học
         </a>
-        <h2 class="mb-0">Chỉnh sửa Mini Game</h2>
+        <h2 class="mb-0">Tạo Mini Game</h2>
     </div>
 
     <div class="card">
         <div class="card-body">
-            <form asp-action="Edit" asp-route-id="@Model.GameId" method="post">
+            <form asp-action="Create" method="post">
                 @Html.AntiForgeryToken()
 
                 <!-- Trường ẩn -->
-                <input type="hidden" asp-for="GameId" />
                 <input type="hidden" asp-for="LessonId" />
-                <input type="hidden" asp-for="GameType" />
 
                 <div class="mb-3">
                     <label class="form-label">Bài học</label>
                     <input type="text" class="form-control" value="@Model.LessonTitle" readonly />
-                    <div class="form-text">Bài học không thể thay đổi sau khi tạo.</div>
                 </div>
 
                 <div class="mb-3">
-                    <label class="form-label">Loại game</label>
-                    <input type="text" class="form-control" value="@GameTypeOptions.GetLabel(Model.GameType)" readonly />
-                    <div class="form-text">Loại game không thể thay đổi sau khi tạo.</div>
+                    <label asp-for="GameType" class="form-label">Loại game <span class="text-danger">*</span></label>
+                    <select asp-for="GameType" class="form-select">
+                        @foreach (var opt in GameTypeOptions.All)
+                        {
+                            <option value="@opt.Value" selected="@(Model.GameType == opt.Value)">@opt.Label</option>
+                        }
+                    </select>
+                    <span asp-validation-for="GameType" class="text-danger small"></span>
+                    <div class="form-text">
+                        Word Scramble cần ít nhất 1 từ vựng trong bài học. Matching cần ít nhất 2 từ vựng để ghép cặp.
+                    </div>
                 </div>
 
                 <div class="mb-3">
                     <label asp-for="Title" class="form-label">Tiêu đề <span class="text-danger">*</span></label>
-                    <input asp-for="Title" class="form-control" />
+                    <input asp-for="Title" class="form-control" placeholder="Nhập tiêu đề trò chơi..." />
                     <span asp-validation-for="Title" class="text-danger small"></span>
                 </div>
 
@@ -46,11 +51,12 @@
                     <label asp-for="XPReward" class="form-label">XP Thưởng</label>
                     <input asp-for="XPReward" type="number" class="form-control" min="0" max="9999" />
                     <span asp-validation-for="XPReward" class="text-danger small"></span>
+                    <div class="form-text">Số XP học sinh nhận được khi trả lời đúng.</div>
                 </div>
 
                 <div class="d-flex gap-2 mt-4">
                     <button type="submit" class="btn btn-primary">
-                        <i class="bi bi-check-lg"></i> Lưu thay đổi
+                        <i class="bi bi-check-lg"></i> Tạo trò chơi
                     </button>
                     <a asp-controller="Lessons" asp-action="Details" asp-route-id="@Model.LessonId"
                        class="btn btn-outline-secondary">Hủy</a>

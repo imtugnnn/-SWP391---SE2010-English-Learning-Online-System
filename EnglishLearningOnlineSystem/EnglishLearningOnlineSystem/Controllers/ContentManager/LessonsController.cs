@@ -1,4 +1,5 @@
 ﻿using EnglishLearningOnlineSystem.Data;
+using EnglishLearningOnlineSystem.Models;
 using EnglishLearningOnlineSystem.Services.Interfaces;
 using EnglishLearningOnlineSystem.ViewModels.ContentManager.Lessons;
 using Microsoft.AspNetCore.Mvc;
@@ -65,25 +66,23 @@ public class LessonsController : BaseContentManagerController
         if (!ModelState.IsValid)
         {
             var vmRebuild = await _lessonService.BuildCreateViewModelAsync(vm.CourseId);
-            vm.CourseName = vmRebuild.CourseName;
+            vm.CourseName = vmRebuild?.CourseName ?? string.Empty;
             return View("~/Views/ContentManager/Lessons/Create.cshtml", vm);
         }
 
         var managerId = GetCurrentUserId();
-        var error = await _lessonService.CreateAsync(vm, managerId);
+        var (lessonId, error) = await _lessonService.CreateAsync(vm, managerId);
+
         if (error != null)
         {
             ModelState.AddModelError(string.Empty, error);
             var vmRebuild = await _lessonService.BuildCreateViewModelAsync(vm.CourseId);
-            vm.CourseName = vmRebuild.CourseName;
+            vm.CourseName = vmRebuild?.CourseName ?? string.Empty;
             return View("~/Views/ContentManager/Lessons/Create.cshtml", vm);
         }
 
-        TempData["SuccessMessage"] = "Lesson created successfully.";
-        return RedirectToAction(
-            nameof(Index),
-            new { courseId = vm.CourseId }
-        );
+        TempData["SuccessMessage"] = "Bài học đã được tạo thành công. Bạn có thể thêm Mini Game bên dưới.";
+        return RedirectToAction(nameof(Details), new { id = lessonId });
     }
 
     // GET: /ContentManager/Lessons/Edit/5
@@ -108,7 +107,6 @@ public class LessonsController : BaseContentManagerController
 
         if (!ModelState.IsValid)
         {
-            // Rebuild read-only display fields
             var rebuilt = await _lessonService.BuildEditViewModelAsync(id);
             if (rebuilt != null)
             {
@@ -131,11 +129,8 @@ public class LessonsController : BaseContentManagerController
             return View("~/Views/ContentManager/Lessons/Edit.cshtml", vm);
         }
 
-        TempData["SuccessMessage"] = "Lesson updated successfully.";
-        return RedirectToAction(
-            nameof(Index),
-            new { courseId = vm.CourseId }
-        );
+        TempData["SuccessMessage"] = "Cập nhật bài học thành công.";
+        return RedirectToAction(nameof(Details), new { id = vm.LessonId });
     }
 
     // POST: /ContentManager/Lessons/Delete/5
@@ -150,12 +145,9 @@ public class LessonsController : BaseContentManagerController
         if (error != null)
             TempData["ErrorMessage"] = error;
         else
-            TempData["SuccessMessage"] = "Lesson deleted successfully.";
+            TempData["SuccessMessage"] = "Xóa bài học thành công.";
 
-        return RedirectToAction(
-            nameof(Index),
-            new { courseId }
-        );
+        return RedirectToAction(nameof(Index), new { courseId });
     }
 
     // POST: /ContentManager/Lessons/TogglePublished/5
@@ -170,19 +162,15 @@ public class LessonsController : BaseContentManagerController
         if (error != null)
             TempData["ErrorMessage"] = error;
 
-        return RedirectToAction(
-            nameof(Index),
-            new { courseId }
-        );
+        return RedirectToAction(nameof(Index), new { courseId });
     }
+
     // ── Private helpers ────────────────────────────────────────────────────────
 
     private bool IsAuthorized()
     {
         var role = HttpContext.Session.GetString("UserRole");
-
-        return int.TryParse(role, out var roleId)
-               && (roleId == 5 || roleId == 2);
+        return int.TryParse(role, out var roleId) && (roleId == 5 || roleId == 2);
     }
 
     private IActionResult RedirectToLogin() =>
