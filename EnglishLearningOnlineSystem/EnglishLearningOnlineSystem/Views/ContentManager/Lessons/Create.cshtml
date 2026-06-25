@@ -1,0 +1,87 @@
+@model EnglishLearningOnlineSystem.ViewModels.ContentManager.Lessons.LessonCreateViewModel
+@{
+    Layout = "_ContentManagerLayout";
+    ViewData["Title"] = "Thêm bài học";
+    ViewData["ActiveNav"] = "lessons";
+    ViewData["Breadcrumb"] = "Bài học / Thêm mới";
+}
+
+<div class="cm-page-header">
+    <div>
+        <div class="cm-page-title">Thêm bài học mới</div>
+        <div class="cm-page-subtitle">Tạo bài học mới cho một khoá học</div>
+    </div>
+</div>
+
+<div class="cm-card" style="padding:24px; max-width:640px;">
+    <div asp-validation-summary="ModelOnly" class="cm-field-error mb-3"></div>
+
+    <form asp-action="Create" method="post">
+        <div class="cm-form-group">
+            <label asp-for="CourseId" class="cm-label cm-label-required"></label>
+            <select asp-for="CourseId" class="cm-select" asp-items="ViewBag.CourseSelectList">
+                <option value="">-- Chọn khoá học --</option>
+            </select>
+            <span asp-validation-for="CourseId" class="cm-field-error"></span>
+        </div>
+
+        <div class="cm-form-group">
+            <label asp-for="Title" class="cm-label cm-label-required"></label>
+            <input asp-for="Title" class="cm-input" placeholder="VD: Animals" />
+            <span asp-validation-for="Title" class="cm-field-error"></span>
+        </div>
+
+        <div class="cm-form-group">
+            <label asp-for="Topic" class="cm-label cm-label-required"></label>
+            <input asp-for="Topic" class="cm-input" placeholder="VD: Vocabulary" />
+            <span asp-validation-for="Topic" class="cm-field-error"></span>
+        </div>
+
+        <div class="row">
+            <div class="col-md-6">
+                <div class="cm-form-group">
+                    <label asp-for="XPReward" class="cm-label"></label>
+                    <input asp-for="XPReward" type="number" class="cm-input" />
+                    <span asp-validation-for="XPReward" class="cm-field-error"></span>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="cm-form-group">
+                    <label asp-for="EstimatedMinutes" class="cm-label"></label>
+                    <input asp-for="EstimatedMinutes" type="number" class="cm-input" />
+                    <span asp-validation-for="EstimatedMinutes" class="cm-field-error"></span>
+                </div>
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="col-md-6">
+                <div class="cm-form-group">
+                    <label asp-for="OrderIndex" class="cm-label"></label>
+                    <input asp-for="OrderIndex" type="number" class="cm-input" />
+                    <span asp-validation-for="OrderIndex" class="cm-field-error"></span>
+                </div>
+            </div>
+            <div class="col-md-6 d-flex align-items-center pt-2">
+                <div class="cm-toggle-wrap">
+                    <label class="cm-toggle">
+                        <input type="checkbox" asp-for="IsPublished" />
+                        <div class="cm-toggle-slider"></div>
+                    </label>
+                    <span class="cm-toggle-label">@Html.DisplayNameFor(m => m.IsPublished)</span>
+                </div>
+            </div>
+        </div>
+
+        <hr class="cm-divider" />
+
+        <div class="d-flex gap-2">
+            <button type="submit" class="cm-btn cm-btn-primary">Lưu bài học</button>
+            <a asp-action="Index" asp-route-courseId="@Model.CourseId" class="cm-btn cm-btn-secondary">Hủy</a>
+        </div>
+    </form>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}
