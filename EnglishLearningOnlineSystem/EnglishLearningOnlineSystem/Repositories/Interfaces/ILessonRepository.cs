@@ -1,21 +1,15 @@
-﻿using EnglishLearningOnlineSystem.Models;
+using EnglishLearningOnlineSystem.Models;
 
 namespace EnglishLearningOnlineSystem.Repositories.Interfaces;
 
 public interface ILessonRepository
 {
-    Task<(IEnumerable<Lesson> Items, int TotalCount)> GetPagedAsync(
-        int? courseId,
-        string? searchTitle,
-        int page,
-        int pageSize);
+    Task<List<Lesson>> GetAllLessonsWithCourseAsync();
 
-    Task<Lesson?> GetByIdAsync(int lessonId);
-    Task<Lesson?> GetByIdWithCourseAsync(int lessonId);
-    Task<IEnumerable<Lesson>> GetByCourseIdAsync(int courseId);
-    Task AddAsync(Lesson lesson);
-    void Update(Lesson lesson);
-    void Delete(Lesson lesson);
-    Task<bool> ExistsAsync(int lessonId);
-    Task SaveChangesAsync();
+    // Content Manager CRUD
+    Task<(List<Lesson> Lessons, int TotalCount)> GetLessonsPaginatedAsync(string? keyword, int? courseId, int page, int pageSize);
+    Task<Lesson?> GetLessonByIdAsync(int id);
+    Task AddLessonAsync(Lesson lesson);
+    Task UpdateLessonAsync(Lesson lesson);
+    Task DeleteLessonAsync(Lesson lesson);
 }

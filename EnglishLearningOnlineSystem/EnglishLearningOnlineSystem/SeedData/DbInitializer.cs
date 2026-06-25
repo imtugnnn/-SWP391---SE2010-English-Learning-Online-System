@@ -9,6 +9,21 @@ public static class DbInitializer
 {
     public static async Task SeedAsync(AppDbContext context)
     {
+        // ── Content Manager ───────────────────────────────────────────────────
+        if (!await context.Users.AnyAsync(x => x.Email == "contentmanager@english.com"))
+        {
+            var cmUser = new User
+            {
+                Username = "contentmanager",
+                Email = "contentmanager@english.com",
+                Password = BCrypt.Net.BCrypt.HashPassword("123456"),
+                IsActive = true,
+                RoleId = 5
+            };
+            context.Users.Add(cmUser);
+            await context.SaveChangesAsync();
+        }
+
         if (await context.Users.AnyAsync(x => x.Email == "admin@english.com"))
             return;
 

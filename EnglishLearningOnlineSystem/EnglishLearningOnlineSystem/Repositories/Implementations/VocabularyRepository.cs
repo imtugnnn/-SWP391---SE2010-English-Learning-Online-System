@@ -44,4 +44,58 @@ public class VocabularyRepository : IVocabularyRepository
             .ThenBy(v => v.Word)
             .ToListAsync();
     }
+
+    // Content Manager CRUD
+    public async Task<(List<Vocabulary> Items, int TotalCount)> GetVocabulariesPaginatedAsync(string? keyword, int? lessonId, int page, int pageSize)
+    {
+        var query = _db.Vocabularies!
+            .Include(v => v.Lesson)
+            .ThenInclude(l => l.Course)
+            .AsQueryable();
+
+        if (!string.IsNullOrWhiteSpace(keyword))
+        {
+            var lowerKeyword = keyword.ToLower();
+            query = query.Where(v => v.Word.ToLower().Contains(lowerKeyword) || v.Meaning.ToLower().Contains(lowerKeyword));
+        }
+
+        if (lessonId.HasValue && lessonId.Value > 0)
+        {
+            query = query.Where(v => v.LessonId == lessonId.Value);
+        }
+
+        var totalCount = await query.CountAsync();
+        var items = await query
+            .OrderByDescending(v => v.VocabularyId)
+            .Skip((page - 1) * pageSize)
+            .Take(pageSize)
+            .ToListAsync();
+
+        return (items, totalCount);
+    }
+
+    public async Task<Vocabulary?> GetVocabularyByIdAsync(int id)
+    {
+        return await _db.Vocabularies!
+            .Include(v => v.Lesson)
+            .FirstOrDefaultAsync(v => v.VocabularyId == id);
+    }
+
+    public async Task AddVocabularyAsync(Vocabulary vocabulary)
+    {
+        _db.Vocabularies!.Add(vocabulary);
+        await _db.SaveChangesAsync();
+    }
+
+    public async Task UpdateVocabularyAsync(Vocabulary vocabulary)
+    {
+        _db.Vocabularies!.Update(vocabulary);
+        await _db.SaveChangesAsync();
+    }
+
+    public async Task DeleteVocabularyAsync(Vocabulary vocabulary)
+    {
+        _db.Vocabularies!.Remove(vocabulary);
+        await _db.SaveChangesAsync();
+    }
 }

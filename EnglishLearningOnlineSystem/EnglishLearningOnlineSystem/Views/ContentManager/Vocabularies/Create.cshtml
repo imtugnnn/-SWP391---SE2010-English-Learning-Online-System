@@ -1,0 +1,69 @@
+@model EnglishLearningOnlineSystem.ViewModels.ContentManager.Vocabularies.VocabularyCreateViewModel
+@{
+    Layout = "_ContentManagerLayout";
+    ViewData["Title"] = "Thêm từ vựng";
+    ViewData["ActiveNav"] = "vocabulary";
+    ViewData["Breadcrumb"] = "Từ vựng / Thêm mới";
+}
+
+<div class="cm-page-header">
+    <div>
+        <div class="cm-page-title">Thêm từ vựng mới</div>
+        <div class="cm-page-subtitle">Bổ sung từ vựng vào bài học</div>
+    </div>
+</div>
+
+<div class="cm-card" style="padding:24px; max-width:640px;">
+    <div asp-validation-summary="ModelOnly" class="cm-field-error mb-3"></div>
+
+    <form asp-action="Create" method="post">
+        <div class="cm-form-group">
+            <label asp-for="LessonId" class="cm-label cm-label-required"></label>
+            <select asp-for="LessonId" class="cm-select" asp-items="ViewBag.LessonSelectList">
+                <option value="">-- Chọn bài học --</option>
+            </select>
+            <span asp-validation-for="LessonId" class="cm-field-error"></span>
+        </div>
+
+        <div class="cm-form-group">
+            <label asp-for="Word" class="cm-label cm-label-required"></label>
+            <input asp-for="Word" class="cm-input" placeholder="VD: Apple" />
+            <span asp-validation-for="Word" class="cm-field-error"></span>
+        </div>
+
+        <div class="cm-form-group">
+            <label asp-for="Meaning" class="cm-label cm-label-required"></label>
+            <input asp-for="Meaning" class="cm-input" placeholder="VD: Quả táo" />
+            <span asp-validation-for="Meaning" class="cm-field-error"></span>
+        </div>
+
+        <div class="cm-form-group">
+            <label asp-for="ExampleSentence" class="cm-label"></label>
+            <textarea asp-for="ExampleSentence" class="cm-textarea" placeholder="VD: I eat an apple every day."></textarea>
+            <span asp-validation-for="ExampleSentence" class="cm-field-error"></span>
+        </div>
+
+        <div class="cm-form-group">
+            <label asp-for="ImageUrl" class="cm-label"></label>
+            <input asp-for="ImageUrl" class="cm-input" placeholder="URL hình ảnh minh hoạ" />
+            <span asp-validation-for="ImageUrl" class="cm-field-error"></span>
+        </div>
+
+        <div class="cm-form-group">
+            <label asp-for="AudioUrl" class="cm-label"></label>
+            <input asp-for="AudioUrl" class="cm-input" placeholder="URL file âm thanh phát âm" />
+            <span asp-validation-for="AudioUrl" class="cm-field-error"></span>
+        </div>
+
+        <hr class="cm-divider" />
+
+        <div class="d-flex gap-2">
+            <button type="submit" class="cm-btn cm-btn-primary">Lưu từ vựng</button>
+            <a asp-action="Index" class="cm-btn cm-btn-secondary">Hủy</a>
+        </div>
+    </form>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

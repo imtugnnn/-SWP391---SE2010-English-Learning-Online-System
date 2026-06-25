@@ -157,7 +157,7 @@
                     <div class="question-text">
                         <span class="badge bg-primary rounded-pill me-2">Q@(qIndex)</span> @q.Question
                     </div>
-                    @if (q.QuizType == "MultipleChoice")
+                    @if (q.QuizType == "MultipleChoice" || q.QuizType == "IMAGE_CHOICE")
                     {
                         <div class="options">
                             @if (q.Options != null)
@@ -169,7 +169,14 @@
                                         <input type="radio" id="q_@(q.QuizId)_@(optIndex)" name="Answers[@q.QuizId]" value="@opt" class="option-input" />
                                         <label for="q_@(q.QuizId)_@(optIndex)" class="option-label">
                                             <span class="radio-custom"></span>
-                                            @opt
+                                            @if (q.QuizType == "IMAGE_CHOICE")
+                                            {
+                                                <img src="@opt" style="max-height: 80px; max-width: 120px; border-radius: 4px; object-fit: contain;" alt="Option @(optIndex + 1)" />
+                                            }
+                                            else
+                                            {
+                                                @opt
+                                            }
                                         </label>
                                     </div>
                                     optIndex++;

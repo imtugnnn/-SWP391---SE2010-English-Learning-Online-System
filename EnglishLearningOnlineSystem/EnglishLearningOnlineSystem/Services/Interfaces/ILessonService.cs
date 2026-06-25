@@ -1,30 +1,14 @@
-﻿using EnglishLearningOnlineSystem.ViewModels;
-using EnglishLearningOnlineSystem.ViewModels.ContentManager.Lessons;
+using EnglishLearningOnlineSystem.Models;
 
 namespace EnglishLearningOnlineSystem.Services.Interfaces;
 
 public interface ILessonService
 {
-    Task<LessonListViewModel> GetPagedAsync(
-        int? courseId,
-        string? searchTitle,
-        int page,
-        int pageSize);
+    Task<List<Lesson>> GetAllLessonsAsync();
 
-    Task<LessonViewModel?> GetByIdAsync(int lessonId);
-    Task<LessonDetailsViewModel?> GetDetailsAsync(int lessonId);
-    Task<CreateLessonViewModel> BuildCreateViewModelAsync(int? preselectedCourseId = null);
-    Task<EditLessonViewModel?> BuildEditViewModelAsync(int lessonId);
-
-    /// <returns>null on success, error message string on failure.</returns>
-    Task<string?> CreateAsync(CreateLessonViewModel vm, int creatorId);
-
-    /// <returns>null on success, error message string on failure.</returns>
-    Task<string?> UpdateAsync(EditLessonViewModel vm);
-
-    /// <returns>null on success, error message string on failure.</returns>
-    Task<string?> DeleteAsync(int lessonId);
-
-    /// <returns>null on success, error message string on failure.</returns>
-    Task<string?> TogglePublishedAsync(int lessonId);
+    Task<(List<EnglishLearningOnlineSystem.ViewModels.ContentManager.Lessons.LessonListItemViewModel> Items, int TotalCount)> GetLessonsAsync(string? keyword, int? courseId, int page, int pageSize);
+    Task<(EnglishLearningOnlineSystem.ViewModels.ContentManager.Lessons.LessonEditViewModel? Model, string? ErrorMessage)> GetLessonForEditAsync(int id);
+    Task<(bool Success, string? ErrorMessage)> CreateLessonAsync(EnglishLearningOnlineSystem.ViewModels.ContentManager.Lessons.LessonCreateViewModel model);
+    Task<(bool Success, string? ErrorMessage)> UpdateLessonAsync(EnglishLearningOnlineSystem.ViewModels.ContentManager.Lessons.LessonEditViewModel model);
+    Task<(bool Success, string? ErrorMessage)> DeleteLessonAsync(int id);
 }
