@@ -104,6 +104,8 @@ public class ClassRepository : IClassRepository
     public async Task<List<Class>> GetClassesByTeacherIdAsync(int teacherId)
     {
         return await _context.Classes!
+            .Include(c => c.Teacher)
+            .Include(c => c.AcademicYear)
             .Where(c => c.TeacherId == teacherId)
             .AsNoTracking()
             .ToListAsync();

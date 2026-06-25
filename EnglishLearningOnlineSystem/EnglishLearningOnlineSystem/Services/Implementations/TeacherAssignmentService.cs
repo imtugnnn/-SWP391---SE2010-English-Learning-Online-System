@@ -128,7 +128,7 @@ public class TeacherAssignmentService : ITeacherAssignmentService
         return true;
     }
     public async Task<TeacherAssignmentOverviewViewModel> GetAssignmentOverviewAsync(
-    int classId,
+    int? classId,
     int teacherId,
     string? status,
     string? sortBy,

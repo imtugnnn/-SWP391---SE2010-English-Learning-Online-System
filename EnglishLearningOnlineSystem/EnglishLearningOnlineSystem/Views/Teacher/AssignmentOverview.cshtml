@@ -256,12 +256,23 @@
                         </p>
                     </div>
 
-                    <a asp-controller="Teacher"
-                       asp-action="ClassDetail"
-                       asp-route-classId="@Model.ClassId"
-                       class="btn-teacher-outline">
-                        Quay lại chi tiết lớp
-                    </a>
+                    @if (Model.ClassId.HasValue)
+                    {
+                        <a asp-controller="Teacher"
+                           asp-action="ClassDetail"
+                           asp-route-classId="@Model.ClassId"
+                           class="btn-teacher-outline">
+                            Quay lại chi tiết lớp
+                        </a>
+                    }
+                    else
+                    {
+                        <a asp-controller="Teacher"
+                           asp-action="Dashboard"
+                           class="btn-teacher-outline">
+                            Quay lại Dashboard
+                        </a>
+                    }
                 </div>
 
                 <div class="row g-3">
@@ -388,6 +399,7 @@
                         <ul class="pagination justify-content-center mb-0">
                             <li class="page-item @(Model.Page <= 1 ? "disabled" : "")">
                                 <a class="page-link"
+                                   asp-route-classId="@Model.ClassId"
                                    asp-controller="Teacher"
                                    asp-action="AssignmentOverview"
                                    asp-route-status="@Model.Status"
@@ -401,6 +413,7 @@
                             {
                                 <li class="page-item @(i == Model.Page ? "active" : "")">
                                     <a class="page-link"
+                                       asp-route-classId="@Model.ClassId"
                                        asp-controller="Teacher"
                                        asp-action="AssignmentOverview"
                                        asp-route-status="@Model.Status"
@@ -413,6 +426,7 @@
 
                             <li class="page-item @(Model.Page >= Model.TotalPages ? "disabled" : "")">
                                 <a class="page-link"
+                                   asp-route-classId="@Model.ClassId"
                                    asp-controller="Teacher"
                                    asp-action="AssignmentOverview"
                                    asp-route-status="@Model.Status"

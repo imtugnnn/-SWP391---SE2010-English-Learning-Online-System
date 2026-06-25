@@ -12,7 +12,7 @@ public interface ITeacherAssignmentService
         AssignWeeklyLessonViewModel model,
         int teacherId);
     Task<TeacherAssignmentOverviewViewModel> GetAssignmentOverviewAsync(
-    int classId,
+    int? classId,
     int teacherId,
     string? status,
     string? sortBy,

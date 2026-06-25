@@ -9,14 +9,28 @@ public class TeacherController : Controller
     private readonly IClassService _classService;
     private readonly IStudentManagementService _studentManagementService;
     private readonly ITeacherAssignmentService _teacherAssignmentService;
+    private readonly ITeacherDashboardService _teacherDashboardService;
 
-    public TeacherController(IClassService classService, IStudentManagementService studentManagementService, ITeacherAssignmentService teacherAssignmentService)
+    public TeacherController(IClassService classService, IStudentManagementService studentManagementService, ITeacherAssignmentService teacherAssignmentService,ITeacherDashboardService teacherDashboardService)
     {
         _classService = classService;
         _studentManagementService = studentManagementService;
         _teacherAssignmentService = teacherAssignmentService;
+        _teacherDashboardService = teacherDashboardService;
     }
+    public async Task<IActionResult> Dashboard()
+    {
+        var teacherId = GetCurrentUserId();
 
+        if (teacherId == null)
+        {
+            return RedirectToAction("Login", "Auth");
+        }
+
+        var viewModel = await _teacherDashboardService.GetTeacherDashboardAsync(teacherId.Value);
+
+        return View(viewModel);
+    }
     public async Task<IActionResult> ClassDetail(int classId)
     {
         var teacherId = GetCurrentUserId();
@@ -241,7 +255,7 @@ public class TeacherController : Controller
             new { classId = model.ClassId });
     }
     public async Task<IActionResult> AssignmentOverview(
-    int classId,
+    int? classId,
     string? status,
     string? sortBy,
     int page = 1)

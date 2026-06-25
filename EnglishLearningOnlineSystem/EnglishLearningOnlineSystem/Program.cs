@@ -53,6 +53,7 @@ builder.Services.AddScoped<IClassService, ClassService>();
 builder.Services.AddScoped<IStudentManagementService, StudentManagementService>();
 builder.Services.AddScoped<IAssignmentRepository, AssignmentRepository>();
 builder.Services.AddScoped<ITeacherAssignmentService, TeacherAssignmentService>();
+builder.Services.AddScoped<ITeacherDashboardService, TeacherDashboardService>();
 
 // Cấu hình Session
 builder.Services.AddHttpContextAccessor();

@@ -2,7 +2,7 @@
 
 public class TeacherAssignmentOverviewViewModel
 {
-    public int ClassId { get; set; }
+    public int? ClassId { get; set; }
     public string Status { get; set; } = "all";
     public string SortBy { get; set; } = "dueDate";
     public int Page { get; set; } = 1;
