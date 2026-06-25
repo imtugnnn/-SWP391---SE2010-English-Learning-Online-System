@@ -74,9 +74,14 @@
                         <td>@item.CourseName</td>
                         <td>@item.EstimatedMinutes phút</td>
                         <td class="text-end" style="padding-right:16px;">
-                            <a href="/contentmanager/vocabularies?lessonId=@item.LessonId" class="cm-btn cm-btn-secondary cm-btn-sm" style="margin-right: 4px;">Từ vựng</a>
-                            <a href="/contentmanager/quizzes?lessonId=@item.LessonId" class="cm-btn cm-btn-secondary cm-btn-sm" style="margin-right: 8px;">Quizzes</a>
-                            <a asp-action="Edit" asp-route-id="@item.LessonId" class="cm-btn cm-btn-ghost cm-btn-sm">Sửa</a>
+                            <a asp-action="Details" asp-route-id="@item.LessonId"
+                               class="cm-btn cm-btn-secondary cm-btn-sm" style="margin-right:4px;">Chi tiết</a>
+                            <a href="/contentmanager/vocabularies?lessonId=@item.LessonId"
+                               class="cm-btn cm-btn-secondary cm-btn-sm" style="margin-right:4px;">Từ vựng</a>
+                            <a href="/contentmanager/quizzes?lessonId=@item.LessonId"
+                               class="cm-btn cm-btn-secondary cm-btn-sm" style="margin-right:8px;">Quizzes</a>
+                            <a asp-action="Edit" asp-route-id="@item.LessonId"
+                               class="cm-btn cm-btn-ghost cm-btn-sm">Sửa</a>
                             <form asp-action="Delete" asp-route-id="@item.LessonId" method="post" class="d-inline"
                                   onsubmit="return confirm('Bạn có chắc muốn xoá bài học này?');">
                                 <button type="submit" class="cm-btn cm-btn-ghost cm-btn-sm" style="color:var(--cm-danger);">Xoá</button>

@@ -1,0 +1,55 @@
+@model EnglishLearningOnlineSystem.ViewModels.ContentManager.Minigames.MiniGameDetailsViewModel
+@{
+    Layout = "_ContentManagerLayout";
+    ViewData["Title"] = "Chi tiết Mini Game";
+}
+
+<div class="container py-4" style="max-width: 700px;">
+    <div class="d-flex align-items-center mb-4 gap-3">
+        <a asp-controller="Lessons" asp-action="Details" asp-route-id="@Model.LessonId"
+           class="btn btn-outline-secondary btn-sm">
+            <i class="bi bi-arrow-left"></i> Quay lại bài học
+        </a>
+        <h2 class="mb-0">Chi tiết Mini Game</h2>
+    </div>
+
+    <div class="card">
+        <div class="card-body">
+            <dl class="row mb-0">
+                <dt class="col-sm-4">Tiêu đề</dt>
+                <dd class="col-sm-8">@Model.Title</dd>
+
+                <dt class="col-sm-4">Loại game</dt>
+                <dd class="col-sm-8">
+                    <span class="badge bg-info text-dark">@Model.GameType</span>
+                </dd>
+
+                <dt class="col-sm-4">XP Thưởng</dt>
+                <dd class="col-sm-8">
+                    <span class="badge bg-warning text-dark">+@Model.XPReward XP</span>
+                </dd>
+
+                <dt class="col-sm-4">Bài học</dt>
+                <dd class="col-sm-8">@Model.LessonTitle</dd>
+
+                <dt class="col-sm-4">Khóa học</dt>
+                <dd class="col-sm-8">@Model.CourseName</dd>
+            </dl>
+        </div>
+    </div>
+
+    <div class="mt-3 d-flex gap-2">
+        <a asp-action="Edit" asp-route-id="@Model.GameId" class="btn btn-primary">
+            <i class="bi bi-pencil"></i> Chỉnh sửa
+        </a>
+        <form asp-action="Delete" asp-route-id="@Model.GameId"
+              asp-route-lessonId="@Model.LessonId"
+              method="post"
+              onsubmit="return confirm('Bạn có chắc chắn muốn xóa trò chơi này không?');">
+            @Html.AntiForgeryToken()
+            <button type="submit" class="btn btn-outline-danger">
+                <i class="bi bi-trash"></i> Xóa
+            </button>
+        </form>
+    </div>
+</div>

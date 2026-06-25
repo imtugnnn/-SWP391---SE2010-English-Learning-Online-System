@@ -5,8 +5,8 @@
     Layout = "_StudentLayout";
 
     var hasVocab = Model.Vocabularies.Any();
-    var hasQuiz  = Model.Quizzes.Any();
-    var hasGame  = Model.MiniGames.Any();
+    var hasQuiz = Model.Quizzes.Any();
+    var hasGame = Model.MiniGames.Any();
     var doneGames = Model.MiniGames.Count(g => g.IsDone);
 }
 
@@ -26,7 +26,10 @@
             transition: background .15s;
             margin-bottom: 20px;
         }
-        .back-btn:hover { background: var(--border); }
+
+            .back-btn:hover {
+                background: var(--border);
+            }
 
         /* ── Hero ── */
         .lesson-hero {
@@ -43,18 +46,41 @@
             position: relative;
             overflow: hidden;
         }
-        .lesson-hero::before {
-            content: '';
-            position: absolute;
-            top: -40px; right: -40px;
-            width: 180px; height: 180px;
-            background: rgba(255,255,255,.07);
-            border-radius: 50%;
+
+            .lesson-hero::before {
+                content: '';
+                position: absolute;
+                top: -40px;
+                right: -40px;
+                width: 180px;
+                height: 180px;
+                background: rgba(255,255,255,.07);
+                border-radius: 50%;
+            }
+
+        .hero-info {
+            position: relative;
+            z-index: 1;
         }
-        .hero-info { position: relative; z-index: 1; }
-        .hero-breadcrumb { font-size: .78rem; opacity: .8; margin-bottom: 6px; }
-        .hero-title { font-size: 1.5rem; font-weight: 900; margin-bottom: 10px; }
-        .hero-tags { display: flex; gap: 8px; flex-wrap: wrap; }
+
+        .hero-breadcrumb {
+            font-size: .78rem;
+            opacity: .8;
+            margin-bottom: 6px;
+        }
+
+        .hero-title {
+            font-size: 1.5rem;
+            font-weight: 900;
+            margin-bottom: 10px;
+        }
+
+        .hero-tags {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+
         .hero-tag {
             background: rgba(255,255,255,.2);
             padding: 3px 12px;
@@ -62,6 +88,7 @@
             font-size: .75rem;
             font-weight: 800;
         }
+
         .hero-stats {
             display: flex;
             gap: 14px;
@@ -69,6 +96,7 @@
             position: relative;
             z-index: 1;
         }
+
         .hero-stat {
             text-align: center;
             background: rgba(255,255,255,.15);
@@ -76,8 +104,17 @@
             padding: 14px 18px;
             min-width: 80px;
         }
-        .hs-val { font-size: 1.4rem; font-weight: 900; }
-        .hs-lbl { font-size: .7rem; opacity: .85; margin-top: 2px; }
+
+        .hs-val {
+            font-size: 1.4rem;
+            font-weight: 900;
+        }
+
+        .hs-lbl {
+            font-size: .7rem;
+            opacity: .85;
+            margin-top: 2px;
+        }
 
         /* ── Progress bar ── */
         .progress-card {
@@ -88,14 +125,25 @@
             margin-bottom: 24px;
             box-shadow: var(--shadow);
         }
+
         .prog-header {
             display: flex;
             align-items: center;
             justify-content: space-between;
             margin-bottom: 10px;
         }
-        .prog-header h3 { font-size: .95rem; font-weight: 900; }
-        .prog-pct { font-size: .9rem; font-weight: 900; color: var(--sky-d); }
+
+            .prog-header h3 {
+                font-size: .95rem;
+                font-weight: 900;
+            }
+
+        .prog-pct {
+            font-size: .9rem;
+            font-weight: 900;
+            color: var(--sky-d);
+        }
+
         .prog-bar {
             height: 10px;
             background: #e2e8f0;
@@ -103,13 +151,20 @@
             overflow: hidden;
             margin-bottom: 12px;
         }
+
         .prog-fill {
             height: 100%;
             background: linear-gradient(90deg, var(--sky), #6366f1);
             border-radius: 99px;
             transition: width .8s;
         }
-        .step-chips { display: flex; gap: 8px; flex-wrap: wrap; }
+
+        .step-chips {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+
         .step-chip {
             padding: 5px 14px;
             border-radius: 99px;
@@ -119,8 +174,18 @@
             color: var(--muted);
             background: var(--bg);
         }
-        .step-chip.done  { background: #dcfce7; border-color: #86efac; color: #15803d; }
-        .step-chip.active { background: #e0f2fe; border-color: var(--sky); color: var(--sky-d); }
+
+            .step-chip.done {
+                background: #dcfce7;
+                border-color: #86efac;
+                color: #15803d;
+            }
+
+            .step-chip.active {
+                background: #e0f2fe;
+                border-color: var(--sky);
+                color: var(--sky-d);
+            }
 
         /* ── Activity cards ── */
         .activities-grid {
@@ -145,70 +210,105 @@
             position: relative;
             overflow: hidden;
         }
-        .activity-card::before {
-            content: '';
-            position: absolute;
-            top: -24px; right: -24px;
-            width: 90px; height: 90px;
-            border-radius: 50%;
-            opacity: .08;
-            transition: opacity .2s;
-        }
-        .activity-card:hover {
-            transform: translateY(-4px);
-            box-shadow: 0 10px 28px rgba(0,0,0,.1);
-            color: inherit;
-        }
 
-        /* Flashcard */
-        .activity-card.flashcard { border-color: #bfdbfe; }
-        .activity-card.flashcard::before { background: #3b82f6; }
-        .activity-card.flashcard:hover { border-color: #3b82f6; box-shadow: 0 10px 28px rgba(59,130,246,.18); }
+            .activity-card::before {
+                content: '';
+                position: absolute;
+                top: -24px;
+                right: -24px;
+                width: 90px;
+                height: 90px;
+                border-radius: 50%;
+                opacity: .08;
+                transition: opacity .2s;
+            }
 
-        /* Quiz */
-        .activity-card.quiz { border-color: #d9f99d; }
-        .activity-card.quiz::before { background: #84cc16; }
-        .activity-card.quiz:hover { border-color: #84cc16; box-shadow: 0 10px 28px rgba(132,204,22,.18); }
+            .activity-card:hover {
+                transform: translateY(-4px);
+                box-shadow: 0 10px 28px rgba(0,0,0,.1);
+                color: inherit;
+            }
 
-        /* Minigame */
-        .activity-card.minigame { border-color: #ddd6fe; }
-        .activity-card.minigame::before { background: #8b5cf6; }
-        .activity-card.minigame:hover { border-color: #8b5cf6; box-shadow: 0 10px 28px rgba(139,92,246,.18); }
+            .activity-card.flashcard {
+                border-color: #bfdbfe;
+            }
 
-        /* Disabled */
-        .activity-card.disabled {
-            opacity: .55;
-            pointer-events: none;
-            filter: grayscale(.4);
-        }
+                .activity-card.flashcard::before {
+                    background: #3b82f6;
+                }
+
+                .activity-card.flashcard:hover {
+                    border-color: #3b82f6;
+                    box-shadow: 0 10px 28px rgba(59,130,246,.18);
+                }
+
+            .activity-card.quiz {
+                border-color: #d9f99d;
+            }
+
+                .activity-card.quiz::before {
+                    background: #84cc16;
+                }
+
+                .activity-card.quiz:hover {
+                    border-color: #84cc16;
+                    box-shadow: 0 10px 28px rgba(132,204,22,.18);
+                }
+
+            .activity-card.minigame {
+                border-color: #ddd6fe;
+            }
+
+                .activity-card.minigame::before {
+                    background: #8b5cf6;
+                }
+
+                .activity-card.minigame:hover {
+                    border-color: #8b5cf6;
+                    box-shadow: 0 10px 28px rgba(139,92,246,.18);
+                }
+
+            .activity-card.disabled {
+                opacity: .55;
+                pointer-events: none;
+                filter: grayscale(.4);
+            }
 
         .ac-icon {
             font-size: 2rem;
             line-height: 1;
         }
-        .ac-body { flex: 1; }
+
+        .ac-body {
+            flex: 1;
+        }
+
         .ac-title {
             font-size: 1rem;
             font-weight: 900;
             color: var(--text);
             margin-bottom: 4px;
         }
+
         .ac-desc {
             font-size: .78rem;
             font-weight: 700;
             color: var(--muted);
             line-height: 1.4;
         }
+
         .ac-footer {
             display: flex;
             align-items: center;
             justify-content: space-between;
         }
+
         .ac-meta {
             font-size: .72rem;
             font-weight: 800;
             color: var(--muted);
         }
+
         .ac-btn {
             font-size: .78rem;
             font-weight: 900;
@@ -217,14 +317,34 @@
             border: 2px solid currentColor;
             transition: background .15s, color .15s;
         }
-        .activity-card.flashcard .ac-btn { color: #2563eb; }
-        .activity-card.flashcard:hover .ac-btn { background: #2563eb; color: #fff; }
-        .activity-card.quiz .ac-btn { color: #65a30d; }
-        .activity-card.quiz:hover .ac-btn { background: #65a30d; color: #fff; }
-        .activity-card.minigame .ac-btn { color: #7c3aed; }
-        .activity-card.minigame:hover .ac-btn { background: #7c3aed; color: #fff; }
 
-        /* Score badge on quiz card */
+        .activity-card.flashcard .ac-btn {
+            color: #2563eb;
+        }
+
+        .activity-card.flashcard:hover .ac-btn {
+            background: #2563eb;
+            color: #fff;
+        }
+
+        .activity-card.quiz .ac-btn {
+            color: #65a30d;
+        }
+
+        .activity-card.quiz:hover .ac-btn {
+            background: #65a30d;
+            color: #fff;
+        }
+
+        .activity-card.minigame .ac-btn {
+            color: #7c3aed;
+        }
+
+        .activity-card.minigame:hover .ac-btn {
+            background: #7c3aed;
+            color: #fff;
+        }
+
         .best-score-badge {
             display: inline-flex;
             align-items: center;
@@ -234,11 +354,23 @@
             padding: 2px 10px;
             border-radius: 99px;
         }
-        .bs-high { background: #dcfce7; color: #15803d; }
-        .bs-mid  { background: #fef9c3; color: #a16207; }
-        .bs-low  { background: #fee2e2; color: #dc2626; }
 
-        /* Minigame sub-list */
+        .bs-high {
+            background: #dcfce7;
+            color: #15803d;
+        }
+
+        .bs-mid {
+            background: #fef9c3;
+            color: #a16207;
+        }
+
+        .bs-low {
+            background: #fee2e2;
+            color: #dc2626;
+        }
+
+        /* ── Mini game list ── */
         .minigame-list {
             background: var(--card);
             border: 2px solid var(--border);
@@ -246,6 +378,7 @@
             box-shadow: var(--shadow);
             overflow: hidden;
         }
+
         .minigame-list-hd {
             padding: 16px 20px;
             border-bottom: 2px solid #f1f5f9;
@@ -253,7 +386,12 @@
             align-items: center;
             justify-content: space-between;
         }
-        .minigame-list-hd h3 { font-size: .9rem; font-weight: 900; }
+
+            .minigame-list-hd h3 {
+                font-size: .9rem;
+                font-weight: 900;
+            }
+
         .mg-count {
             background: #f3e8ff;
             color: #7c3aed;
@@ -262,6 +400,7 @@
             padding: 2px 9px;
             border-radius: 99px;
         }
+
         .mg-row {
             display: flex;
             align-items: center;
@@ -272,11 +411,23 @@
             border-bottom: 1px solid #f1f5f9;
             transition: background .12s;
         }
-        .mg-row:last-child { border-bottom: none; }
-        .mg-row:hover { background: #faf5ff; color: inherit; }
-        .mg-row.done-row { background: #f0fdf4; }
+
+            .mg-row:last-child {
+                border-bottom: none;
+            }
+
+            .mg-row:hover {
+                background: #faf5ff;
+                color: inherit;
+            }
+
+            .mg-row.done-row {
+                background: #f0fdf4;
+            }
+
         .mg-icon {
-            width: 36px; height: 36px;
+            width: 36px;
+            height: 36px;
             border-radius: 10px;
             display: flex;
             align-items: center;
@@ -284,28 +435,92 @@
             font-size: 1.1rem;
             flex-shrink: 0;
         }
-        .mg-icon-pending { background: #f3e8ff; }
-        .mg-icon-done    { background: #dcfce7; }
-        .mg-info { flex: 1; }
-        .mg-title { font-size: .88rem; font-weight: 900; }
-        .mg-type  { font-size: .7rem; font-weight: 700; color: var(--muted); margin-top: 2px; }
+
+        .mg-icon-pending {
+            background: #f3e8ff;
+        }
+
+        .mg-icon-done {
+            background: #dcfce7;
+        }
+
+        .mg-info {
+            flex: 1;
+        }
+
+        .mg-title {
+            font-size: .88rem;
+            font-weight: 900;
+        }
+
+        .mg-type {
+            font-size: .7rem;
+            font-weight: 700;
+            color: var(--muted);
+            margin-top: 2px;
+        }
+
         .mg-xp {
-            font-size: .75rem; font-weight: 900;
+            font-size: .75rem;
+            font-weight: 900;
             color: #92400e;
             background: #fef9c3;
             padding: 3px 10px;
             border-radius: 99px;
         }
+
         .mg-done-pill {
-            font-size: .68rem; font-weight: 900;
-            background: #dcfce7; color: #15803d;
+            font-size: .68rem;
+            font-weight: 900;
+            background: #dcfce7;
+            color: #15803d;
             padding: 2px 9px;
             border-radius: 99px;
         }
 
+        .mg-play-btn {
+            font-size: .75rem;
+            font-weight: 900;
+            background: #7c3aed;
+            color: #fff;
+            padding: 4px 14px;
+            border-radius: 99px;
+            text-decoration: none;
+            transition: background .15s;
+            white-space: nowrap;
+        }
+
+            .mg-play-btn:hover {
+                background: #6d28d9;
+                color: #fff;
+            }
+
+        .mg-replay-btn {
+            font-size: .75rem;
+            font-weight: 900;
+            background: #f3e8ff;
+            color: #7c3aed;
+            padding: 4px 14px;
+            border-radius: 99px;
+            text-decoration: none;
+            transition: background .15s;
+            border: 2px solid #ddd6fe;
+            white-space: nowrap;
+        }
+
+            .mg-replay-btn:hover {
+                background: #ede9fe;
+                color: #6d28d9;
+            }
+
         @@media (max-width: 992px) {
-            .hero-stats { display: none; }
-            .activities-grid { grid-template-columns: 1fr; }
+            .hero-stats {
+                display: none;
+            }
+
+            .activities-grid {
+                grid-template-columns: 1fr;
+            }
         }
     </style>
 }
@@ -352,19 +567,25 @@
     <div class="prog-header">
         <h3>Tiến độ bài học</h3>
         <span class="prog-pct">
-            @(Model.IsCompleted ? "Hoàn thành" : Model.CompletionStatus == "In Progress" ? "Đang học" : "Chưa bắt đầu")
+            @(Model.IsCompleted ? "Hoàn thành"
+              : Model.CompletionStatus == "In Progress" ? "Đang học"
+              : "Chưa bắt đầu")
         </span>
     </div>
     <div class="prog-bar">
-        <div class="prog-fill" style="width:@(Model.IsCompleted ? 100 : Model.CompletionStatus == "In Progress" ? 50 : 0)%"></div>
+        <div class="prog-fill"
+             style="width:@(Model.IsCompleted ? 100 : Model.CompletionStatus == "In Progress" ? 50 : 0)%">
+        </div>
     </div>
     <div class="step-chips">
         <span class="step-chip @(hasVocab ? "active" : "")">Từ vựng (@Model.Vocabularies.Count)</span>
-        <span class="step-chip @(hasQuiz  ? "active" : "")">Quiz (@Model.Quizzes.Count câu)</span>
-        <span class="step-chip @(hasGame  ? "active" : "")">Mini Game (@Model.MiniGames.Count)</span>
+        <span class="step-chip @(hasQuiz ? "active" : "")">Quiz (@Model.Quizzes.Count câu)</span>
+        <span class="step-chip @(hasGame ? "active" : "")">Mini Game (@Model.MiniGames.Count)</span>
         @if (Model.AttemptCount > 0)
         {
-            <span class="step-chip done">Đã làm @Model.AttemptCount lần · Cao nhất @Model.BestScore%</span>
+            <span class="step-chip done">
+                Đã làm @Model.AttemptCount lần · Cao nhất @Model.BestScore%
+            </span>
         }
     </div>
 </div>
@@ -375,7 +596,7 @@
     <!-- Flashcard -->
     <a href="@(hasVocab ? $"/student/lesson/{Model.LessonId}/flashcards" : "#")"
        class="activity-card flashcard @(!hasVocab ? "disabled" : "")">
-        <div class="ac-icon"></div>
+        <div class="ac-icon">🃏</div>
         <div class="ac-body">
             <div class="ac-title">Flashcard từ vựng</div>
             <div class="ac-desc">
@@ -418,7 +639,9 @@
         <div class="ac-footer">
             @if (Model.AttemptCount > 0)
             {
-                var bsClass = Model.BestScore >= 80 ? "bs-high" : Model.BestScore >= 50 ? "bs-mid" : "bs-low";
+                var bsClass = Model.BestScore >= 80 ? "bs-high"
+                            : Model.BestScore >= 50 ? "bs-mid"
+                            : "bs-low";
                 <span class="best-score-badge @bsClass">Cao nhất @Model.BestScore%</span>
             }
             else
@@ -432,9 +655,10 @@
         </div>
     </a>
 
-    <!-- Mini Game summary card -->
-    <div class="activity-card minigame @(!hasGame ? "disabled" : "")" style="cursor:default; pointer-events: @(hasGame ? "auto" : "none")">
-        <div class="ac-icon"></div>
+    <!-- Mini Game summary card (không click — danh sách bên dưới để chọn từng game) -->
+    <div class="activity-card minigame @(!hasGame ? "disabled" : "")"
+         style="cursor:default; pointer-events:@(hasGame ? "auto" : "none")">
+        <div class="ac-icon">🎮</div>
         <div class="ac-body">
             <div class="ac-title">Mini Game</div>
             <div class="ac-desc">
@@ -455,7 +679,7 @@
 
 </div>
 
-<!-- Mini Game list -->
+<!-- Mini Game list — mỗi dòng link thẳng đến WordScramble/Play/{gameId} -->
 @if (hasGame)
 {
     <div class="minigame-list">
@@ -463,34 +687,50 @@
             <h3>Danh sách Mini Game</h3>
             <span class="mg-count">@Model.MiniGames.Count trò chơi</span>
         </div>
+
         @foreach (var g in Model.MiniGames)
         {
-            var gameLabel = g.GameType switch
+            // Map GameType → nhãn hiển thị và emoji
+            var (gameLabel, mgEmoji) = g.GameType switch
             {
-                "WORD_MATCH"   => "Ghép từ",
-                "DRAG_DROP"    => "Kéo thả",
-                "MEMORY_CARD"  => "Lật thẻ",
-                "FILL_BLANK"   => "Điền từ",
-                _              => g.GameType
+                "WordScramble" => ("Sắp xếp chữ cái", "🔤"),
+                "Matching" => ("Ghép từ", "🔗"),
+                "DRAG_DROP" => ("Kéo thả", "✋"),
+                "MEMORY_CARD" => ("Lật thẻ", "🃏"),
+                "FILL_BLANK" => ("Điền từ", "✏️"),
+                _ => (g.GameType, "🎮")
             };
-            var mgEmoji = g.GameType switch
+
+            var playUrl = g.GameType switch
             {
-                "WORD_MATCH"   => "",
-                "DRAG_DROP"    => "",
-                "MEMORY_CARD"  => "",
-                "FILL_BLANK"   => "",
-                _              => ""
+                "WordScramble" => $"/WordScramble/Play/{g.GameId}",
+                "Matching" => $"/Matching/Play/{g.GameId}",
+                _ => $"/student/minigame/{g.GameId}"   // mở rộng sau
             };
-            <a href="/student/minigame/@g.GameId" class="mg-row @(g.IsDone ? "done-row" : "")">
-                <div class="mg-icon @(g.IsDone ? "mg-icon-done" : "mg-icon-pending")">@mgEmoji</div>
+
+            <a href="@playUrl" class="mg-row @(g.IsDone ? "done-row" : "")">
+                <div class="mg-icon @(g.IsDone ? "mg-icon-done" : "mg-icon-pending")">
+                    @mgEmoji
+                </div>
                 <div class="mg-info">
                     <div class="mg-title">@g.Title</div>
                     <div class="mg-type">@gameLabel</div>
                 </div>
+
                 @if (g.IsDone)
                 {
                     <span class="mg-done-pill">✓ Đã chơi</span>
+                    <a href="@playUrl" class="mg-replay-btn" onclick="event.stopPropagation()">
+                        Chơi lại
+                    </a>
                 }
+                else
+                {
+                    <a href="@playUrl" class="mg-play-btn" onclick="event.stopPropagation()">
+                        Chơi ngay →
+                    </a>
+                }
+
                 <span class="mg-xp">+@g.XPReward XP</span>
             </a>
         }

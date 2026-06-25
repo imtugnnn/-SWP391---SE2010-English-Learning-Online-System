@@ -75,6 +75,17 @@ public static class DbInitializer
         context.Users.Add(teacherUser);
         await context.SaveChangesAsync();
 
+        var contentManager = new User
+        {
+            Username = "contentmanager01",
+            Email = "content@english.com",
+            Password = BCrypt.Net.BCrypt.HashPassword("123456"),
+            IsActive = true,
+            RoleId = 5
+        };
+        context.Users.Add(contentManager);
+        await context.SaveChangesAsync();
+
         // ── Course ────────────────────────────────────────────────────────────
         var course = new Course { CourseName = "English Grade 3", GradeLevel = "3", IsPublished = true, CreatorId = teacherUser.Id };
         var course4 = new Course { CourseName = "English Grade 4", GradeLevel = "4", IsPublished = true, CreatorId = teacherUser.Id };

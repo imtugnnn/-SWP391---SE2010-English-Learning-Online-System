@@ -1,0 +1,162 @@
+﻿@model EnglishLearningOnlineSystem.ViewModels.ContentManager.Lessons.LessonDetailsViewModel
+
+@{
+    Layout = "_ContentManagerLayout";
+    ViewData["Title"] = "Chi tiết bài học";
+}
+
+<div class="cm-page-header">
+    <div>
+        <div class="cm-page-title">@Model.Title</div>
+        <div class="cm-page-subtitle">@Model.CourseName</div>
+    </div>
+
+    <div class="d-flex gap-2">
+        <a asp-action="Edit"
+           asp-route-id="@Model.LessonId"
+           class="cm-btn cm-btn-secondary">
+            Chỉnh sửa
+        </a>
+
+        <a asp-action="Index"
+           asp-route-courseId="@Model.CourseId"
+           class="cm-btn cm-btn-ghost">
+            Quay lại
+        </a>
+    </div>
+</div>
+
+@if (TempData["SuccessMessage"] != null)
+{
+    <div class="alert alert-success alert-dismissible fade show" role="alert">
+        @TempData["SuccessMessage"]
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+}
+@if (TempData["ErrorMessage"] != null)
+{
+    <div class="alert alert-danger alert-dismissible fade show" role="alert">
+        @TempData["ErrorMessage"]
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+}
+
+<!-- Thông tin bài học -->
+<div class="cm-card mb-4" style="padding:24px;">
+    <h6 class="fw-semibold text-muted mb-3 text-uppercase" style="font-size: 0.75rem; letter-spacing: .05em;">
+        Thông tin bài học
+    </h6>
+    <dl class="row mb-0">
+
+        <dt class="col-sm-3">Tiêu đề</dt>
+        <dd class="col-sm-9">@Model.Title</dd>
+
+        <dt class="col-sm-3">Chủ đề</dt>
+        <dd class="col-sm-9">@Model.Topic</dd>
+
+        <dt class="col-sm-3">Khóa học</dt>
+        <dd class="col-sm-9">@Model.CourseName</dd>
+
+        <dt class="col-sm-3">Cấp độ</dt>
+        <dd class="col-sm-9">@Model.CourseGradeLevel</dd>
+
+        <dt class="col-sm-3">Thứ tự</dt>
+        <dd class="col-sm-9">@Model.OrderIndex</dd>
+
+        <dt class="col-sm-3">Thời lượng</dt>
+        <dd class="col-sm-9">@Model.EstimatedMinutes phút</dd>
+
+        <dt class="col-sm-3">Điểm XP</dt>
+        <dd class="col-sm-9">@Model.XPReward</dd>
+
+        <dt class="col-sm-3">Trạng thái</dt>
+        <dd class="col-sm-9">
+            @if (Model.IsPublished)
+            {
+                <span class="cm-badge cm-badge-success">Đang hiển thị</span>
+            }
+            else
+            {
+                <span class="cm-badge cm-badge-muted">Bản nháp</span>
+            }
+        </dd>
+
+    </dl>
+</div>
+
+<!-- Phần Mini Game -->
+<div class="cm-card" style="padding:24px;">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h6 class="fw-semibold text-muted mb-0 text-uppercase" style="font-size: 0.75rem; letter-spacing: .05em;">
+            Mini Game
+        </h6>
+        <a asp-controller="MiniGames"
+           asp-action="Create"
+           asp-route-lessonId="@Model.LessonId"
+           class="cm-btn cm-btn-primary btn-sm">
+            + Thêm game
+        </a>
+    </div>
+
+    @if (Model.MiniGames == null || !Model.MiniGames.Any())
+    {
+        <p class="text-muted mb-0" style="font-size: 0.9rem;">
+            Bài học này chưa có mini game nào.
+            <a asp-controller="MiniGames"
+               asp-action="Create"
+               asp-route-lessonId="@Model.LessonId">
+                Tạo game đầu tiên
+            </a>
+        </p>
+    }
+    else
+    {
+        <table class="table table-sm table-hover mb-0">
+            <thead class="table-light">
+                <tr>
+                    <th>Tiêu đề</th>
+                    <th>Loại game</th>
+                    <th class="text-center">XP Thưởng</th>
+                    <th class="text-end">Thao tác</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var game in Model.MiniGames)
+                {
+                    <tr>
+                        <td>@game.Title</td>
+                        <td><span class="badge bg-info text-dark">@game.GameType</span></td>
+                        <td class="text-center">
+                            <span class="badge bg-warning text-dark">+@game.XPReward XP</span>
+                        </td>
+                        <td class="text-end">
+                            <a asp-controller="MiniGames"
+                               asp-action="Details"
+                               asp-route-id="@game.GameId"
+                               class="btn btn-sm btn-outline-secondary me-1">
+                                <i class="bi bi-eye"></i> Xem
+                            </a>
+                            <a asp-controller="MiniGames"
+                               asp-action="Edit"
+                               asp-route-id="@game.GameId"
+                               class="btn btn-sm btn-outline-primary me-1">
+                                <i class="bi bi-pencil"></i> Sửa
+                            </a>
+                            <form asp-controller="MiniGames"
+                                  asp-action="Delete"
+                                  asp-route-id="@game.GameId"
+                                  asp-route-lessonId="@Model.LessonId"
+                                  method="post" class="d-inline"
+                                  onsubmit="return confirm('Xóa game này?');">
+                                @Html.AntiForgeryToken()
+                                <button type="submit" class="btn btn-sm btn-outline-danger">
+                                    <i class="bi bi-trash"></i> Xóa
+                                </button>
+                            </form>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    }
+</div>

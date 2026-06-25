@@ -1,0 +1,61 @@
+@model EnglishLearningOnlineSystem.ViewModels.Student.Games.WordScrambleResultViewModel
+@{
+    ViewData["Title"] = "Kết quả";
+    Layout = "_StudentLayout";
+}
+
+<div class="container py-5" style="max-width: 520px;">
+    <div class="card shadow text-center">
+        <div class="card-body py-5">
+
+            @if (Model.IsCorrect)
+            {
+                <div class="mb-3">
+                    <i class="bi bi-check-circle-fill text-success" style="font-size: 4rem;"></i>
+                </div>
+                <h3 class="text-success mb-1">Chính xác! 🎉</h3>
+                <p class="text-muted mb-4">Bạn đã trả lời đúng.</p>
+            }
+            else
+            {
+                <div class="mb-3">
+                    <i class="bi bi-x-circle-fill text-danger" style="font-size: 4rem;"></i>
+                </div>
+                <h3 class="text-danger mb-1">Chưa đúng!</h3>
+                <p class="text-muted mb-4">Hãy cố gắng hơn lần sau nhé.</p>
+            }
+
+            <dl class="row text-start mb-4">
+                <dt class="col-6">Đáp án đúng</dt>
+                <dd class="col-6 fw-bold text-success">@Model.CorrectWord</dd>
+
+                <dt class="col-6">Câu trả lời của bạn</dt>
+                <dd class="col-6 @(Model.IsCorrect ? "text-success" : "text-danger")">
+                    @Model.StudentAnswer
+                </dd>
+
+                <dt class="col-6">XP nhận được</dt>
+                <dd class="col-6">
+                    <span class="badge bg-warning text-dark fs-6">+@Model.XPEarned XP</span>
+                </dd>
+
+                <dt class="col-6">Tổng XP hiện tại</dt>
+                <dd class="col-6">
+                    <span class="badge bg-secondary fs-6">@Model.NewTotalXP XP</span>
+                </dd>
+            </dl>
+
+            <div class="d-flex flex-column gap-2">
+                <!-- Chơi lại cùng game -->
+                <a href="/WordScramble/Play/@Model.GameId" class="btn btn-primary">
+                    <i class="bi bi-arrow-repeat me-1"></i> Chơi lại
+                </a>
+                <!-- Quay lại trang chi tiết bài học -->
+                <a href="/student/lesson/@Model.LessonId" class="btn btn-outline-secondary">
+                    <i class="bi bi-book me-1"></i> Quay lại bài học
+                </a>
+            </div>
+
+        </div>
+    </div>
+</div>

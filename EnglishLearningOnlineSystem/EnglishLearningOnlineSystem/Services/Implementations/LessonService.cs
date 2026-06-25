@@ -1,16 +1,22 @@
+using EnglishLearningOnlineSystem.Data;
 using EnglishLearningOnlineSystem.Models;
 using EnglishLearningOnlineSystem.Repositories.Interfaces;
 using EnglishLearningOnlineSystem.Services.Interfaces;
+using EnglishLearningOnlineSystem.ViewModels.ContentManager.Lessons;
+using EnglishLearningOnlineSystem.ViewModels.ContentManager.Minigames;
+using Microsoft.EntityFrameworkCore;
 
 namespace EnglishLearningOnlineSystem.Services.Implementations;
 
 public class LessonService : ILessonService
 {
     private readonly ILessonRepository _lessonRepo;
+    private readonly AppDbContext _db;
 
-    public LessonService(ILessonRepository lessonRepo)
+    public LessonService(ILessonRepository lessonRepo, AppDbContext db)
     {
         _lessonRepo = lessonRepo;
+        _db = db;
     }
 
     public async Task<List<Lesson>> GetAllLessonsAsync()
@@ -18,10 +24,12 @@ public class LessonService : ILessonService
         return await _lessonRepo.GetAllLessonsWithCourseAsync();
     }
 
-    public async Task<(List<EnglishLearningOnlineSystem.ViewModels.ContentManager.Lessons.LessonListItemViewModel> Items, int TotalCount)> GetLessonsAsync(string? keyword, int? courseId, int page, int pageSize)
+    public async Task<(List<LessonListItemViewModel> Items, int TotalCount)> GetLessonsAsync(
+        string? keyword, int? courseId, int page, int pageSize)
     {
         var (lessons, totalCount) = await _lessonRepo.GetLessonsPaginatedAsync(keyword, courseId, page, pageSize);
-        var items = lessons.Select(l => new EnglishLearningOnlineSystem.ViewModels.ContentManager.Lessons.LessonListItemViewModel
+
+        var items = lessons.Select(l => new LessonListItemViewModel
         {
             LessonId = l.LessonId,
             Title = l.Title,
@@ -34,12 +42,48 @@ public class LessonService : ILessonService
         return (items, totalCount);
     }
 
-    public async Task<(EnglishLearningOnlineSystem.ViewModels.ContentManager.Lessons.LessonEditViewModel? Model, string? ErrorMessage)> GetLessonForEditAsync(int id)
+    public async Task<LessonDetailsViewModel?> GetDetailsAsync(int lessonId)
+    {
+        var lesson = await _lessonRepo.GetLessonByIdAsync(lessonId);
+        if (lesson == null) return null;
+
+        var miniGames = await _db.MiniGames!
+            .AsNoTracking()
+            .Where(g => g.LessonId == lessonId)
+            .OrderBy(g => g.Title)
+            .Select(g => new MiniGameListItemViewModel
+            {
+                GameId = g.GameId,
+                Title = g.Title,
+                GameType = g.GameType,
+                XPReward = g.XPReward,
+                LessonId = g.LessonId,
+                LessonTitle = lesson.Title
+            })
+            .ToListAsync();
+
+        return new LessonDetailsViewModel
+        {
+            LessonId = lesson.LessonId,
+            Title = lesson.Title,
+            Topic = lesson.Topic,
+            OrderIndex = lesson.OrderIndex,
+            EstimatedMinutes = lesson.EstimatedMinutes,
+            XPReward = lesson.XPReward,
+            IsPublished = lesson.IsPublished,
+            CourseId = lesson.CourseId,
+            CourseName = lesson.Course?.CourseName ?? "—",
+            CourseGradeLevel = lesson.Course?.GradeLevel ?? "—",
+            MiniGames = miniGames
+        };
+    }
+
+    public async Task<(LessonEditViewModel? Model, string? ErrorMessage)> GetLessonForEditAsync(int id)
     {
         var l = await _lessonRepo.GetLessonByIdAsync(id);
         if (l == null) return (null, "Không tìm thấy bài học.");
 
-        var model = new EnglishLearningOnlineSystem.ViewModels.ContentManager.Lessons.LessonEditViewModel
+        var model = new LessonEditViewModel
         {
             LessonId = l.LessonId,
             CourseId = l.CourseId,
@@ -50,10 +94,11 @@ public class LessonService : ILessonService
             OrderIndex = l.OrderIndex,
             IsPublished = l.IsPublished
         };
+
         return (model, null);
     }
 
-    public async Task<(bool Success, string? ErrorMessage)> CreateLessonAsync(EnglishLearningOnlineSystem.ViewModels.ContentManager.Lessons.LessonCreateViewModel model)
+    public async Task<(bool Success, string? ErrorMessage)> CreateLessonAsync(LessonCreateViewModel model)
     {
         var lesson = new Lesson
         {
@@ -70,7 +115,7 @@ public class LessonService : ILessonService
         return (true, null);
     }
 
-    public async Task<(bool Success, string? ErrorMessage)> UpdateLessonAsync(EnglishLearningOnlineSystem.ViewModels.ContentManager.Lessons.LessonEditViewModel model)
+    public async Task<(bool Success, string? ErrorMessage)> UpdateLessonAsync(LessonEditViewModel model)
     {
         var lesson = await _lessonRepo.GetLessonByIdAsync(model.LessonId);
         if (lesson == null) return (false, "Không tìm thấy bài học.");
@@ -93,6 +138,16 @@ public class LessonService : ILessonService
         if (lesson == null) return (false, "Không tìm thấy bài học.");
 
         await _lessonRepo.DeleteLessonAsync(lesson);
+        return (true, null);
+    }
+
+    public async Task<(bool Success, string? ErrorMessage)> TogglePublishedAsync(int lessonId)
+    {
+        var lesson = await _lessonRepo.GetLessonByIdAsync(lessonId);
+        if (lesson == null) return (false, "Không tìm thấy bài học.");
+
+        lesson.IsPublished = !lesson.IsPublished;
+        await _lessonRepo.UpdateLessonAsync(lesson);
         return (true, null);
     }
 }

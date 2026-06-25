@@ -37,6 +37,20 @@ public class LessonsController : BaseContentManagerController
         return View("~/Views/ContentManager/Lessons/Index.cshtml", items);
     }
 
+    [HttpGet("{id:int}")]
+    public async Task<IActionResult> Details(int id)
+    {
+        var model = await _lessonService.GetDetailsAsync(id);
+
+        if (model == null)
+        {
+            TempData["ErrorMessage"] = "Không tìm thấy bài học.";
+            return RedirectToAction(nameof(Index));
+        }
+
+        return View("~/Views/ContentManager/Lessons/Details.cshtml", model);
+    }
+
     [HttpGet("create")]
     public async Task<IActionResult> Create(int? courseId)
     {
@@ -104,19 +118,19 @@ public class LessonsController : BaseContentManagerController
         }
 
         TempData["SuccessMessage"] = "Cập nhật bài học thành công.";
-        return RedirectToAction(nameof(Index), new { courseId = model.CourseId });
+        return RedirectToAction(nameof(Details), new { id = model.LessonId });
     }
 
     [HttpPost("{id:int}/delete")]
     [ValidateAntiForgeryToken]
-    public async Task<IActionResult> Delete(int id)
+    public async Task<IActionResult> Delete(int id, int? courseId)
     {
         var (success, errorMessage) = await _lessonService.DeleteLessonAsync(id);
 
         TempData[success ? "SuccessMessage" : "ErrorMessage"]
             = success ? "Đã xoá bài học." : errorMessage;
 
-        return RedirectToAction(nameof(Index));
+        return RedirectToAction(nameof(Index), new { courseId });
     }
 
     private async Task PopulateCoursesDropdownAsync(int? selectedCourseId = null)

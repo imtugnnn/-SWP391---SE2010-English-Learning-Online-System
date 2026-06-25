@@ -48,6 +48,11 @@ builder.Services.AddScoped<ILessonRepository, LessonRepository>();
 builder.Services.AddScoped<ILessonService, LessonService>();
 builder.Services.AddScoped<ILessonAnalyticsRepository, LessonAnalyticsRepository>();
 builder.Services.AddScoped<ILessonAnalyticsService, LessonAnalyticsService>();
+builder.Services.AddScoped<IMiniGameRepository, MiniGameRepository>();
+builder.Services.AddScoped<IMiniGameService, MiniGameService>();
+builder.Services.AddScoped<IWordScrambleService, WordScrambleService>();
+builder.Services.AddScoped<IStudentGameProgressRepository, StudentGameProgressRepository>();
+builder.Services.AddScoped<IMatchingGameService, MatchingGameService>();
 
 builder.Services.AddScoped<ILessonRepository, LessonRepository>();
 builder.Services.AddScoped<ILessonService, LessonService>();
