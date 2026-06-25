@@ -1,4 +1,4 @@
-﻿using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
 namespace EnglishLearningOnlineSystem.Models
@@ -25,6 +25,8 @@ namespace EnglishLearningOnlineSystem.Models
         public int? CourseId { get; set; }
         [ForeignKey("CourseId")]
         public Course Course { get; set; }
+
+        public bool IsDeleted { get; set; } = false;
 
         public ICollection<ClassEnrollment> Enrollments { get; set; } = new List<ClassEnrollment>();
     }

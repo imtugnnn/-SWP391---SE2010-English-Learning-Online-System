@@ -1,0 +1,446 @@
+﻿@model EnglishLearningOnlineSystem.ViewModels.TeacherAssignmentOverviewViewModel
+
+@{
+    ViewData["Title"] = "Tổng quan bài giao";
+    Layout = "_TeacherLayout";
+}
+
+<style>
+    body {
+        background: #f0f9ff;
+    }
+
+    .teacher-class-shell {
+        min-height: 100vh;
+        padding: 40px 16px;
+        background: linear-gradient(135deg, #e0f2fe 0%, #f0f9ff 60%, #e0f2fe 100%);
+    }
+
+    .teacher-class-container {
+        max-width: 1180px;
+        margin: 0 auto;
+    }
+
+    .page-card, .section-card {
+        background: #ffffff;
+        border: 1.5px solid #bae6fd;
+        box-shadow: 0 8px 24px rgba(14,165,233,.08);
+        overflow: hidden;
+    }
+
+    .page-card {
+        border-radius: 28px;
+        box-shadow: 0 20px 60px rgba(14,165,233,.16), 0 2px 8px rgba(14,165,233,.08);
+    }
+
+    .section-card {
+        border-radius: 22px;
+    }
+
+    .page-card-stripe {
+        height: 6px;
+        background: linear-gradient(90deg, #0ea5e9 0%, #38bdf8 50%, #7dd3fc 100%);
+    }
+
+    .page-card-body {
+        padding: 36px;
+    }
+
+    .page-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        background: #e0f2fe;
+        color: #0369a1;
+        font-size: .72rem;
+        font-weight: 800;
+        letter-spacing: .06em;
+        text-transform: uppercase;
+        padding: 5px 12px;
+        border-radius: 99px;
+        margin-bottom: 14px;
+    }
+
+    .page-badge-dot {
+        width: 6px;
+        height: 6px;
+        border-radius: 50%;
+        background: #0ea5e9;
+    }
+
+    .page-title {
+        font-size: 1.9rem;
+        font-weight: 900;
+        color: #1e3a5f;
+        margin-bottom: 8px;
+    }
+
+        .page-title span {
+            color: #0284c7;
+        }
+
+    .page-subtitle {
+        color: #64748b;
+        font-size: .95rem;
+        line-height: 1.7;
+        margin-bottom: 0;
+    }
+
+    .summary-card {
+        background: #f0f9ff;
+        border: 1.5px solid #bae6fd;
+        border-radius: 18px;
+        padding: 20px;
+        height: 100%;
+    }
+
+    .summary-label {
+        font-size: .78rem;
+        font-weight: 900;
+        color: #0369a1;
+        letter-spacing: .04em;
+        text-transform: uppercase;
+        margin-bottom: 6px;
+    }
+
+    .summary-value {
+        font-size: 1.7rem;
+        font-weight: 900;
+        color: #1e3a5f;
+        margin: 0;
+    }
+
+    .section-header {
+        padding: 18px 22px;
+        border-bottom: 1px solid #e0f2fe;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 16px;
+        flex-wrap: wrap;
+    }
+
+    .section-title {
+        font-weight: 900;
+        color: #1e3a5f;
+        margin: 0;
+        font-size: 1.05rem;
+    }
+
+    .form-label {
+        color: #0369a1;
+        font-size: .78rem;
+        font-weight: 900;
+        text-transform: uppercase;
+        letter-spacing: .04em;
+    }
+
+    .form-select {
+        border-radius: 14px;
+        border: 1.5px solid #bae6fd;
+        padding: 10px 12px;
+    }
+
+    .btn-teacher {
+        border: none;
+        border-radius: 14px;
+        background: linear-gradient(135deg, #0ea5e9 0%, #38bdf8 100%);
+        color: #fff;
+        font-weight: 800;
+        padding: 10px 16px;
+        box-shadow: 0 6px 20px rgba(14,165,233,.28);
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+        .btn-teacher:hover {
+            color: #fff;
+            opacity: .92;
+        }
+
+    .btn-teacher-outline {
+        border: 1.5px solid #38bdf8;
+        border-radius: 14px;
+        color: #0369a1;
+        font-weight: 800;
+        padding: 8px 14px;
+        text-decoration: none;
+        background: #ffffff;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+        .btn-teacher-outline:hover {
+            background: #e0f2fe;
+            color: #0369a1;
+        }
+
+    .table {
+        margin-bottom: 0;
+    }
+
+        .table thead th {
+            background: #f0f9ff;
+            color: #0369a1;
+            font-size: .78rem;
+            text-transform: uppercase;
+            letter-spacing: .04em;
+            border-bottom: 1px solid #bae6fd;
+            padding: 14px 18px;
+        }
+
+        .table tbody td {
+            padding: 16px 18px;
+            vertical-align: middle;
+            color: #334155;
+        }
+
+    .badge-soft-primary {
+        background: #e0f2fe;
+        color: #0369a1;
+        border-radius: 99px;
+        padding: 7px 11px;
+        font-weight: 800;
+    }
+
+    .badge-soft-danger {
+        background: #fee2e2;
+        color: #991b1b;
+        border-radius: 99px;
+        padding: 7px 11px;
+        font-weight: 800;
+    }
+
+    .empty-state {
+        padding: 32px;
+        text-align: center;
+        color: #64748b;
+        background: #ffffff;
+    }
+
+    .pagination .page-link {
+        border: 1.5px solid #bae6fd;
+        color: #0369a1;
+        font-weight: 800;
+    }
+
+    .pagination .active .page-link {
+        background: #0ea5e9;
+        border-color: #0ea5e9;
+        color: #fff;
+    }
+</style>
+
+<div class="teacher-class-shell">
+    <div class="teacher-class-container">
+
+        <div class="page-card mb-4">
+            <div class="page-card-stripe"></div>
+
+            <div class="page-card-body">
+                <div class="d-flex justify-content-between align-items-start gap-3 flex-wrap mb-4">
+                    <div>
+                        <div class="page-badge">
+                            <span class="page-badge-dot"></span>
+                            Teacher Assignment
+                        </div>
+
+                        <h1 class="page-title">
+                            Tổng quan <span>bài đã giao</span>
+                        </h1>
+
+                        <p class="page-subtitle">
+                            Theo dõi các bài học đã giao, trạng thái hoạt động và hạn hoàn thành.
+                        </p>
+                    </div>
+
+                    @if (Model.ClassId.HasValue)
+                    {
+                        <a asp-controller="Teacher"
+                           asp-action="ClassDetail"
+                           asp-route-classId="@Model.ClassId"
+                           class="btn-teacher-outline">
+                            Quay lại chi tiết lớp
+                        </a>
+                    }
+                    else
+                    {
+                        <a asp-controller="Teacher"
+                           asp-action="Dashboard"
+                           class="btn-teacher-outline">
+                            Quay lại Dashboard
+                        </a>
+                    }
+                </div>
+
+                <div class="row g-3">
+                    <div class="col-md-4">
+                        <div class="summary-card">
+                            <div class="summary-label">Tổng bài giao</div>
+                            <p class="summary-value">@Model.TotalAssignments</p>
+                        </div>
+                    </div>
+
+                    <div class="col-md-4">
+                        <div class="summary-card">
+                            <div class="summary-label">Đang hoạt động</div>
+                            <p class="summary-value">@Model.ActiveAssignments</p>
+                        </div>
+                    </div>
+
+                    <div class="col-md-4">
+                        <div class="summary-card">
+                            <div class="summary-label">Quá hạn</div>
+                            <p class="summary-value">@Model.ExpiredAssignments</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="section-card mb-4">
+            <div class="section-header">
+                <h2 class="section-title">Bộ lọc bài giao</h2>
+            </div>
+
+            <div class="p-4">
+                <form method="get" asp-controller="Teacher" asp-action="AssignmentOverview">
+                    <div class="row g-3 align-items-end">
+                        <input type="hidden"
+                               name="classId"
+                               value="@Model.ClassId" />
+                        <div class="col-md-5">
+                            <label class="form-label">Trạng thái</label>
+                            <select name="status" class="form-select">
+                                <option value="all" selected="@(Model.Status == "all")">Tất cả</option>
+                                <option value="active" selected="@(Model.Status == "active")">Đang hoạt động</option>
+                                <option value="expired" selected="@(Model.Status == "expired")">Quá hạn</option>
+                            </select>
+                        </div>
+
+                        <div class="col-md-5">
+                            <label class="form-label">Sắp xếp</label>
+                            <select name="sortBy" class="form-select">
+                                <option value="dueDate" selected="@(Model.SortBy == "dueDate")">Hạn hoàn thành</option>
+                                <option value="startDate" selected="@(Model.SortBy == "startDate")">Ngày bắt đầu</option>
+                                <option value="lesson" selected="@(Model.SortBy == "lesson")">Tên bài học</option>
+                            </select>
+                        </div>
+
+                        <div class="col-md-2 d-grid">
+                            <button type="submit" class="btn-teacher">Lọc</button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <div class="section-card">
+            <div class="section-header">
+                <h2 class="section-title">Danh sách bài giao</h2>
+
+                <span class="page-badge mb-0">
+                    <span class="page-badge-dot"></span>
+                    @Model.TotalItems kết quả
+                </span>
+            </div>
+
+            @if (Model.Assignments.Any())
+            {
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle">
+                        <thead>
+                            <tr>
+                                <th>Bài học</th>
+                                <th>Chủ đề</th>
+                                <th>Ngày bắt đầu</th>
+                                <th>Hạn hoàn thành</th>
+                                <th>Trạng thái</th>
+                            </tr>
+                        </thead>
+
+                        <tbody>
+                            @foreach (var item in Model.Assignments)
+                            {
+                                <tr>
+                                    <td class="fw-bold">@item.LessonTitle</td>
+                                    <td>@item.Topic</td>
+                                    <td>@item.WeekStartDate.ToString("dd/MM/yyyy")</td>
+                                    <td>@item.DueDate.ToString("dd/MM/yyyy")</td>
+                                    <td>
+                                        @if (item.Status == "Quá hạn")
+                                        {
+                                            <span class="badge-soft-danger">@item.Status</span>
+                                        }
+                                        else
+                                        {
+                                            <span class="badge-soft-primary">@item.Status</span>
+                                        }
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            }
+            else
+            {
+                <div class="empty-state">
+                    Chưa có bài giao nào phù hợp với điều kiện lọc.
+                </div>
+            }
+
+            @if (Model.TotalPages > 1)
+            {
+                <div class="p-3 border-top">
+                    <nav>
+                        <ul class="pagination justify-content-center mb-0">
+                            <li class="page-item @(Model.Page <= 1 ? "disabled" : "")">
+                                <a class="page-link"
+                                   asp-route-classId="@Model.ClassId"
+                                   asp-controller="Teacher"
+                                   asp-action="AssignmentOverview"
+                                   asp-route-status="@Model.Status"
+                                   asp-route-sortBy="@Model.SortBy"
+                                   asp-route-page="@(Model.Page - 1)">
+                                    Trước
+                                </a>
+                            </li>
+
+                            @for (var i = 1; i <= Model.TotalPages; i++)
+                            {
+                                <li class="page-item @(i == Model.Page ? "active" : "")">
+                                    <a class="page-link"
+                                       asp-route-classId="@Model.ClassId"
+                                       asp-controller="Teacher"
+                                       asp-action="AssignmentOverview"
+                                       asp-route-status="@Model.Status"
+                                       asp-route-sortBy="@Model.SortBy"
+                                       asp-route-page="@i">
+                                        @i
+                                    </a>
+                                </li>
+                            }
+
+                            <li class="page-item @(Model.Page >= Model.TotalPages ? "disabled" : "")">
+                                <a class="page-link"
+                                   asp-route-classId="@Model.ClassId"
+                                   asp-controller="Teacher"
+                                   asp-action="AssignmentOverview"
+                                   asp-route-status="@Model.Status"
+                                   asp-route-sortBy="@Model.SortBy"
+                                   asp-route-page="@(Model.Page + 1)">
+                                    Sau
+                                </a>
+                            </li>
+                        </ul>
+                    </nav>
+                </div>
+            }
+        </div>
+
+    </div>
+</div>

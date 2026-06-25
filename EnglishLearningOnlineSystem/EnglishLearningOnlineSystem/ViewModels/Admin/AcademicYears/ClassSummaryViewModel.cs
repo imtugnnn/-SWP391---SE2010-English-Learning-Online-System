@@ -8,4 +8,5 @@ public class ClassSummaryViewModel
     public string TeacherName { get; set; } = string.Empty;
     public string TeacherEmail { get; set; } = string.Empty;
     public List<string> StudentEmails { get; set; } = new();
+    public bool IsDeleted { get; set; }
 }

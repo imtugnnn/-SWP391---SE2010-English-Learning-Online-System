@@ -1,217 +1,913 @@
+@model List<EnglishLearningOnlineSystem.Models.User>
+
 @{
     ViewData["Title"] = "Quản lý người dùng";
     Layout = "~/Views/Shared/Admin/_AdminLayout.cshtml";
+    var rolesList = ViewBag.Roles as List<EnglishLearningOnlineSystem.Models.Role> ?? new List<EnglishLearningOnlineSystem.Models.Role>();
+
+    // Calculate Stats
+    var totalUsers = Model.Count;
+    var activeUsers = Model.Count(u => u.IsActive);
+    var studentCount = Model.Count(u => u.Role?.Name == "Student");
+    var teacherCount = Model.Count(u => u.Role?.Name == "Teacher");
+    var parentCount = Model.Count(u => u.Role?.Name == "Parent");
+    var contentManagerCount = Model.Count(u => u.Role?.Name == "Content Manager");
+
+    // Trends computation
+    var now = DateTime.Now;
+    var thisMonthStart = new DateTime(now.Year, now.Month, 1);
+    var lastMonthStart = thisMonthStart.AddMonths(-1);
+
+    // Dynamic trend counts
+    var newThisMonth = Model.Count(u => u.CreateAt >= thisMonthStart);
+    var newLastMonth = Model.Count(u => u.CreateAt >= lastMonthStart && u.CreateAt < thisMonthStart);
+
+    var activeThisMonth = Model.Count(u => u.IsActive && u.LastLoginAt.HasValue && u.LastLoginAt.Value >= thisMonthStart);
+    var activeLastMonth = Model.Count(u => u.IsActive && u.LastLoginAt.HasValue && u.LastLoginAt.Value >= lastMonthStart && u.LastLoginAt.Value < thisMonthStart);
+
+    var studentsThisMonth = Model.Count(u => u.Role?.Name == "Student" && u.LastLoginAt.HasValue && u.LastLoginAt.Value >= thisMonthStart);
+    var studentsLastMonth = Model.Count(u => u.Role?.Name == "Student" && u.LastLoginAt.HasValue && u.LastLoginAt.Value >= lastMonthStart && u.LastLoginAt.Value < thisMonthStart);
+
+    var teachersThisMonth = Model.Count(u => u.Role?.Name == "Teacher" && u.LastLoginAt.HasValue && u.LastLoginAt.Value >= thisMonthStart);
+    var teachersLastMonth = Model.Count(u => u.Role?.Name == "Teacher" && u.LastLoginAt.HasValue && u.LastLoginAt.Value >= lastMonthStart && u.LastLoginAt.Value < thisMonthStart);
+
+    var parentsThisMonth = Model.Count(u => u.Role?.Name == "Parent" && u.LastLoginAt.HasValue && u.LastLoginAt.Value >= thisMonthStart);
+    var parentsLastMonth = Model.Count(u => u.Role?.Name == "Parent" && u.LastLoginAt.HasValue && u.LastLoginAt.Value >= lastMonthStart && u.LastLoginAt.Value < thisMonthStart);
+
+    var contentThisMonth = Model.Count(u => u.Role?.Name == "Content Manager" && u.LastLoginAt.HasValue && u.LastLoginAt.Value >= thisMonthStart);
+    var contentLastMonth = Model.Count(u => u.Role?.Name == "Content Manager" && u.LastLoginAt.HasValue && u.LastLoginAt.Value >= lastMonthStart && u.LastLoginAt.Value < thisMonthStart);
 }
 
 @section Styles
 {
-    <link rel="stylesheet" href="~/css/admin/user-management.css" />
+    <link rel="stylesheet" href="~/css/admin/user-management.css" asp-append-version="true" />
 }
 
 <div class="user-management-page">
 
+    <!-- Header Section -->
     <div class="page-header">
-
-        <h2>Quản lý người dùng</h2>
-
-        <button class="btn-add"
-                data-bs-toggle="modal"
-                data-bs-target="#createUserModal">
-
-            <i class="bi bi-plus"></i>
-            THÊM NGƯỜI DÙNG
-
+        <div class="header-title-section">
+            <h2>Quản lý người dùng</h2>
+            <p>Quản lý tất cả tài khoản người dùng trong hệ thống</p>
+        </div>
+        <button class="btn-add" data-bs-toggle="modal" data-bs-target="#createUserModal">
+            <i class="bi bi-plus-lg"></i>
+            Thêm người dùng
         </button>
-
     </div>
 
-    <div class="user-table-wrapper">
-
-        <table class="user-table">
-
-            <thead>
-            <tr>
-                <th>TÊN</th>
-                <th>TÀI KHOẢN</th>
-                <th>EMAIL</th>
-                <th>VAI TRÒ</th>
-                <th>NGÀY TẠO</th>
-                <th>HÀNH ĐỘNG</th>
-            </tr>
-            </thead>
-
-            <tbody>
-
-            <tr>
-                <td>Nguyễn Văn A</td>
-                <td>nguyenvana</td>
-                <td>nguyenvana@example.com</td>
-
-                <td>
-                    <span class="role admin">
-                        Admin
-                    </span>
-                </td>
-
-                <td>2024-01-15</td>
-
-                <td class="actions">
-                    <button class="action-btn">✏</button>
-                    <button class="action-btn">🗑</button>
-                </td>
-            </tr>
-
-            <tr>
-                <td>Trần Thị B</td>
-                <td>tranthib</td>
-                <td>tranthib@example.com</td>
-
-                <td>
-                    <span class="role teacher">
-                        Teacher
-                    </span>
-                </td>
-
-                <td>2024-02-20</td>
-
-                <td class="actions">
-                    <button class="action-btn">✏</button>
-                    <button class="action-btn">🗑</button>
-                </td>
-            </tr>
-
-            <tr>
-                <td>Lê Văn C</td>
-                <td>levanc</td>
-                <td>levanc@example.com</td>
-
-                <td>
-                    <span class="role student">
-                        Student
-                    </span>
-                </td>
-
-                <td>2024-03-10</td>
-
-                <td class="actions">
-                    <button class="action-btn">✏</button>
-                    <button class="action-btn">🗑</button>
-                </td>
-            </tr>
-
-            </tbody>
-
-        </table>
-
-    </div>
-
-</div>
-
-<!-- Modal Add User -->
-
-<div class="modal fade"
-     id="createUserModal"
-     tabindex="-1">
-
-    <div class="modal-dialog modal-dialog-centered">
-
-        <div class="modal-content custom-modal">
-
-            <div class="modal-header border-0">
-
-                <h5 class="modal-title">
-                    Thêm người dùng mới
-                </h5>
-
-                <button type="button"
-                        class="btn-close"
-                        data-bs-dismiss="modal">
-                </button>
-
+    <!-- Stats Cards Row -->
+    <div class="stats-cards-grid">
+        <!-- Card 1: All -->
+        <div class="stat-card card-all">
+            <div class="stat-card-header">
+                <span class="stat-card-title">Tất cả tài khoản</span>
+                <div class="stat-card-icon">
+                    <i class="bi bi-people-fill"></i>
+                </div>
             </div>
-
-            <form>
-
-                <div class="modal-body">
-
-                    <div class="mb-3">
-
-                        <input class="form-control"
-                               placeholder="Tên đầy đủ *">
-
-                    </div>
-
-                    <div class="mb-1">
-
-                        <input class="form-control"
-                               placeholder="Tài khoản *">
-
-                    </div>
-
-                    <small class="field-hint">
-                        Tên đăng nhập của người dùng
-                    </small>
-
-                    <div class="mb-3 mt-3">
-
-                        <input class="form-control"
-                               placeholder="Email *">
-
-                    </div>
-
-                    <div class="mb-1">
-
-                        <input type="password"
-                               class="form-control"
-                               placeholder="Mật khẩu *">
-
-                    </div>
-
-                    <small class="field-hint">
-                        Mật khẩu cho tài khoản
-                    </small>
-
-                    <div class="mt-3">
-
-                        <label class="form-label">
-                            Vai trò
-                        </label>
-
-                        <select class="form-select">
-
-                            <option>Student</option>
-                            <option>Teacher</option>
-                            <option>Admin</option>
-
-                        </select>
-
-                    </div>
-
+            <div class="stat-card-value">@totalUsers</div>
+            <div class="stat-card-trends">
+                <div class="trend-item trend-up">
+                    <i class="bi bi-arrow-up-short"></i> @newThisMonth người tạo mới
                 </div>
-
-                <div class="modal-footer border-0">
-
-                    <button type="button"
-                            class="btn btn-link"
-                            data-bs-dismiss="modal">
-
-                        HỦY
-
-                    </button>
-
-                    <button type="submit"
-                            class="btn btn-light disabled">
-
-                        THÊM
-
-                    </button>
-
+                <div class="trend-item trend-down">
+                    <i class="bi bi-arrow-down-short"></i> @newLastMonth người tạo mới tháng trước
                 </div>
-
-            </form>
-
+            </div>
         </div>
 
+        <!-- Card 2: Active -->
+        <div class="stat-card card-active">
+            <div class="stat-card-header">
+                <span class="stat-card-title">Đang hoạt động</span>
+                <div class="stat-card-icon">
+                    <i class="bi bi-check-circle-fill"></i>
+                </div>
+            </div>
+            <div class="stat-card-value">@activeUsers</div>
+            <div class="stat-card-trends">
+                <div class="trend-item trend-up">
+                    <i class="bi bi-arrow-up-short"></i> @activeThisMonth hoạt động tháng này
+                </div>
+                <div class="trend-item trend-down">
+                    <i class="bi bi-arrow-down-short"></i> @activeLastMonth hoạt động tháng trước
+                </div>
+            </div>
+        </div>
+
+        <!-- Card 3: Students -->
+        <div class="stat-card card-student">
+            <div class="stat-card-header">
+                <span class="stat-card-title">Học sinh</span>
+                <div class="stat-card-icon">
+                    <i class="bi bi-mortarboard-fill"></i>
+                </div>
+            </div>
+            <div class="stat-card-value">@studentCount</div>
+            <div class="stat-card-trends">
+                <div class="trend-item trend-up">
+                    <i class="bi bi-arrow-up-short"></i> @studentsThisMonth người hoạt động tháng này
+                </div>
+                <div class="trend-item trend-down">
+                    <i class="bi bi-arrow-down-short"></i> @studentsLastMonth người hoạt động tháng trước
+                </div>
+            </div>
+        </div>
+
+        <!-- Card 4: Teachers -->
+        <div class="stat-card card-teacher">
+            <div class="stat-card-header">
+                <span class="stat-card-title">Giáo viên</span>
+                <div class="stat-card-icon">
+                    <i class="bi bi-person-video3"></i>
+                </div>
+            </div>
+            <div class="stat-card-value">@teacherCount</div>
+            <div class="stat-card-trends">
+                <div class="trend-item trend-up">
+                    <i class="bi bi-arrow-up-short"></i> @teachersThisMonth người hoạt động tháng này
+                </div>
+                <div class="trend-item trend-down">
+                    <i class="bi bi-arrow-down-short"></i> @teachersLastMonth người hoạt động tháng trước
+                </div>
+            </div>
+        </div>
+
+        <!-- Card 5: Parents -->
+        <div class="stat-card card-parent">
+            <div class="stat-card-header">
+                <span class="stat-card-title">Phụ huynh</span>
+                <div class="stat-card-icon">
+                    <i class="bi bi-people"></i>
+                </div>
+            </div>
+            <div class="stat-card-value">@parentCount</div>
+            <div class="stat-card-trends">
+                <div class="trend-item trend-up">
+                    <i class="bi bi-arrow-up-short"></i> @parentsThisMonth người hoạt động tháng này
+                </div>
+                <div class="trend-item trend-down">
+                    <i class="bi bi-arrow-down-short"></i> @parentsLastMonth người hoạt động tháng trước
+                </div>
+            </div>
+        </div>
+
+        <!-- Card 6: Content Manager -->
+        <div class="stat-card card-content">
+            <div class="stat-card-header">
+                <span class="stat-card-title">Quản trị nội dung</span>
+                <div class="stat-card-icon">
+                    <i class="bi bi-briefcase-fill"></i>
+                </div>
+            </div>
+            <div class="stat-card-value">@contentManagerCount</div>
+            <div class="stat-card-trends">
+                <div class="trend-item trend-up">
+                    <i class="bi bi-arrow-up-short"></i> @contentThisMonth người hoạt động tháng này
+                </div>
+                <div class="trend-item trend-down">
+                    <i class="bi bi-arrow-down-short"></i> @contentLastMonth người hoạt động tháng trước
+                </div>
+            </div>
+        </div>
     </div>
 
+    <!-- Filters Section -->
+    <div class="filter-box">
+        <!-- Main Filter Row -->
+        <div class="filter-row-main">
+            <div class="filter-item">
+                <label>Tìm kiếm</label>
+                <div class="search-input-wrapper">
+                    <input type="text" id="mainSearchInput" placeholder="Tìm kiếm username hoặc email..." oninput="onMainFilterChange()" />
+                    <button class="search-icon-btn"><i class="bi bi-search"></i></button>
+                </div>
+            </div>
+            
+            <div class="filter-item">
+                <label>Vai trò</label>
+                <select id="mainRoleFilter" onchange="onMainFilterChange()">
+                    <option value="">Tất cả</option>
+                    @foreach(var r in rolesList)
+                    {
+                        <option value="@r.Name">@r.Name</option>
+                    }
+                </select>
+            </div>
+
+            <div class="filter-item">
+                <label>Trạng thái</label>
+                <select id="mainStatusFilter" onchange="onMainFilterChange()">
+                    <option value="">Tất cả</option>
+                    <option value="true">Đang hoạt động</option>
+                    <option value="false">Ngừng hoạt động</option>
+                </select>
+            </div>
+
+            <div class="filter-item">
+                <label>Ngày tạo từ</label>
+                <input type="date" id="mainCreatedFrom" onchange="onMainFilterChange()" />
+            </div>
+
+            <div class="filter-item">
+                <label>Ngày tạo đến</label>
+                <input type="date" id="mainCreatedTo" onchange="onMainFilterChange()" />
+            </div>
+
+            <div class="filter-buttons">
+                <button class="btn-reset" onclick="resetFilters()"><i class="bi bi-arrow-counterclockwise"></i> Đặt lại</button>
+            </div>
+        </div>
+
+
+    </div>
+
+    <!-- Data Table -->
+    <div class="user-table-wrapper">
+        <table class="user-table">
+            <thead>
+                <tr>
+                    <th style="width: 40px;">
+                        <input type="checkbox" id="selectAllCheckbox" class="custom-checkbox-input" onchange="toggleSelectAll(this)" />
+                    </th>
+                    <th class="sortable" onclick="handleSort('username')">Username <i class="bi bi-arrow-down-up sort-icon"></i></th>
+                    <th class="sortable" onclick="handleSort('email')">Email <i class="bi bi-arrow-down-up sort-icon"></i></th>
+                    <th>Vai trò <i class="bi bi-funnel filter-icon"></i></th>
+                    <th>Trạng thái <i class="bi bi-funnel filter-icon"></i></th>
+                    <th class="sortable" onclick="handleSort('birthdate')">Ngày sinh <i class="bi bi-arrow-down-up sort-icon"></i></th>
+                    <th class="sortable" onclick="handleSort('lastlogin')">Lần đăng nhập cuối <i class="bi bi-arrow-down-up sort-icon"></i></th>
+                    <th class="sortable" onclick="handleSort('created')">Ngày tạo <i class="bi bi-arrow-down-up sort-icon"></i></th>
+                    <th style="width: 130px;">Thao tác</th>
+                </tr>
+            </thead>
+            <tbody id="user-table-body">
+                <!-- Dynamically Rendered via JS -->
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Pagination Row -->
+    <div class="pagination-row">
+        <div class="pagination-info" id="pagination-info-text">
+            Hiển thị 0 đến 0 trong tổng số 0 người dùng
+        </div>
+        
+        <div class="pagination-controls-wrapper">
+            <div class="items-per-page-selector">
+                <select id="itemsPerPageSelect" onchange="onItemsPerPageChange(this.value)">
+                    <option value="10">10 / trang</option>
+                    <option value="20">20 / trang</option>
+                    <option value="50">50 / trang</option>
+                </select>
+            </div>
+            
+            <div class="pagination-buttons" id="pagination-buttons-container">
+                <!-- Dynamically Rendered via JS -->
+            </div>
+        </div>
+    </div>
 </div>
+
+<!-- Modal: Create User -->
+<div class="modal fade" id="createUserModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content custom-modal">
+            <div class="modal-header">
+                <h5 class="modal-title">Thêm người dùng mới</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form id="createUserForm" onsubmit="submitCreateUser(event)">
+                @Html.AntiForgeryToken()
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label">Tên đăng nhập *</label>
+                        <input type="text" class="form-control" name="username" required placeholder="Nhập username..." />
+                        <div class="validation-error-msg" id="create-error-username"></div>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Email *</label>
+                        <input type="email" class="form-control" name="email" required placeholder="Nhập email..." />
+                        <div class="validation-error-msg" id="create-error-email"></div>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Mật khẩu *</label>
+                        <input type="password" class="form-control" name="password" required placeholder="Nhập mật khẩu (tối thiểu 6 ký tự)..." />
+                        <div class="validation-error-msg" id="create-error-password"></div>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Ngày sinh</label>
+                        <input type="date" class="form-control" name="birthDate" />
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Vai trò *</label>
+                        <select class="form-select" name="roleId" required>
+                            <option value="">-- Chọn vai trò --</option>
+                            @foreach(var r in rolesList)
+                            {
+                                <option value="@r.Id">@r.Name</option>
+                            }
+                        </select>
+                        <div class="validation-error-msg" id="create-error-roleId"></div>
+                    </div>
+                    <div class="form-check form-switch mt-2">
+                        <input class="form-check-input" type="checkbox" name="isActive" id="createIsActive" checked value="true">
+                        <label class="form-check-label" for="createIsActive">Kích hoạt tài khoản</label>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn-modal-cancel" data-bs-dismiss="modal">Hủy</button>
+                    <button type="submit" class="btn-modal-submit">Thêm</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Modal: Edit User -->
+<div class="modal fade" id="editUserModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content custom-modal">
+            <div class="modal-header">
+                <h5 class="modal-title">Cập nhật người dùng</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form id="editUserForm" onsubmit="submitEditUser(event)">
+                @Html.AntiForgeryToken()
+                <input type="hidden" name="id" id="editUserId" />
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label">Tên đăng nhập *</label>
+                        <input type="text" class="form-control" name="username" id="editUsername" required />
+                        <div class="validation-error-msg" id="edit-error-username"></div>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Email *</label>
+                        <input type="email" class="form-control" name="email" id="editEmail" required />
+                        <div class="validation-error-msg" id="edit-error-email"></div>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Mật khẩu mới (để trống nếu giữ nguyên)</label>
+                        <input type="password" class="form-control" name="password" id="editPassword" placeholder="Nhập mật khẩu mới..." />
+                        <div class="validation-error-msg" id="edit-error-password"></div>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Ngày sinh</label>
+                        <input type="date" class="form-control" name="birthDate" id="editBirthDate" />
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Vai trò *</label>
+                        <select class="form-select" name="roleId" id="editRoleId" required>
+                            @foreach(var r in rolesList)
+                            {
+                                <option value="@r.Id">@r.Name</option>
+                            }
+                        </select>
+                        <div class="validation-error-msg" id="edit-error-roleId"></div>
+                    </div>
+                    <div class="form-check form-switch mt-2">
+                        <input class="form-check-input" type="checkbox" name="isActive" id="editIsActive" value="true">
+                        <label class="form-check-label" for="editIsActive">Kích hoạt tài khoản</label>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn-modal-cancel" data-bs-dismiss="modal">Hủy</button>
+                    <button type="submit" class="btn-modal-submit">Lưu thay đổi</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        // Load initial users list from Razor model
+        let users = @Html.Raw(Json.Serialize(Model.Select(u => new {
+            id = u.Id,
+            username = u.Username,
+            email = u.Email,
+            birthDate = u.BirthDate.HasValue ? u.BirthDate.Value.ToString("yyyy-MM-dd") : null,
+            isActive = u.IsActive,
+            roleId = u.RoleId,
+            roleName = u.Role?.Name,
+            createAt = u.CreateAt.ToString("yyyy-MM-ddTHH:mm:ss"),
+            lastLoginAt = u.LastLoginAt.HasValue ? u.LastLoginAt.Value.ToString("yyyy-MM-ddTHH:mm:ss") : null
+        })));
+
+        let filteredUsers = [...users];
+        let currentPage = 1;
+        let itemsPerPage = 10;
+        let currentSortColumn = 'created';
+        let currentSortDirection = 'desc'; // default sorted by newest
+
+        // Page load initialization
+        document.addEventListener('DOMContentLoaded', () => {
+            applyFilters();
+        });
+
+        // HTML escaping helper
+        function escapeHtml(text) {
+            if (!text) return '';
+            return text.toString()
+                .replace(/&/g, "&amp;")
+                .replace(/</g, "&lt;")
+                .replace(/>/g, "&gt;")
+                .replace(/"/g, "&quot;")
+                .replace(/'/g, "&#039;");
+        }
+
+        // Date formatting helpers
+        function formatDate(dateStr) {
+            if (!dateStr) return '-';
+            try {
+                const d = new Date(dateStr);
+                if (isNaN(d.getTime())) return '-';
+                const day = String(d.getDate()).padStart(2, '0');
+                const month = String(d.getMonth() + 1).padStart(2, '0');
+                const year = d.getFullYear();
+                return `${day}/${month}/${year}`;
+            } catch {
+                return '-';
+            }
+        }
+
+        function formatDateTime(dateStr) {
+            if (!dateStr) return '-';
+            try {
+                const d = new Date(dateStr);
+                if (isNaN(d.getTime())) return '-';
+                const day = String(d.getDate()).padStart(2, '0');
+                const month = String(d.getMonth() + 1).padStart(2, '0');
+                const year = d.getFullYear();
+                const hours = String(d.getHours()).padStart(2, '0');
+                const minutes = String(d.getMinutes()).padStart(2, '0');
+                return `${day}/${month}/${year} ${hours}:${minutes}`;
+            } catch {
+                return '-';
+            }
+        }
+
+        // Search & Filtering Functions
+        function onMainFilterChange() {
+            applyFilters();
+        }
+
+        function applyFilters() {
+            const mainSearch = document.getElementById('mainSearchInput').value.toLowerCase().trim();
+            const mainRole = document.getElementById('mainRoleFilter').value;
+            const mainStatus = document.getElementById('mainStatusFilter').value;
+            const mainFrom = document.getElementById('mainCreatedFrom').value;
+            const mainTo = document.getElementById('mainCreatedTo').value;
+
+            filteredUsers = users.filter(u => {
+                // Main filters
+                const matchSearch = !mainSearch || u.username.toLowerCase().includes(mainSearch) || u.email.toLowerCase().includes(mainSearch);
+                const matchRole = !mainRole || u.roleName === mainRole;
+                const matchStatus = !mainStatus || String(u.isActive) === mainStatus;
+                
+                let matchDateRange = true;
+                if (mainFrom) {
+                    const uDate = new Date(u.createAt.substring(0, 10));
+                    const fromDate = new Date(mainFrom);
+                    if (uDate < fromDate) matchDateRange = false;
+                }
+                if (mainTo) {
+                    const uDate = new Date(u.createAt.substring(0, 10));
+                    const toDate = new Date(mainTo);
+                    if (uDate > toDate) matchDateRange = false;
+                }
+
+                return matchSearch && matchRole && matchStatus && matchDateRange;
+            });
+
+            // Reset page and perform sort & render
+            currentPage = 1;
+            sortUsers();
+            renderTable();
+        }
+
+        function resetFilters() {
+            document.getElementById('mainSearchInput').value = '';
+            document.getElementById('mainRoleFilter').value = '';
+            document.getElementById('mainStatusFilter').value = '';
+            document.getElementById('mainCreatedFrom').value = '';
+            document.getElementById('mainCreatedTo').value = '';
+            applyFilters();
+        }
+
+        // Sorting logic
+        function handleSort(column) {
+            if (currentSortColumn === column) {
+                currentSortDirection = currentSortDirection === 'asc' ? 'desc' : 'asc';
+            } else {
+                currentSortColumn = column;
+                currentSortDirection = 'asc';
+            }
+            sortUsers();
+            renderTable();
+        }
+
+        function sortUsers() {
+            filteredUsers.sort((a, b) => {
+                let valA = '';
+                let valB = '';
+
+                switch (currentSortColumn) {
+                    case 'username':
+                        valA = a.username.toLowerCase();
+                        valB = b.username.toLowerCase();
+                        break;
+                    case 'email':
+                        valA = a.email.toLowerCase();
+                        valB = b.email.toLowerCase();
+                        break;
+                    case 'birthdate':
+                        valA = a.birthDate || '0000-00-00';
+                        valB = b.birthDate || '0000-00-00';
+                        break;
+                    case 'lastlogin':
+                        valA = a.lastLoginAt || '0000-00-00T00:00:00';
+                        valB = b.lastLoginAt || '0000-00-00T00:00:00';
+                        break;
+                    case 'created':
+                    default:
+                        valA = a.createAt || '0000-00-00T00:00:00';
+                        valB = b.createAt || '0000-00-00T00:00:00';
+                        break;
+                }
+
+                if (valA < valB) return currentSortDirection === 'asc' ? -1 : 1;
+                if (valA > valB) return currentSortDirection === 'asc' ? 1 : -1;
+                return 0;
+            });
+        }
+
+        // Table Render Function
+        function renderTable() {
+            const tbody = document.getElementById('user-table-body');
+            tbody.innerHTML = '';
+            
+            const startIndex = (currentPage - 1) * itemsPerPage;
+            const endIndex = Math.min(startIndex + itemsPerPage, filteredUsers.length);
+            const pageUsers = filteredUsers.slice(startIndex, endIndex);
+            
+            // Checkbox select all sync
+            document.getElementById('selectAllCheckbox').checked = false;
+            
+            // Render pagination helper text
+            document.getElementById('pagination-info-text').innerText = 
+                `Hiển thị ${filteredUsers.length === 0 ? 0 : startIndex + 1} đến ${endIndex} trong tổng số ${filteredUsers.length} người dùng`;
+            
+            if (pageUsers.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="9" class="text-center text-muted py-4">Không tìm thấy người dùng phù hợp.</td></tr>`;
+                renderPaginationControls();
+                return;
+            }
+
+            pageUsers.forEach(u => {
+                const tr = document.createElement('tr');
+                
+                // Select Checkbox
+                const tdCheck = document.createElement('td');
+                tdCheck.innerHTML = `<input type="checkbox" class="custom-checkbox-input row-checkbox" value="${u.id}" onchange="onRowCheckChange()">`;
+                tr.appendChild(tdCheck);
+                
+                // Avatar + Username + ID
+                const tdUser = document.createElement('td');
+                const firstLetter = u.username ? u.username.charAt(0).toUpperCase() : 'U';
+                let avatarClass = 'avatar-u';
+                
+                if (['A','B','C','D','E'].includes(firstLetter)) avatarClass = 'avatar-a';
+                else if (['F','G','H','I','J'].includes(firstLetter)) avatarClass = 'avatar-t';
+                else if (['K','L','M','N','O'].includes(firstLetter)) avatarClass = 'avatar-l';
+                else if (['P','Q','R','S','T'].includes(firstLetter)) avatarClass = 'avatar-h';
+                
+                tdUser.innerHTML = `
+                    <div class="user-info-cell">
+                        <div class="user-avatar-circle ${avatarClass}">${firstLetter}</div>
+                        <div class="user-details">
+                            <span class="user-name-text">${escapeHtml(u.username)}</span>
+                            <span class="user-id-text">ID: ${u.id}</span>
+                        </div>
+                    </div>
+                `;
+                tr.appendChild(tdUser);
+                
+                // Email
+                const tdEmail = document.createElement('td');
+                tdEmail.innerText = u.email;
+                tr.appendChild(tdEmail);
+                
+                // Role Badge
+                const tdRole = document.createElement('td');
+                let roleClass = 'badge-student';
+                if (u.roleName === 'Admin') roleClass = 'badge-admin';
+                else if (u.roleName === 'Teacher') roleClass = 'badge-teacher';
+                else if (u.roleName === 'Parent') roleClass = 'badge-parent';
+                else if (u.roleName === 'Content Manager') roleClass = 'badge-content';
+                tdRole.innerHTML = `<span class="role-badge ${roleClass}">${u.roleName || 'Student'}</span>`;
+                tr.appendChild(tdRole);
+                
+                // Status Badge
+                const tdStatus = document.createElement('td');
+                const statusClass = u.isActive ? 'badge-active' : 'badge-inactive';
+                const statusText = u.isActive ? 'Active' : 'Inactive';
+                tdStatus.innerHTML = `<span class="status-badge ${statusClass}">${statusText}</span>`;
+                tr.appendChild(tdStatus);
+                
+                // BirthDate
+                const tdBirth = document.createElement('td');
+                tdBirth.innerText = formatDate(u.birthDate);
+                tr.appendChild(tdBirth);
+                
+                // Last Login
+                const tdLastLogin = document.createElement('td');
+                tdLastLogin.innerText = u.lastLoginAt ? formatDateTime(u.lastLoginAt) : 'Chưa đăng nhập';
+                tr.appendChild(tdLastLogin);
+                
+                // Created Date
+                const tdCreated = document.createElement('td');
+                tdCreated.innerText = formatDateTime(u.createAt);
+                tr.appendChild(tdCreated);
+                
+                // Operations Cell
+                const tdActions = document.createElement('td');
+                tdActions.className = 'actions-cell';
+                
+                const editBtn = `<button class="btn-action-circle btn-edit" onclick="openEditModal(${u.id})" title="Sửa"><i class="bi bi-pencil"></i></button>`;
+                
+                const lockIconClass = u.isActive ? 'bi-lock-fill' : 'bi-unlock-fill';
+                const lockBtnClass = u.isActive ? 'btn-lock' : 'btn-unlock';
+                const lockTitle = u.isActive ? 'Khóa tài khoản' : 'Kích hoạt tài khoản';
+                const lockBtn = `<button class="btn-action-circle ${lockBtnClass}" onclick="toggleStatus(${u.id})" title="${lockTitle}"><i class="bi ${lockIconClass}"></i></button>`;
+                
+                const deleteBtn = `<button class="btn-action-circle btn-delete" onclick="deleteUser(${u.id})" title="Xóa"><i class="bi bi-trash"></i></button>`;
+                
+                tdActions.innerHTML = editBtn + lockBtn + deleteBtn;
+                tr.appendChild(tdActions);
+                
+                tr.addEventListener('click', (e) => {
+                    if (e.target.tagName !== 'INPUT' && e.target.tagName !== 'BUTTON' && !e.target.closest('button') && !e.target.closest('input')) {
+                        const checkbox = tr.querySelector('.row-checkbox');
+                        checkbox.checked = !checkbox.checked;
+                        onRowCheckChange();
+                    }
+                });
+                
+                tbody.appendChild(tr);
+            });
+            
+            renderPaginationControls();
+        }
+
+        // Pagination Rendering
+        function renderPaginationControls() {
+            const container = document.getElementById('pagination-buttons-container');
+            container.innerHTML = '';
+            
+            const totalPages = Math.ceil(filteredUsers.length / itemsPerPage);
+            if (totalPages <= 1) return;
+
+            // Previous Button
+            const prevBtn = document.createElement('button');
+            prevBtn.className = `btn-page ${currentPage === 1 ? 'disabled' : ''}`;
+            prevBtn.innerHTML = '<i class="bi bi-chevron-left"></i>';
+            if (currentPage > 1) {
+                prevBtn.onclick = () => { currentPage--; renderTable(); };
+            }
+            container.appendChild(prevBtn);
+
+            // Page numbers
+            const maxVisible = 5;
+            let startPage = Math.max(1, currentPage - Math.floor(maxVisible / 2));
+            let endPage = Math.min(totalPages, startPage + maxVisible - 1);
+            
+            if (endPage - startPage + 1 < maxVisible) {
+                startPage = Math.max(1, endPage - maxVisible + 1);
+            }
+
+            for (let i = startPage; i <= endPage; i++) {
+                const btn = document.createElement('button');
+                btn.className = `btn-page ${currentPage === i ? 'active' : ''}`;
+                btn.innerText = i;
+                btn.onclick = () => { currentPage = i; renderTable(); };
+                container.appendChild(btn);
+            }
+
+            // Ellipsis and Last page if needed
+            if (endPage < totalPages) {
+                if (endPage < totalPages - 1) {
+                    const dots = document.createElement('span');
+                    dots.className = 'btn-page disabled';
+                    dots.innerText = '...';
+                    container.appendChild(dots);
+                }
+                const lastBtn = document.createElement('button');
+                lastBtn.className = `btn-page ${currentPage === totalPages ? 'active' : ''}`;
+                lastBtn.innerText = totalPages;
+                lastBtn.onclick = () => { currentPage = totalPages; renderTable(); };
+                container.appendChild(lastBtn);
+            }
+
+            // Next Button
+            const nextBtn = document.createElement('button');
+            nextBtn.className = `btn-page ${currentPage === totalPages ? 'disabled' : ''}`;
+            nextBtn.innerHTML = '<i class="bi bi-chevron-right"></i>';
+            if (currentPage < totalPages) {
+                nextBtn.onclick = () => { currentPage++; renderTable(); };
+            }
+            container.appendChild(nextBtn);
+        }
+
+        function onItemsPerPageChange(val) {
+            itemsPerPage = parseInt(val, 10);
+            currentPage = 1;
+            renderTable();
+        }
+
+        // Selection Handlers
+        function toggleSelectAll(masterCheckbox) {
+            const checkboxes = document.querySelectorAll('.row-checkbox');
+            checkboxes.forEach(c => c.checked = masterCheckbox.checked);
+        }
+
+        function onRowCheckChange() {
+            const checkboxes = document.querySelectorAll('.row-checkbox');
+            const checkedCount = Array.from(checkboxes).filter(c => c.checked).length;
+            const masterCheckbox = document.getElementById('selectAllCheckbox');
+            
+            if (checkedCount === 0) {
+                masterCheckbox.checked = false;
+                masterCheckbox.indeterminate = false;
+            } else if (checkedCount === checkboxes.length) {
+                masterCheckbox.checked = true;
+                masterCheckbox.indeterminate = false;
+            } else {
+                masterCheckbox.checked = false;
+                masterCheckbox.indeterminate = true;
+            }
+        }
+
+        // Create User Form Submit
+        function submitCreateUser(e) {
+            e.preventDefault();
+            
+            // Clear prior validations
+            document.querySelectorAll('#createUserForm .validation-error-msg').forEach(el => {
+                el.innerText = '';
+                el.style.display = 'none';
+            });
+            
+            const form = e.target;
+            const data = {
+                username: form.username.value,
+                email: form.email.value,
+                password: form.password.value,
+                birthDate: form.birthDate.value ? form.birthDate.value : null,
+                roleId: parseInt(form.roleId.value, 10),
+                isActive: form.isActive.checked
+            };
+
+            const token = form.querySelector('input[name="__RequestVerificationToken"]').value;
+
+            fetch('/Admin/CreateUser', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'RequestVerificationToken': token
+                },
+                body: JSON.stringify(data)
+            })
+            .then(res => res.json())
+            .then(res => {
+                if (res.success) {
+                    // Close modal & reload page to update the stats & lists
+                    const modal = bootstrap.Modal.getInstance(document.getElementById('createUserModal'));
+                    modal.hide();
+                    form.reset();
+                    location.reload();
+                } else {
+                    alert(res.message);
+                }
+            })
+            .catch(err => {
+                console.error(err);
+                alert("Đã xảy ra lỗi hệ thống khi thêm người dùng.");
+            });
+        }
+
+        // Open Edit Modal
+        function openEditModal(id) {
+            const u = users.find(x => x.id === id);
+            if (!u) return;
+
+            document.getElementById('editUserId').value = u.id;
+            document.getElementById('editUsername').value = u.username;
+            document.getElementById('editEmail').value = u.email;
+            document.getElementById('editPassword').value = ''; // clear password input
+            document.getElementById('editBirthDate').value = u.birthDate || '';
+            document.getElementById('editRoleId').value = u.roleId;
+            document.getElementById('editIsActive').checked = u.isActive;
+
+            // Clear prior validations
+            document.querySelectorAll('#editUserForm .validation-error-msg').forEach(el => {
+                el.innerText = '';
+                el.style.display = 'none';
+            });
+
+            const editModal = new bootstrap.Modal(document.getElementById('editUserModal'));
+            editModal.show();
+        }
+
+        // Edit User Form Submit
+        function submitEditUser(e) {
+            e.preventDefault();
+            
+            const form = e.target;
+            const data = {
+                id: parseInt(form.id.value, 10),
+                username: form.username.value,
+                email: form.email.value,
+                password: form.password.value ? form.password.value : null,
+                birthDate: form.birthDate.value ? form.birthDate.value : null,
+                roleId: parseInt(form.roleId.value, 10),
+                isActive: form.isActive.checked
+            };
+
+            const token = form.querySelector('input[name="__RequestVerificationToken"]').value;
+
+            fetch('/Admin/EditUser', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'RequestVerificationToken': token
+                },
+                body: JSON.stringify(data)
+            })
+            .then(res => res.json())
+            .then(res => {
+                if (res.success) {
+                    const modal = bootstrap.Modal.getInstance(document.getElementById('editUserModal'));
+                    modal.hide();
+                    location.reload();
+                } else {
+                    alert(res.message);
+                }
+            })
+            .catch(err => {
+                console.error(err);
+                alert("Đã xảy ra lỗi hệ thống khi cập nhật người dùng.");
+            });
+        }
+
+        // Toggle user status (lock/unlock)
+        function toggleStatus(id) {
+            fetch(`/Admin/ToggleUserStatus?id=${id}`, {
+                method: 'POST'
+            })
+            .then(res => res.json())
+            .then(res => {
+                if (res.success) {
+                    // Update current user list locally
+                    const u = users.find(x => x.id === id);
+                    if (u) {
+                        u.isActive = res.isActive;
+                        applyFilters();
+                    }
+                } else {
+                    alert(res.message);
+                }
+            })
+            .catch(err => {
+                console.error(err);
+                alert("Đã xảy ra lỗi khi thay đổi trạng thái người dùng.");
+            });
+        }
+
+        // Delete user
+        function deleteUser(id) {
+            if (!confirm("Bạn có chắc chắn muốn xóa tài khoản người dùng này không? Hành động này không thể hoàn tác.")) {
+                return;
+            }
+
+            fetch(`/Admin/DeleteUser?id=${id}`, {
+                method: 'POST'
+            })
+            .then(res => res.json())
+            .then(res => {
+                if (res.success) {
+                    // Remove locally & re-filter/render
+                    users = users.filter(x => x.id !== id);
+                    applyFilters();
+                } else {
+                    alert(res.message);
+                }
+            })
+            .catch(err => {
+                console.error(err);
+                alert("Đã xảy ra lỗi khi xóa người dùng.");
+            });
+        }
+    </script>
+}
