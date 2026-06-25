@@ -1,0 +1,71 @@
+﻿@model EnglishLearningOnlineSystem.ViewModels.ContentManager.Lessons.EditLessonViewModel
+
+@{
+    Layout = "_ContentManagerLayout";
+    ViewData["Title"] = "Chỉnh sửa bài học";
+}
+
+<form asp-action="Edit"
+      asp-route-id="@Model.LessonId"
+      method="post">
+
+    <input asp-for="LessonId" type="hidden" />
+    <input asp-for="CourseId" type="hidden" />
+
+    <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
+
+    <div class="mb-3">
+        <label>Khóa học</label>
+        <input value="@Model.CourseName"
+               class="form-control"
+               readonly />
+    </div>
+
+    <div class="mb-3">
+        <label asp-for="Title">Tiêu đề bài học</label>
+        <input asp-for="Title" class="form-control" />
+        <span asp-validation-for="Title" class="text-danger"></span>
+    </div>
+
+    <div class="mb-3">
+        <label asp-for="Topic">Chủ đề</label>
+        <input asp-for="Topic" class="form-control" />
+    </div>
+
+    <div class="mb-3">
+        <label asp-for="OrderIndex">Thứ tự bài học</label>
+        <input asp-for="OrderIndex" class="form-control" />
+    </div>
+
+    <div class="mb-3">
+        <label asp-for="EstimatedMinutes">Thời lượng dự kiến (phút)</label>
+        <input asp-for="EstimatedMinutes" class="form-control" />
+    </div>
+
+    <div class="mb-3">
+        <label asp-for="XPReward">Điểm kinh nghiệm (XP)</label>
+        <input asp-for="XPReward" class="form-control" />
+    </div>
+
+    <div class="form-check mb-3">
+        <input asp-for="IsPublished" class="form-check-input" />
+        <label asp-for="IsPublished" class="form-check-label">
+            Trạng thái hiển thị
+        </label>
+    </div>
+
+    <button type="submit" class="btn btn-primary">
+        Lưu thay đổi
+    </button>
+
+    <a asp-action="Index"
+       asp-route-courseId="@Model.CourseId"
+       class="btn btn-secondary">
+        Quay lại
+    </a>
+
+</form>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}
