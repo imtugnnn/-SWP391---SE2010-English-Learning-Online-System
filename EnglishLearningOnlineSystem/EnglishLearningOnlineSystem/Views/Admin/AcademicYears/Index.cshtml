@@ -1,0 +1,93 @@
+@model IEnumerable<EnglishLearningOnlineSystem.ViewModels.Admin.AcademicYears.AcademicYearListItemViewModel>
+
+@{
+    ViewData["Title"] = "Quản lý năm học";
+    Layout = "~/Views/Shared/Admin/_AdminLayout.cshtml";
+}
+
+<div class="container-fluid py-4" style="max-width: 1200px;">
+    <div class="d-flex flex-wrap justify-content-between align-items-center gap-3 mb-4">
+        <div>
+            <h2 class="mb-1 fw-bold text-dark" style="color: #0f172a !important;">Quản lý năm học</h2>
+            <p class="text-muted mb-0" style="color: #64748b !important;">Xem danh sách năm học và quản lý các lớp học.</p>
+        </div>
+        <a asp-action="Create" class="btn btn-primary d-inline-flex align-items-center gap-2 px-3 py-2 shadow-sm" style="background-color: #2563eb; border-color: #2563eb; border-radius: 8px; font-weight: 600; font-size: 0.95rem;">
+            <i class="bi bi-plus-lg"></i>
+            Tạo năm học
+        </a>
+    </div>
+
+    <div class="card border-0 shadow-sm" style="border-radius: 12px; overflow: hidden; border: 1px solid #e2e8f0 !important;">
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0" style="border-collapse: collapse;">
+                    <thead>
+                        <tr style="border-bottom: 1px solid #e2e8f0; background-color: #f8fafc;">
+                            <th class="py-3 px-4 text-muted fw-semibold" style="font-size: 0.85rem; letter-spacing: 0.05em;">Năm học</th>
+                            <th class="py-3 px-4 text-muted fw-semibold" style="font-size: 0.85rem; letter-spacing: 0.05em;">Ngày bắt đầu</th>
+                            <th class="py-3 px-4 text-muted fw-semibold" style="font-size: 0.85rem; letter-spacing: 0.05em;">Ngày kết thúc</th>
+                            <th class="py-3 px-4 text-muted fw-semibold" style="font-size: 0.85rem; letter-spacing: 0.05em;">Trạng thái</th>
+                            <th class="py-3 px-4 text-muted fw-semibold" style="font-size: 0.85rem; letter-spacing: 0.05em;">Số lớp học</th>
+                            <th class="py-3 px-4 text-muted fw-semibold text-end" style="font-size: 0.85rem; letter-spacing: 0.05em; width: 220px;">Thao tác</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @if (!Model.Any())
+                        {
+                            <tr>
+                                <td colspan="6" class="text-center py-5 text-muted">Chưa có năm học nào.</td>
+                            </tr>
+                        }
+                        else
+                        {
+                            foreach (var item in Model)
+                            {
+                                <tr style="border-bottom: 1px solid #f1f5f9;">
+                                    <td class="py-3.5 px-4 fw-semibold text-dark" style="color: #1e293b !important; font-size: 0.95rem;">@item.YearLabel</td>
+                                    <td class="py-3.5 px-4 text-secondary" style="font-size: 0.95rem;">
+                                        <div class="d-inline-flex align-items-center text-muted">
+                                            <i class="bi bi-calendar3 me-2" style="color: #94a3b8; font-size: 0.95rem;"></i>
+                                            <span style="color: #475569;">@item.StartDate?.ToString("yyyy-MM-dd")</span>
+                                        </div>
+                                    </td>
+                                    <td class="py-3.5 px-4 text-secondary" style="font-size: 0.95rem;">
+                                        <div class="d-inline-flex align-items-center text-muted">
+                                            <i class="bi bi-calendar3 me-2" style="color: #94a3b8; font-size: 0.95rem;"></i>
+                                            <span style="color: #475569;">@item.EndDate?.ToString("yyyy-MM-dd")</span>
+                                        </div>
+                                    </td>
+                                    <td class="py-3.5 px-4">
+                                        @if (item.IsActive)
+                                        {
+                                            <span class="badge px-2.5 py-1.5 fw-medium" style="background-color: #dcfce7; color: #166534; border-radius: 6px; font-size: 0.75rem;">Đang hoạt động</span>
+                                        }
+                                        else
+                                        {
+                                            <span class="badge px-2.5 py-1.5 fw-medium" style="background-color: #f1f5f9; color: #475569; border-radius: 6px; font-size: 0.75rem;">Không hoạt động</span>
+                                        }
+                                    </td>
+                                    <td class="py-3.5 px-4 fw-semibold" style="color: #334155; font-size: 0.95rem;">@item.ClassCount</td>
+                                    <td class="py-3.5 px-4 text-end">
+                                        <div class="d-inline-flex gap-2 justify-content-end align-items-center">
+                                            <a asp-action="Edit" asp-route-id="@item.AcademicYearId" class="btn btn-sm d-inline-flex align-items-center gap-1.5 px-2.5 py-1.5 border" style="border-radius: 6px; font-weight: 500; font-size: 0.85rem; color: #334155; border-color: #cbd5e1 !important; background-color: #ffffff;">
+                                                <i class="bi bi-gear" style="font-size: 0.9rem; color: #64748b;"></i>
+                                                Quản lý
+                                            </a>
+                                            <form asp-action="SetActive" asp-route-id="@item.AcademicYearId" method="post" class="d-inline m-0 p-0">
+                                                @Html.AntiForgeryToken()
+                                                <button type="submit" class="btn btn-sm d-inline-flex align-items-center gap-1.5 px-2.5 py-1.5 border" style="border-radius: 6px; font-weight: 500; font-size: 0.85rem; color: #166534; border-color: #86efac !important; background-color: #ffffff;">
+                                                    <i class="bi bi-check-circle" style="font-size: 0.9rem; color: #16a34a;"></i>
+                                                    Kích hoạt
+                                                </button>
+                                            </form>
+                                        </div>
+                                    </td>
+                                </tr>
+                            }
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
