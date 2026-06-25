@@ -224,6 +224,73 @@
             .page-content { padding: 14px; }
             .topbar { padding: 11px 14px; }
         }
+
+        /* Notifications Dropdown Panel */
+        .notif-dropdown {
+            position: absolute;
+            top: 45px;
+            right: 0;
+            width: 320px;
+            max-height: 400px;
+            background: #ffffff;
+            border: 2px solid var(--border);
+            border-radius: var(--radius);
+            box-shadow: var(--shadow);
+            z-index: 1000;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            font-size: 0.88rem;
+        }
+        .notif-dropdown-header {
+            padding: 12px 16px;
+            font-weight: 800;
+            color: var(--text);
+            border-bottom: 2px solid var(--border);
+            background: var(--bg);
+            text-align: left;
+        }
+        .notif-dropdown-body {
+            overflow-y: auto;
+            flex: 1;
+            max-height: 340px;
+            text-align: left;
+        }
+        .notif-item {
+            padding: 12px 16px;
+            border-bottom: 1px solid var(--border);
+            transition: background 0.15s;
+            cursor: pointer;
+        }
+        .notif-item:last-child {
+            border-bottom: none;
+        }
+        .notif-item:hover {
+            background: var(--bg);
+        }
+        .notif-item-title {
+            font-weight: 700;
+            color: var(--text);
+            margin-bottom: 3px;
+        }
+        .notif-item-content {
+            color: var(--muted);
+            font-size: 0.8rem;
+            white-space: pre-line;
+            line-height: 1.3;
+        }
+        .notif-item-time {
+            font-size: 0.72rem;
+            color: var(--sky-d);
+            margin-top: 5px;
+            font-weight: 600;
+        }
+        .notif-loading, .notif-empty {
+            padding: 24px;
+            text-align: center;
+            color: var(--muted);
+            font-weight: 600;
+        }
     </style>
 
     @* Cho phép từng trang thêm CSS riêng *@
@@ -301,10 +368,20 @@
         <div class="topbar-right">
             <div class="topbar-pill pill-streak"> @streakDays ngày</div>
             <div class="topbar-pill pill-xp">⭐ @xp XP</div>
-            <a href="/student/notifications" class="topbar-bell" title="Thông báo">
-                
-                <span class="bell-dot"></span>
-            </a>
+            <div style="position: relative;">
+                <button type="button" class="topbar-bell" id="topbarBell" title="Thông báo" onclick="toggleNotificationDropdown(event)">
+                    🔔
+                    <span class="bell-dot d-none" id="bellDot"></span>
+                </button>
+                <div class="notif-dropdown d-none" id="notifDropdown">
+                    <div class="notif-dropdown-header">
+                        Thông báo hệ thống
+                    </div>
+                    <div class="notif-dropdown-body" id="notifDropdownBody">
+                        <div class="notif-loading">Đang tải...</div>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
 
@@ -321,6 +398,107 @@
 
 @* Cho phép từng trang thêm script riêng *@
 @await RenderSectionAsync("Scripts", required: false)
+
+<script>
+    async function loadNotifications() {
+        try {
+            const response = await fetch('/student/notifications/api');
+            if (!response.ok) return;
+            const data = await response.json();
+            
+            const body = document.getElementById('notifDropdownBody');
+            const dot = document.getElementById('bellDot');
+            
+            if (!data || data.length === 0) {
+                body.innerHTML = '<div class="notif-empty">Không có thông báo nào</div>';
+                dot.classList.add('d-none');
+                return;
+            }
+            
+            // So sánh ID mới nhất với ID đã xem lần cuối
+            const lastSeenId = parseInt(localStorage.getItem('lastSeenNotifId') || '0', 10);
+            const latestId = data[0].id;
+            if (latestId > lastSeenId) {
+                dot.classList.remove('d-none');
+            } else {
+                dot.classList.add('d-none');
+            }
+            
+            body.innerHTML = '';
+            data.forEach(n => {
+                const item = document.createElement('div');
+                item.className = 'notif-item';
+                
+                const timeFormatted = formatDateTimeStr(n.publishTime);
+                
+                item.innerHTML = `
+                    <div class="notif-item-title">${escapeHtmlStr(n.title)}</div>
+                    <div class="notif-item-content">${escapeHtmlStr(n.content)}</div>
+                    <div class="notif-item-time">🕒 ${timeFormatted}</div>
+                `;
+                body.appendChild(item);
+            });
+            
+            window.latestNotifId = latestId;
+        } catch (err) {
+            console.error(err);
+            document.getElementById('notifDropdownBody').innerHTML = '<div class="notif-empty">Không thể tải thông báo</div>';
+        }
+    }
+    
+    function toggleNotificationDropdown(e) {
+        e.stopPropagation();
+        const panel = document.getElementById('notifDropdown');
+        const isOpen = !panel.classList.contains('d-none');
+        
+        if (isOpen) {
+            panel.classList.add('d-none');
+        } else {
+            panel.classList.remove('d-none');
+            // Ẩn chấm đỏ và lưu ID thông báo cuối cùng làm mốc đã xem
+            if (window.latestNotifId) {
+                localStorage.setItem('lastSeenNotifId', window.latestNotifId);
+                document.getElementById('bellDot').classList.add('d-none');
+            }
+        }
+    }
+    
+    // Đóng dropdown khi click ra ngoài
+    document.addEventListener('click', function(e) {
+        const panel = document.getElementById('notifDropdown');
+        const bell = document.getElementById('topbarBell');
+        if (panel && !panel.contains(e.target) && !bell.contains(e.target)) {
+            panel.classList.add('d-none');
+        }
+    });
+    
+    function formatDateTimeStr(dateStr) {
+        if (!dateStr) return '';
+        try {
+            const d = new Date(dateStr);
+            const day = String(d.getDate()).padStart(2, '0');
+            const month = String(d.getMonth() + 1).padStart(2, '0');
+            const year = d.getFullYear();
+            const hours = String(d.getHours()).padStart(2, '0');
+            const minutes = String(d.getMinutes()).padStart(2, '0');
+            return `${day}/${month}/${year} ${hours}:${minutes}`;
+        } catch {
+            return '';
+        }
+    }
+    
+    function escapeHtmlStr(text) {
+        if (!text) return '';
+        return text.toString()
+            .replace(/&/g, "&amp;")
+            .replace(/</g, "&lt;")
+            .replace(/>/g, "&gt;")
+            .replace(/"/g, "&quot;")
+            .replace(/'/g, "&#039;");
+    }
+    
+    document.addEventListener('DOMContentLoaded', loadNotifications);
+</script>
 
 </body>
 </html>

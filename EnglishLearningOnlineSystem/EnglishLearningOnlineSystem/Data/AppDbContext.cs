@@ -33,6 +33,7 @@ public class AppDbContext : Microsoft.EntityFrameworkCore.DbContext
     public DbSet<Badge>? Badges { get; set; }
     public DbSet<StudentBadge>? StudentBadges { get; set; }
     public DbSet<Notification>? Notifications { get; set; }
+    public DbSet<SystemNotification>? SystemNotifications { get; set; }
     public DbSet<TeacherFeedback>? TeacherFeedbacks { get; set; }
     public DbSet<StudentBadge>? StudentBadgeJoin { get; set; } // alternative reference
 

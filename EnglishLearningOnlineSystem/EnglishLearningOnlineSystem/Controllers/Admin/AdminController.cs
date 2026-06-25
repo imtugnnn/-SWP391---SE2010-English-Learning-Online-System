@@ -1,7 +1,10 @@
 using Microsoft.AspNetCore.Mvc;
 using EnglishLearningOnlineSystem.Services.Interfaces;
 using EnglishLearningOnlineSystem.ViewModels;
+using EnglishLearningOnlineSystem.ViewModels.Admin;
 using EnglishLearningOnlineSystem.Models;
+using EnglishLearningOnlineSystem.Data;
+using Microsoft.EntityFrameworkCore;
 using System.Threading.Tasks;
 using System.Collections.Generic;
 
@@ -11,11 +14,13 @@ public class AdminController : Controller
 {
     private readonly IUserService _userService;
     private readonly IRoleService _roleService;
+    private readonly AppDbContext _context;
 
-    public AdminController(IUserService userService, IRoleService roleService)
+    public AdminController(IUserService userService, IRoleService roleService, AppDbContext context)
     {
         _userService = userService;
         _roleService = roleService;
+        _context = context;
     }
 
     public IActionResult Dashboard()
