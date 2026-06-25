@@ -69,4 +69,36 @@ public class ClassRepository : IClassRepository
             .AsNoTracking()
             .ToListAsync();
     }
+    public async Task<StudentProfile?> GetStudentProfileByIdAsync(int studentId)
+    {
+        return await _context.StudentProfiles!
+            .Include(sp => sp.User)
+            .AsNoTracking()
+            .FirstOrDefaultAsync(sp => sp.StudentId == studentId);
+    }
+
+    public async Task<List<Progress>> GetStudentProgressByStudentIdAsync(int studentId)
+    {
+        return await _context.Progresses!
+            .Include(p => p.Lesson)
+            .AsNoTracking()
+            .Where(p => p.StudentId == studentId)
+            .OrderByDescending(p => p.CompletedAt)
+            .ToListAsync();
+    }
+
+    public async Task<List<TeacherFeedback>> GetTeacherFeedbackByStudentIdAsync(int studentId)
+    {
+        return await _context.TeacherFeedbacks!
+            .Include(f => f.Teacher)
+            .AsNoTracking()
+            .Where(f => f.StudentId == studentId)
+            .OrderByDescending(f => f.CreateAt)
+            .ToListAsync();
+    }
+    public async Task AddTeacherFeedbackAsync(TeacherFeedback feedback)
+    {
+        _context.TeacherFeedbacks!.Add(feedback);
+        await _context.SaveChangesAsync();
+    }
 }

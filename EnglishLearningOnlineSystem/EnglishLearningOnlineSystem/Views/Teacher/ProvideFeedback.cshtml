@@ -1,0 +1,265 @@
+﻿@model EnglishLearningOnlineSystem.ViewModels.ProvideStudentFeedbackViewModel
+
+@{
+    ViewData["Title"] = "Gửi phản hồi học sinh";
+}
+
+<style>
+    body {
+        background: #f0f9ff;
+    }
+
+    .teacher-class-shell {
+        min-height: 100vh;
+        padding: 40px 16px;
+        background: linear-gradient(135deg, #e0f2fe 0%, #f0f9ff 60%, #e0f2fe 100%);
+    }
+
+    .teacher-class-container {
+        max-width: 900px;
+        margin: 0 auto;
+    }
+
+    .page-card {
+        background: #ffffff;
+        border: 1.5px solid #bae6fd;
+        border-radius: 28px;
+        box-shadow: 0 20px 60px rgba(14,165,233,.16), 0 2px 8px rgba(14,165,233,.08);
+        overflow: hidden;
+    }
+
+    .page-card-stripe {
+        height: 6px;
+        background: linear-gradient(90deg, #0ea5e9 0%, #38bdf8 50%, #7dd3fc 100%);
+    }
+
+    .page-card-body {
+        padding: 36px;
+    }
+
+    .page-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        background: #e0f2fe;
+        color: #0369a1;
+        font-size: .72rem;
+        font-weight: 800;
+        letter-spacing: .06em;
+        text-transform: uppercase;
+        padding: 5px 12px;
+        border-radius: 99px;
+        margin-bottom: 14px;
+    }
+
+    .page-badge-dot {
+        width: 6px;
+        height: 6px;
+        border-radius: 50%;
+        background: #0ea5e9;
+    }
+
+    .page-title {
+        font-size: 1.9rem;
+        font-weight: 900;
+        color: #1e3a5f;
+        margin-bottom: 8px;
+    }
+
+        .page-title span {
+            color: #0284c7;
+        }
+
+    .page-subtitle {
+        color: #64748b;
+        font-size: .95rem;
+        line-height: 1.7;
+        margin-bottom: 0;
+    }
+
+    .student-avatar {
+        width: 86px;
+        height: 86px;
+        border-radius: 50%;
+        object-fit: cover;
+        border: 4px solid #bae6fd;
+        background: #e0f2fe;
+    }
+
+    .summary-card {
+        background: #f0f9ff;
+        border: 1.5px solid #bae6fd;
+        border-radius: 18px;
+        padding: 20px;
+    }
+
+    .info-label {
+        font-size: .75rem;
+        font-weight: 900;
+        color: #0369a1;
+        letter-spacing: .04em;
+        text-transform: uppercase;
+        margin-bottom: 5px;
+    }
+
+    .info-value {
+        font-size: .98rem;
+        color: #334155;
+        font-weight: 700;
+        margin: 0;
+    }
+
+    .form-label {
+        color: #0369a1;
+        font-size: .78rem;
+        font-weight: 900;
+        text-transform: uppercase;
+        letter-spacing: .04em;
+    }
+
+    .form-control {
+        border-radius: 18px;
+        border: 1.5px solid #bae6fd;
+        padding: 14px 16px;
+    }
+
+        .form-control:focus {
+            border-color: #38bdf8;
+            box-shadow: 0 0 0 .2rem rgba(14,165,233,.15);
+        }
+
+    .btn-teacher {
+        border: none;
+        border-radius: 14px;
+        background: linear-gradient(135deg, #0ea5e9 0%, #38bdf8 100%);
+        color: #fff;
+        font-weight: 800;
+        padding: 11px 18px;
+        box-shadow: 0 6px 20px rgba(14,165,233,.28);
+        text-decoration: none;
+    }
+
+        .btn-teacher:hover {
+            color: #fff;
+            opacity: .92;
+        }
+
+    .btn-teacher-outline {
+        border: 1.5px solid #38bdf8;
+        border-radius: 14px;
+        color: #0369a1;
+        font-weight: 800;
+        padding: 10px 16px;
+        text-decoration: none;
+        background: #ffffff;
+    }
+
+        .btn-teacher-outline:hover {
+            background: #e0f2fe;
+            color: #0369a1;
+        }
+
+    .validation-summary-errors {
+        background: #fee2e2;
+        color: #991b1b;
+        border-radius: 16px;
+        padding: 14px 16px;
+        margin-bottom: 18px;
+        font-weight: 700;
+    }
+</style>
+
+<div class="teacher-class-shell">
+    <div class="teacher-class-container">
+        <div class="page-card">
+            <div class="page-card-stripe"></div>
+
+            <div class="page-card-body">
+                <div class="d-flex justify-content-between align-items-start gap-3 flex-wrap mb-4">
+                    <div class="d-flex gap-3 align-items-center">
+                        <img src="@Model.AvatarUrl" alt="Ảnh đại diện học sinh" class="student-avatar" />
+
+                        <div>
+                            <div class="page-badge">
+                                <span class="page-badge-dot"></span>
+                                Teacher Feedback
+                            </div>
+
+                            <h1 class="page-title">
+                                Gửi phản hồi cho <span>@Model.StudentName</span>
+                            </h1>
+
+                            <p class="page-subtitle">
+                                Nhập nhận xét, đánh giá hoặc lời khuyên học tập cho học sinh trong lớp @Model.ClassName.
+                            </p>
+                        </div>
+                    </div>
+
+                    <a asp-controller="Teacher"
+                       asp-action="StudentDetail"
+                       asp-route-classId="@Model.ClassId"
+                       asp-route-studentId="@Model.StudentId"
+                       class="btn-teacher-outline">
+                        Quay lại hồ sơ
+                    </a>
+                </div>
+
+                <div class="row g-3 mb-4">
+                    <div class="col-md-6">
+                        <div class="summary-card">
+                            <div class="info-label">Học sinh</div>
+                            <p class="info-value">@Model.StudentName</p>
+                        </div>
+                    </div>
+
+                    <div class="col-md-6">
+                        <div class="summary-card">
+                            <div class="info-label">Email</div>
+                            <p class="info-value">@Model.StudentEmail</p>
+                        </div>
+                    </div>
+                </div>
+
+                <form asp-controller="Teacher" asp-action="ProvideFeedback" method="post">
+                    @Html.AntiForgeryToken()
+
+                    <input type="hidden" asp-for="ClassId" />
+                    <input type="hidden" asp-for="ClassName" />
+                    <input type="hidden" asp-for="StudentId" />
+                    <input type="hidden" asp-for="StudentName" />
+                    <input type="hidden" asp-for="StudentEmail" />
+                    <input type="hidden" asp-for="AvatarUrl" />
+
+                    <div asp-validation-summary="ModelOnly"></div>
+
+                    <div class="mb-3">
+                        <label asp-for="Content" class="form-label">Nội dung phản hồi</label>
+                        <textarea asp-for="Content"
+                                  class="form-control"
+                                  rows="8"
+                                  placeholder="Nhập phản hồi cho học sinh..."></textarea>
+                        <span asp-validation-for="Content" class="text-danger small fw-semibold"></span>
+                    </div>
+
+                    <div class="d-flex justify-content-end gap-2 flex-wrap">
+                        <a asp-controller="Teacher"
+                           asp-action="StudentDetail"
+                           asp-route-classId="@Model.ClassId"
+                           asp-route-studentId="@Model.StudentId"
+                           class="btn-teacher-outline">
+                            Hủy
+                        </a>
+
+                        <button type="submit" class="btn-teacher">
+                            Gửi phản hồi
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

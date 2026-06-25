@@ -210,4 +210,222 @@ public class StudentManagementService : IStudentManagementService
             ? "name"
             : sortBy.Trim().ToLower();
     }
+    public async Task<TeacherStudentDetailViewModel?> GetStudentDetailAsync(
+    int classId,
+    int studentId,
+    int teacherId)
+    {
+        var classEntity = await ValidateTeacherAccessAsync(classId, teacherId);
+
+        if (classEntity == null)
+        {
+            return null;
+        }
+
+        var belongsToClass = await ValidateStudentBelongsToClassAsync(classId, studentId);
+
+        if (!belongsToClass)
+        {
+            return null;
+        }
+
+        var studentProfile = await _classRepository.GetStudentProfileByIdAsync(studentId);
+
+        if (studentProfile == null || studentProfile.User == null)
+        {
+            return null;
+        }
+
+        var progressRecords = await _classRepository.GetStudentProgressByStudentIdAsync(studentId);
+        var feedbacks = await _classRepository.GetTeacherFeedbackByStudentIdAsync(studentId);
+
+        return BuildStudentDetailViewModel(
+            classEntity,
+            studentProfile,
+            progressRecords,
+            feedbacks);
+    }
+
+    private async Task<bool> ValidateStudentBelongsToClassAsync(int classId, int studentId)
+    {
+        var enrollments = await _classRepository.GetStudentsByClassIdAsync(classId);
+
+        return enrollments.Any(e => e.StudentId == studentId);
+    }
+
+    private static TeacherStudentDetailViewModel BuildStudentDetailViewModel(
+        EnglishLearningOnlineSystem.Models.Class classEntity,
+        EnglishLearningOnlineSystem.Models.StudentProfile studentProfile,
+        List<EnglishLearningOnlineSystem.Models.Progress> progressRecords,
+        List<EnglishLearningOnlineSystem.Models.TeacherFeedback> feedbacks)
+    {
+        var completedLessons = CountCompletedLessons(progressRecords);
+        var inProgressLessons = CountInProgressLessons(progressRecords);
+        var averageQuizScore = CalculateAverageQuizScore(progressRecords);
+        var totalXPEarned = CalculateTotalXPEarned(progressRecords);
+
+        return new TeacherStudentDetailViewModel
+        {
+            ClassId = classEntity.ClassId,
+            ClassName = classEntity.ClassName,
+
+            StudentId = studentProfile.StudentId,
+            StudentName = studentProfile.User.Username,
+            Nickname = studentProfile.Nickname ?? studentProfile.User.Username,
+            Email = studentProfile.User.Email,
+            AvatarUrl = string.IsNullOrWhiteSpace(studentProfile.AvatarUrl)
+                ? "/images/default-avatar.png"
+                : studentProfile.AvatarUrl,
+            IsActive = studentProfile.User.IsActive,
+            StatusText = studentProfile.User.IsActive ? "Đang hoạt động" : "Không hoạt động",
+
+            Level = studentProfile.Level,
+            XP = studentProfile.XP,
+            CurrentStreakDays = studentProfile.CurrentStreakDays,
+            LastActiveDate = studentProfile.LastActiveDate,
+
+            CompletedLessons = completedLessons,
+            InProgressLessons = inProgressLessons,
+            AverageQuizScore = averageQuizScore,
+            TotalXPEarned = totalXPEarned,
+
+            LessonProgresses = BuildLessonProgressViewModels(progressRecords),
+            Feedbacks = BuildFeedbackViewModels(feedbacks)
+        };
+    }
+
+    private static int CountCompletedLessons(List<EnglishLearningOnlineSystem.Models.Progress> progressRecords)
+    {
+        return progressRecords.Count(p =>
+            string.Equals(p.CompletionStatus, "Completed", StringComparison.OrdinalIgnoreCase));
+    }
+
+    private static int CountInProgressLessons(List<EnglishLearningOnlineSystem.Models.Progress> progressRecords)
+    {
+        return progressRecords.Count(p =>
+            !string.Equals(p.CompletionStatus, "Completed", StringComparison.OrdinalIgnoreCase));
+    }
+
+    private static double CalculateAverageQuizScore(List<EnglishLearningOnlineSystem.Models.Progress> progressRecords)
+    {
+        if (!progressRecords.Any())
+        {
+            return 0;
+        }
+
+        return Math.Round(progressRecords.Average(p => p.QuizScore), 2);
+    }
+
+    private static int CalculateTotalXPEarned(List<EnglishLearningOnlineSystem.Models.Progress> progressRecords)
+    {
+        return progressRecords.Sum(p => p.XPEarned);
+    }
+
+    private static List<TeacherStudentLessonProgressViewModel> BuildLessonProgressViewModels(
+        List<EnglishLearningOnlineSystem.Models.Progress> progressRecords)
+    {
+        return progressRecords.Select(p => new TeacherStudentLessonProgressViewModel
+        {
+            LessonId = p.LessonId,
+            LessonTitle = p.Lesson?.Title ?? "Bài học chưa xác định",
+            Topic = p.Lesson?.Topic ?? "Chưa cập nhật",
+            QuizScore = p.QuizScore,
+            XPEarned = p.XPEarned,
+            CompletionStatus = string.IsNullOrWhiteSpace(p.CompletionStatus)
+                ? "Chưa cập nhật"
+                : p.CompletionStatus,
+            CompletedAt = p.CompletedAt
+        }).ToList();
+    }
+
+    private static List<TeacherStudentFeedbackViewModel> BuildFeedbackViewModels(
+        List<EnglishLearningOnlineSystem.Models.TeacherFeedback> feedbacks)
+    {
+        return feedbacks.Select(f => new TeacherStudentFeedbackViewModel
+        {
+            FeedbackId = f.FeedbackId,
+            TeacherName = f.Teacher?.Username ?? "Giáo viên",
+            Content = f.Content,
+            IsRead = f.IsRead,
+            ReadStatus = f.IsRead ? "Đã đọc" : "Chưa đọc",
+            CreateAt = f.CreateAt
+        }).ToList();
+    }
+    public async Task<ProvideStudentFeedbackViewModel?> GetProvideFeedbackFormAsync(
+    int classId,
+    int studentId,
+    int teacherId)
+    {
+        var classEntity = await ValidateTeacherAccessAsync(classId, teacherId);
+
+        if (classEntity == null)
+        {
+            return null;
+        }
+
+        var belongsToClass = await ValidateStudentBelongsToClassAsync(classId, studentId);
+
+        if (!belongsToClass)
+        {
+            return null;
+        }
+
+        var studentProfile = await _classRepository.GetStudentProfileByIdAsync(studentId);
+
+        if (studentProfile == null || studentProfile.User == null)
+        {
+            return null;
+        }
+
+        return new ProvideStudentFeedbackViewModel
+        {
+            ClassId = classEntity.ClassId,
+            ClassName = classEntity.ClassName,
+            StudentId = studentProfile.StudentId,
+            StudentName = studentProfile.User.Username,
+            StudentEmail = studentProfile.User.Email,
+            AvatarUrl = string.IsNullOrWhiteSpace(studentProfile.AvatarUrl)
+                ? "/images/default-avatar.png"
+                : studentProfile.AvatarUrl
+        };
+    }
+
+    public async Task<bool> CreateStudentFeedbackAsync(
+        ProvideStudentFeedbackViewModel model,
+        int teacherId)
+    {
+        var classEntity = await ValidateTeacherAccessAsync(model.ClassId, teacherId);
+
+        if (classEntity == null)
+        {
+            return false;
+        }
+
+        var belongsToClass = await ValidateStudentBelongsToClassAsync(
+            model.ClassId,
+            model.StudentId);
+
+        if (!belongsToClass)
+        {
+            return false;
+        }
+
+        if (string.IsNullOrWhiteSpace(model.Content))
+        {
+            return false;
+        }
+
+        var feedback = new TeacherFeedback
+        {
+            Content = model.Content.Trim(),
+            IsRead = false,
+            CreateAt = DateTime.UtcNow,
+            TeacherId = teacherId,
+            StudentId = model.StudentId
+        };
+
+        await _classRepository.AddTeacherFeedbackAsync(feedback);
+
+        return true;
+    }
 }

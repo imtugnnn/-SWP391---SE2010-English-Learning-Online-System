@@ -11,4 +11,18 @@ public interface IStudentManagementService
         string? status,
         string? sortBy,
         int page);
+
+    Task<TeacherStudentDetailViewModel?> GetStudentDetailAsync(
+    int classId,
+    int studentId,
+    int teacherId);
+
+    Task<ProvideStudentFeedbackViewModel?> GetProvideFeedbackFormAsync(
+    int classId,
+    int studentId,
+    int teacherId);
+
+    Task<bool> CreateStudentFeedbackAsync(
+        ProvideStudentFeedbackViewModel model,
+        int teacherId);
 }

@@ -1,4 +1,5 @@
 ﻿using EnglishLearningOnlineSystem.Services.Interfaces;
+using EnglishLearningOnlineSystem.ViewModels;
 using Microsoft.AspNetCore.Mvc;
 
 namespace EnglishLearningOnlineSystem.Controllers;
@@ -66,5 +67,84 @@ public class TeacherController : Controller
         }
 
         return View(viewModel);
+    }
+    public async Task<IActionResult> StudentDetail(int classId, int studentId)
+    {
+        var teacherId = GetCurrentUserId();
+
+        if (teacherId == null)
+        {
+            return RedirectToAction("Login", "Auth");
+        }
+
+        var viewModel = await _studentManagementService.GetStudentDetailAsync(
+            classId,
+            studentId,
+            teacherId.Value);
+
+        if (viewModel == null)
+        {
+            return Content("Không tìm thấy học sinh hoặc bạn không có quyền xem thông tin học sinh này.");
+        }
+
+        return View(viewModel);
+    }
+    [HttpGet]
+    public async Task<IActionResult> ProvideFeedback(int classId, int studentId)
+    {
+        var teacherId = GetCurrentUserId();
+
+        if (teacherId == null)
+        {
+            return RedirectToAction("Login", "Auth");
+        }
+
+        var viewModel = await _studentManagementService.GetProvideFeedbackFormAsync(
+            classId,
+            studentId,
+            teacherId.Value);
+
+        if (viewModel == null)
+        {
+            return Content("Không tìm thấy học sinh hoặc bạn không có quyền gửi phản hồi cho học sinh này.");
+        }
+
+        return View(viewModel);
+    }
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> ProvideFeedback(ProvideStudentFeedbackViewModel model)
+    {
+        var teacherId = GetCurrentUserId();
+
+        if (teacherId == null)
+        {
+            return RedirectToAction("Login", "Auth");
+        }
+
+        if (!ModelState.IsValid)
+        {
+            return View(model);
+        }
+
+        var success = await _studentManagementService.CreateStudentFeedbackAsync(
+            model,
+            teacherId.Value);
+
+        if (!success)
+        {
+            ModelState.AddModelError(string.Empty, "Không thể gửi phản hồi. Vui lòng kiểm tra lại thông tin.");
+            return View(model);
+        }
+
+        TempData["SuccessMessage"] = "Phản hồi đã được gửi thành công.";
+
+        return RedirectToAction(
+            nameof(StudentDetail),
+            new
+            {
+                classId = model.ClassId,
+                studentId = model.StudentId
+            });
     }
 }
