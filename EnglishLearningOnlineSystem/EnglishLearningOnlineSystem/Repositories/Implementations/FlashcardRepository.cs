@@ -59,4 +59,21 @@ public class FlashcardRepository : IFlashcardRepository
 
         await _db.SaveChangesAsync();
     }
+
+    public async Task<List<int>> GetMasteredVocabularyIdsAsync(int studentId, int lessonId)
+    {
+        return await _db.FlashcardCardResults
+            .Include(r => r.Session)
+            .Where(r => r.Session!.StudentId == studentId && r.Session.LessonId == lessonId && r.KnewIt == true)
+            .Select(r => r.VocabularyId)
+            .Distinct()
+            .ToListAsync();
+    }
+
+    public async Task ResetMasteryAsync(int studentId, int lessonId)
+    {
+        await _db.FlashcardCardResults
+            .Where(r => r.Session!.StudentId == studentId && r.Session.LessonId == lessonId && r.KnewIt == true)
+            .ExecuteUpdateAsync(s => s.SetProperty(r => r.KnewIt, false));
+    }
 }
