@@ -1,5 +1,6 @@
 using System;
 using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace EnglishLearningOnlineSystem.Models
 {
@@ -29,8 +30,11 @@ namespace EnglishLearningOnlineSystem.Models
 
         public DateTime? PublishTime { get; set; }
 
-        [MaxLength(100)]
-        public string Creator { get; set; } = "Administrator";
+        [Required]
+        public int UserId { get; set; }
+
+        [ForeignKey("UserId")]
+        public User User { get; set; }
 
         public DateTime CreatedAt { get; set; } = DateTime.Now;
         public DateTime? UpdatedAt { get; set; }

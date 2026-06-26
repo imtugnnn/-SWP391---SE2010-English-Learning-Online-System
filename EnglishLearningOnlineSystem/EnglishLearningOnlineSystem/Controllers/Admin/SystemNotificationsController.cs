@@ -21,6 +21,7 @@ namespace EnglishLearningOnlineSystem.Controllers.Admin
         public async Task<IActionResult> Index()
         {
             var notifications = await _context.SystemNotifications!
+                .Include(n => n.User)
                 .AsNoTracking()
                 .OrderByDescending(n => n.PublishTime ?? n.CreatedAt)
                 .ToListAsync();
@@ -35,6 +36,9 @@ namespace EnglishLearningOnlineSystem.Controllers.Admin
                 return Json(new { success = false, message = "Dữ liệu không hợp lệ." });
             }
 
+            var adminUser = await _context.Users.FirstOrDefaultAsync(u => u.Username == "admin" || u.RoleId == 2);
+            int adminId = adminUser != null ? adminUser.Id : 1;
+
             var notification = new SystemNotification
             {
                 Title = vm.Title,
@@ -43,7 +47,7 @@ namespace EnglishLearningOnlineSystem.Controllers.Admin
                 UserType = vm.UserType,
                 Status = vm.Status,
                 PublishTime = vm.Status == "Bản nháp" ? null : (vm.PublishTime ?? DateTime.Now),
-                Creator = "Administrator",
+                UserId = adminId,
                 CreatedAt = DateTime.Now
             };
 
@@ -104,6 +108,30 @@ namespace EnglishLearningOnlineSystem.Controllers.Admin
             await _context.SaveChangesAsync();
 
             return Json(new { success = true });
+        }
+
+        [HttpGet("/admin/notifications/api")]
+        public async Task<IActionResult> GetNotificationsApi()
+        {
+            var now = DateTime.Now;
+            var notifications = await _context.SystemNotifications!
+                .AsNoTracking()
+                .Where(n => n.Status == "Đã phát hành" && (n.PublishTime == null || n.PublishTime <= now))
+                .OrderByDescending(n => n.PublishTime ?? n.CreatedAt)
+                .ToListAsync();
+
+            var adminNotifications = notifications
+                .Where(n => n.Recipient != null && n.Recipient.Split(',', StringSplitOptions.RemoveEmptyEntries).Select(s => s.Trim()).Contains("2"))
+                .Select(n => new
+                {
+                    id = n.Id,
+                    title = n.Title,
+                    content = n.Content,
+                    publishTime = n.PublishTime ?? n.CreatedAt
+                })
+                .ToList();
+
+            return Json(adminNotifications);
         }
     }
 }
