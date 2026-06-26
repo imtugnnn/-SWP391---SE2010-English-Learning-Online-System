@@ -24,8 +24,8 @@ public static class DbInitializer
             await context.SaveChangesAsync();
         }
 
-        if (await context.Users.AnyAsync(x => x.Email == "admin@english.com"))
-            return;
+        if (!await context.Users.AnyAsync(x => x.Email == "admin@english.com"))
+        {
 
         // ── Admin ─────────────────────────────────────────────────────────────
         var admin = new User
@@ -265,12 +265,13 @@ public static class DbInitializer
             EarnedAt = DateTime.Now
         });
         await context.SaveChangesAsync();
+        }
 
         // ── System Notifications ──────────────────────────────────────────────
         if (context.SystemNotifications != null && !await context.SystemNotifications.AnyAsync())
         {
             var adminUser = await context.Users.FirstOrDefaultAsync(u => u.Username == "admin");
-            string creatorName = adminUser != null ? "Administrator" : "Admin";
+            int adminId = adminUser != null ? adminUser.Id : 1;
 
             // Main 6 notifications from the screenshot
             var mainList = new List<SystemNotification>
@@ -283,7 +284,7 @@ public static class DbInitializer
                     UserType = "Tất cả",
                     Status = "Đã phát hành",
                     PublishTime = new DateTime(2025, 05, 24, 20, 0, 0),
-                    Creator = creatorName
+                    UserId = adminId
                 },
                 new SystemNotification
                 {
@@ -293,7 +294,7 @@ public static class DbInitializer
                     UserType = "Giáo viên",
                     Status = "Đã phát hành",
                     PublishTime = new DateTime(2025, 05, 22, 10, 30, 0),
-                    Creator = creatorName
+                    UserId = adminId
                 },
                 new SystemNotification
                 {
@@ -303,7 +304,7 @@ public static class DbInitializer
                     UserType = "Học sinh",
                     Status = "Đã lên lịch",
                     PublishTime = new DateTime(2025, 05, 28, 8, 0, 0),
-                    Creator = creatorName
+                    UserId = adminId
                 },
                 new SystemNotification
                 {
@@ -313,7 +314,7 @@ public static class DbInitializer
                     UserType = "Nhiều vai trò",
                     Status = "Đã phát hành",
                     PublishTime = new DateTime(2025, 05, 20, 9, 15, 0),
-                    Creator = creatorName
+                    UserId = adminId
                 },
                 new SystemNotification
                 {
@@ -323,7 +324,7 @@ public static class DbInitializer
                     UserType = "Nhiều vai trò",
                     Status = "Bản nháp",
                     PublishTime = null,
-                    Creator = creatorName
+                    UserId = adminId
                 },
                 new SystemNotification
                 {
@@ -333,7 +334,7 @@ public static class DbInitializer
                     UserType = "Học sinh",
                     Status = "Đã hủy",
                     PublishTime = new DateTime(2025, 05, 18, 14, 45, 0),
-                    Creator = creatorName
+                    UserId = adminId
                 }
             };
 
@@ -351,7 +352,7 @@ public static class DbInitializer
                     UserType = i % 2 == 0 ? "Tất cả" : "Giáo viên",
                     Status = "Đã phát hành",
                     PublishTime = DateTime.Now.AddDays(-i),
-                    Creator = creatorName
+                    UserId = adminId
                 });
             }
 
@@ -366,7 +367,7 @@ public static class DbInitializer
                     UserType = "Học sinh",
                     Status = "Đã lên lịch",
                     PublishTime = DateTime.Now.AddDays(i),
-                    Creator = creatorName
+                    UserId = adminId
                 });
             }
 
@@ -381,7 +382,7 @@ public static class DbInitializer
                     UserType = "Nhiều vai trò",
                     Status = "Bản nháp",
                     PublishTime = null,
-                    Creator = creatorName
+                    UserId = adminId
                 });
             }
 
@@ -396,7 +397,7 @@ public static class DbInitializer
                     UserType = "Tất cả",
                     Status = "Đã hủy",
                     PublishTime = DateTime.Now.AddDays(-10 - i),
-                    Creator = creatorName
+                    UserId = adminId
                 });
             }
 

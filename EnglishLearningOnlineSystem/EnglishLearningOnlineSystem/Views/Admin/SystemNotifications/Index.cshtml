@@ -394,7 +394,7 @@
             userType = n.UserType,
             status = n.Status,
             publishTime = n.PublishTime.HasValue ? n.PublishTime.Value.ToString("yyyy-MM-ddTHH:mm:ss") : null,
-            creator = n.Creator,
+            creator = n.User != null ? n.User.Username : "System",
             createdAt = n.CreatedAt.ToString("yyyy-MM-ddTHH:mm:ss")
         })));
 
