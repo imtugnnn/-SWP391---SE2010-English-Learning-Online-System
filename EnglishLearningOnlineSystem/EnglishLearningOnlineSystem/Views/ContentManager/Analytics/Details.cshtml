@@ -4,14 +4,13 @@
     ViewData["Title"] = "Phân tích bài học – " + Model.Title;
     Layout = "~/Views/Shared/_ContentManagerLayout.cshtml";
 
-    // Serialize dữ liệu biểu đồ cho JS
     var dailyLabels = JsonSerializer.Serialize(Model.DailyAttemptCounts.Keys.ToList());
     var dailyValues = JsonSerializer.Serialize(Model.DailyAttemptCounts.Values.ToList());
     var distLabels = JsonSerializer.Serialize(Model.ScoreDistribution.Keys.ToList());
     var distValues = JsonSerializer.Serialize(Model.ScoreDistribution.Values.ToList());
 }
 
-<div class="d-flex align-items-center gap-2 mb-1">
+<div class="d-flex align-items-center gap-2 mb-1 flex-wrap">
     <a asp-action="Index" class="btn btn-sm btn-outline-secondary">
         <i class="bi bi-arrow-left"></i>
     </a>
@@ -23,7 +22,6 @@
                class="text-decoration-none text-muted">
                 @Model.CourseName
             </a>
-
             @if (!string.IsNullOrWhiteSpace(Model.Topic))
             {
                 <span class="ms-2 text-muted">· @Model.Topic</span>
@@ -34,15 +32,11 @@
     <div class="ms-auto d-flex align-items-center gap-2">
         @if (Model.IsPublished)
         {
-            <span class="badge bg-success-subtle text-success border border-success-subtle">
-                Đang hoạt động
-            </span>
+            <span class="badge bg-success-subtle text-success border border-success-subtle">Đang hoạt động</span>
         }
         else
         {
-            <span class="badge bg-secondary-subtle text-secondary border border-secondary-subtle">
-                Chưa hoạt động
-            </span>
+            <span class="badge bg-secondary-subtle text-secondary border border-secondary-subtle">Chưa hoạt động</span>
         }
 
         <span class="badge bg-primary-subtle text-primary border border-primary-subtle">
@@ -54,14 +48,14 @@
 <hr class="mb-4" />
 
 <div class="row g-3 mb-4">
-    <div class="col-6 col-xl-2">
+    <div class="col-6 col-xl">
         <div class="card border-0 shadow-sm h-100 text-center p-3">
             <div class="fs-2 fw-bold text-primary">@Model.TotalStudents</div>
             <div class="small text-muted">Học viên</div>
         </div>
     </div>
 
-    <div class="col-6 col-xl-2">
+    <div class="col-6 col-xl">
         <div class="card border-0 shadow-sm h-100 text-center p-3">
             <div class="fs-2 fw-bold text-success">
                 @Model.AvgQuizScore<span class="fs-6 text-muted">%</span>
@@ -70,23 +64,39 @@
         </div>
     </div>
 
-    <div class="col-6 col-xl-2">
+    <div class="col-6 col-xl">
         <div class="card border-0 shadow-sm h-100 text-center p-3">
             <div class="fs-2 fw-bold text-info">
                 @Model.FlashcardCompletionRate<span class="fs-6 text-muted">%</span>
             </div>
-            <div class="small text-muted">Tỷ lệ hoàn thành flashcard</div>
+            <div class="small text-muted">
+                Tỷ lệ hoàn thành flashcard
+                <i class="bi bi-info-circle" title="% buổi flashcard mà học viên trả lời đúng toàn bộ thẻ"></i>
+            </div>
         </div>
     </div>
 
-    <div class="col-6 col-xl-2">
+    <div class="col-6 col-xl">
+        <div class="card border-0 shadow-sm h-100 text-center p-3">
+            <div class="fs-2 fw-bold" style="color:#20c997">
+                @Model.FlashcardAccuracyRate<span class="fs-6 text-muted">%</span>
+            </div>
+            <div class="small text-muted">
+                Độ chính xác flashcard
+                <i class="bi bi-info-circle"
+                   title="% số thẻ trả lời đúng trên tổng số thẻ đã học (không yêu cầu đúng 100% mỗi buổi)"></i>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-6 col-xl">
         <div class="card border-0 shadow-sm h-100 text-center p-3">
             <div class="fs-2 fw-bold text-warning">@Model.TotalXpAwarded.ToString("N0")</div>
             <div class="small text-muted">Tổng XP đã trao</div>
         </div>
     </div>
 
-    <div class="col-6 col-xl-2">
+    <div class="col-6 col-xl">
         <div class="card border-0 shadow-sm h-100 text-center p-3">
             <div class="fs-2 fw-bold text-secondary">
                 @Model.AvgStudyMinutes<span class="fs-6 text-muted"> phút</span>
@@ -95,7 +105,7 @@
         </div>
     </div>
 
-    <div class="col-6 col-xl-2">
+    <div class="col-6 col-xl">
         <div class="card border-0 shadow-sm h-100 text-center p-3">
             <div class="fs-2 fw-bold text-dark">@Model.TotalQuizAttempts</div>
             <div class="small text-muted">Lượt làm quiz</div>
@@ -107,9 +117,20 @@
 <div class="row g-4">
     <div class="col-xl-8">
         <div class="card shadow-sm border-0 h-100">
-            <div class="card-header bg-white fw-semibold py-3">
-                <i class="bi bi-graph-up text-primary me-2"></i>
-                Lượt làm quiz — 30 ngày gần nhất
+            <div class="card-header bg-white py-3 d-flex justify-content-between align-items-center flex-wrap gap-2">
+                <span class="fw-semibold">
+                    <i class="bi bi-graph-up text-primary me-2"></i>
+                    Lượt làm quiz — @Model.SelectedRangeDays ngày gần nhất
+                </span>
+
+                <div class="btn-group btn-group-sm" role="group">
+                    <a asp-action="Details" asp-route-id="@Model.LessonId" asp-route-days="7"
+                       class="btn @(Model.SelectedRangeDays == 7 ? "btn-primary" : "btn-outline-primary")">7 ngày</a>
+                    <a asp-action="Details" asp-route-id="@Model.LessonId" asp-route-days="30"
+                       class="btn @(Model.SelectedRangeDays == 30 ? "btn-primary" : "btn-outline-primary")">30 ngày</a>
+                    <a asp-action="Details" asp-route-id="@Model.LessonId" asp-route-days="90"
+                       class="btn @(Model.SelectedRangeDays == 90 ? "btn-primary" : "btn-outline-primary")">90 ngày</a>
+                </div>
             </div>
 
             <div class="card-body">
@@ -152,11 +173,9 @@
                             var legendColors = new[] { "#dc3545", "#fd7e14", "#0dcaf0", "#198754" };
                             int li = 0;
                         }
-
                         @foreach (var kv in Model.ScoreDistribution)
                         {
-                            <span class="badge rounded-pill px-3 py-2"
-                                  style="background:@legendColors[li]">
+                            <span class="badge rounded-pill px-3 py-2" style="background:@legendColors[li]">
                                 @kv.Key: @kv.Value
                             </span>
                             li++;
