@@ -17,9 +17,12 @@ public class LessonAnalyticsService : ILessonAnalyticsService
         _db = db;
     }
 
-    public async Task<LessonAnalyticsDashboardViewModel> GetDashboardAsync(int? courseId = null)
+    public async Task<LessonAnalyticsDashboardViewModel> GetDashboardAsync(
+        int? courseId = null,
+        string? search = null,
+        string? sortBy = null)
     {
-        var rows = (await _analyticsRepo.GetAllLessonsSummaryAsync(courseId)).ToList();
+        var rows = (await _analyticsRepo.GetAllLessonsSummaryAsync(courseId, search, sortBy)).ToList();
 
         var courses = await _db.Courses!
             .AsNoTracking()
@@ -42,21 +45,31 @@ public class LessonAnalyticsService : ILessonAnalyticsService
             TotalXpAwarded = r.TotalXpAwarded
         }).ToList();
 
+        // Tính trên dữ liệu thô (đúng trọng số theo số lượt làm bài), không phải
+        // trung bình của các trung bình per-lesson.
+        var lessonIds = rows.Select(r => r.LessonId).ToList();
+        var (weightedAvgScore, uniqueStudents) = await _analyticsRepo.GetOverallStatsAsync(lessonIds);
+
         return new LessonAnalyticsDashboardViewModel
         {
             Items = items,
             Courses = courses,
             FilterCourseId = courseId,
-            // Top-level KPIs
+            SearchTerm = search,
+            SortBy = sortBy,
+
             TotalLessons = items.Count,
             TotalStudentsAll = rows.Sum(r => r.TotalStudents),
-            OverallAvgScore = rows.Any() ? Math.Round(rows.Average(r => r.AvgQuizScore), 1) : 0,
+            TotalUniqueStudents = uniqueStudents,
+            OverallAvgScore = weightedAvgScore,
             TotalXpAll = rows.Sum(r => r.TotalXpAwarded)
         };
     }
 
-    public async Task<LessonAnalyticsDetailViewModel?> GetDetailAsync(int lessonId)
+    public async Task<LessonAnalyticsDetailViewModel?> GetDetailAsync(int lessonId, int days = 30)
     {
+        if (days != 7 && days != 30 && days != 90) days = 30;
+
         var lesson = await _db.Lessons!
             .AsNoTracking()
             .Include(l => l.Course)
@@ -64,20 +77,13 @@ public class LessonAnalyticsService : ILessonAnalyticsService
 
         if (lesson == null) return null;
 
-        var totalStudents = await _analyticsRepo.GetTotalStudentsAsync(lessonId);
-        var avgQuizScore = await _analyticsRepo.GetAverageQuizScoreAsync(lessonId);
+        var core = await _analyticsRepo.GetLessonCoreStatsAsync(lessonId);
         var flashcardCompletionRate = await _analyticsRepo.GetFlashcardCompletionRateAsync(lessonId);
-        var totalXp = await _analyticsRepo.GetTotalXpAwardedAsync(lessonId);
+        var flashcardAccuracyRate = await _analyticsRepo.GetFlashcardAccuracyRateAsync(lessonId);
         var avgStudyMinutes = await _analyticsRepo.GetAverageStudyMinutesAsync(lessonId);
-        var dailyCounts = await _analyticsRepo.GetDailyAttemptCountsAsync(lessonId, 30);
+        var dailyCounts = await _analyticsRepo.GetDailyAttemptCountsAsync(lessonId, days);
         var scoreDist = await _analyticsRepo.GetScoreDistributionAsync(lessonId);
 
-        // Total quiz attempts count
-        var totalAttempts = await _db.QuizAttempts
-            .AsNoTracking()
-            .CountAsync(qa => qa.LessonId == lessonId);
-
-        // Total flashcard sessions
         var totalFlashcardSessions = await _db.FlashcardSessions
             .AsNoTracking()
             .CountAsync(fs => fs.LessonId == lessonId);
@@ -93,18 +99,18 @@ public class LessonAnalyticsService : ILessonAnalyticsService
             CourseId = lesson.CourseId,
             CourseName = lesson.Course?.CourseName ?? "—",
 
-            // KPI cards
-            TotalStudents = totalStudents,
-            AvgQuizScore = avgQuizScore,
+            TotalStudents = core.TotalStudents,
+            AvgQuizScore = core.AvgQuizScore,
             FlashcardCompletionRate = flashcardCompletionRate,
-            TotalXpAwarded = totalXp,
+            FlashcardAccuracyRate = flashcardAccuracyRate,
+            TotalXpAwarded = core.TotalXpAwarded,
             AvgStudyMinutes = avgStudyMinutes,
-            TotalQuizAttempts = totalAttempts,
+            TotalQuizAttempts = core.TotalQuizAttempts,
             TotalFlashcardSessions = totalFlashcardSessions,
 
-            // Chart data
             DailyAttemptCounts = dailyCounts,
-            ScoreDistribution = scoreDist
+            ScoreDistribution = scoreDist,
+            SelectedRangeDays = days
         };
     }
 }
