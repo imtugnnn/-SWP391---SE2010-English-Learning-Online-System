@@ -1,45 +1,254 @@
+@* ============================================================
+   ORIGINAL LOGIC: 100% preserved — model binding, form action,
+   input names, AntiForgery, route, validation, TempData all intact.
+   CHANGED: HTML structure (layout only), all CSS below the <style> tag,
+   and the small JS animation block at the bottom.
+   ============================================================ *@
+
 @model EnglishLearningOnlineSystem.ViewModels.Student.Games.MatchingPlayViewModel
 @{
-    Layout = "_StudentLayout"; @* Đổi tên layout nếu project bạn dùng tên khác *@
+    Layout = "_StudentLayout";
     ViewData["Title"] = "Ghép từ";
 }
 
-<div class="container py-4" style="max-width: 720px;">
-    <h2 class="mb-1">@Model.GameTitle</h2>
-    <p class="text-muted">
-        Bài học: <strong>@Model.LessonTitle</strong> · Ghép mỗi từ ở cột trái với nghĩa đúng ở danh sách thả xuống.
-    </p>
-
-    @if (TempData["ErrorMessage"] != null)
-    {
-        <div class="alert alert-danger alert-dismissible fade show" role="alert">
-            @TempData["ErrorMessage"]
-            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-        </div>
+@* ── ADDED: scoped styles ─────────────────────────────────── *@
+<style>
+    /* ── Tokens ── */
+    :root {
+        --game-bg: #f0f4ff;
+        --card-bg: #ffffff;
+        --primary: #4f6ef7;
+        --primary-dark: #3a57d4;
+        --accent: #f59e0b;
+        --success: #22c55e;
+        --danger: #ef4444;
+        --text-main: #1e2340;
+        --text-muted: #6b7280;
+        --radius: 14px;
+        --shadow: 0 4px 24px rgba(79,110,247,.10);
     }
 
-    <form asp-controller="Matching" asp-action="Submit" method="post">
-        @Html.AntiForgeryToken()
-        <input type="hidden" name="GameId" value="@Model.GameId" />
+    /* ── Page wrapper ── */
+    .game-page-matching {
+        min-height: 100vh;
+        background: var(--game-bg);
+        padding: 2.5rem 1rem;
+    }
 
-        <div class="card">
-            <div class="card-body p-0">
-                <table class="table align-middle mb-0">
-                    <thead class="table-light">
+    /* ── Game card ── */
+    .game-card {
+        background: var(--card-bg);
+        border-radius: var(--radius);
+        box-shadow: var(--shadow);
+        overflow: hidden;
+    }
+
+    /* ── Header banner ── */
+    .game-header {
+        background: linear-gradient(120deg, #4f6ef7 0%, #7c3aed 100%);
+        color: #fff;
+        padding: 1.5rem 1.75rem 1.2rem;
+        border-radius: var(--radius) var(--radius) 0 0;
+    }
+
+        .game-header h2 {
+            font-size: 1.5rem;
+            font-weight: 700;
+            margin: 0 0 .25rem;
+        }
+
+        .game-header p {
+            font-size: .88rem;
+            opacity: .85;
+            margin: 0;
+        }
+
+    /* ── XP pill ── */
+    .xp-pill {
+        display: inline-flex;
+        align-items: center;
+        gap: .35rem;
+        background: linear-gradient(90deg, #f59e0b, #fbbf24);
+        color: #1e2340;
+        font-weight: 700;
+        font-size: .85rem;
+        padding: .35rem .85rem;
+        border-radius: 99px;
+        box-shadow: 0 2px 8px rgba(245,158,11,.35);
+    }
+
+    /* ── Table tweaks ── */
+    .matching-table {
+        border-collapse: separate;
+        border-spacing: 0;
+        width: 100%;
+    }
+
+        .matching-table thead th {
+            background: #f8faff;
+            font-size: .78rem;
+            text-transform: uppercase;
+            letter-spacing: .06em;
+            color: var(--text-muted);
+            padding: .75rem 1.25rem;
+            border-bottom: 1px solid #e8edf6;
+        }
+
+        .matching-table tbody tr {
+            transition: background .15s;
+        }
+
+            .matching-table tbody tr:hover {
+                background: #f5f7ff;
+            }
+
+        .matching-table tbody td {
+            padding: .85rem 1.25rem;
+            border-bottom: 1px solid #f0f3fb;
+            vertical-align: middle;
+        }
+
+        .matching-table tbody tr:last-child td {
+            border-bottom: none;
+        }
+
+    /* ── Word label ── */
+    .word-label {
+        display: inline-block;
+        background: linear-gradient(135deg,#eef2ff,#e0e7ff);
+        color: #3730a3;
+        font-weight: 700;
+        font-size: 1rem;
+        padding: .45rem 1rem;
+        border-radius: 8px;
+        border: 1.5px solid #c7d2fe;
+        letter-spacing: .01em;
+    }
+
+    /* ── Select ── */
+    .match-select {
+        border: 1.5px solid #d1d5db;
+        border-radius: 9px;
+        padding: .55rem .85rem;
+        font-size: .95rem;
+        color: var(--text-main);
+        background: #fff;
+        transition: border-color .2s, box-shadow .2s;
+        width: 100%;
+        cursor: pointer;
+    }
+
+        .match-select:focus {
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(79,110,247,.18);
+            outline: none;
+        }
+
+        .match-select:valid:not([value=""]) {
+            border-color: var(--success);
+        }
+
+    /* ── Footer bar ── */
+    .game-footer {
+        padding: 1.25rem 1.75rem;
+        border-top: 1px solid #f0f3fb;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    /* ── Submit button ── */
+    .btn-submit-game {
+        background: linear-gradient(90deg, #4f6ef7, #7c3aed);
+        color: #fff;
+        border: none;
+        border-radius: 10px;
+        padding: .6rem 1.6rem;
+        font-size: 1rem;
+        font-weight: 600;
+        cursor: pointer;
+        display: inline-flex;
+        align-items: center;
+        gap: .45rem;
+        box-shadow: 0 3px 12px rgba(79,110,247,.3);
+        transition: transform .15s, box-shadow .15s;
+    }
+
+        .btn-submit-game:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(79,110,247,.4);
+        }
+
+        .btn-submit-game:active {
+            transform: translateY(0);
+        }
+
+    /* ── Alert ── */
+    .game-alert {
+        border-radius: 10px;
+        margin-bottom: 1.25rem;
+        border: none;
+        background: #fee2e2;
+        color: #991b1b;
+        padding: .85rem 1rem;
+        font-size: .92rem;
+        display: flex;
+        align-items: center;
+        gap: .5rem;
+    }
+
+
+</style>
+@* ── END ADDED styles ──────────────────────────────────────── *@
+
+@* ── CHANGED: wrapper div — was bare container, now game-page-matching ── *@
+<div class="game-page-matching">
+    <div style="max-width:720px; margin:auto;">
+
+        @* ── CHANGED: title area moved into gradient header inside game-card ── *@
+        <div class="game-card">
+            <div class="game-header">
+                <h2>@Model.GameTitle</h2>
+                <p>Bài học: <strong>@Model.LessonTitle</strong> · Ghép mỗi từ với nghĩa đúng.</p>
+            </div>
+
+            @* ── ORIGINAL: TempData["ErrorMessage"] block — logic unchanged ── *@
+            @if (TempData["ErrorMessage"] != null)
+            {
+                <div class="game-alert alert-dismissible fade show" role="alert">
+                    <i class="bi bi-exclamation-triangle-fill"></i>
+                    @TempData["ErrorMessage"]
+                    <button type="button" class="btn-close ms-auto" data-bs-dismiss="alert"></button>
+                </div>
+            }
+
+            @* ── ORIGINAL: form, AntiForgery, hidden GameId — UNCHANGED ── *@
+            <form asp-controller="Matching" asp-action="Submit" method="post">
+                @Html.AntiForgeryToken()
+                <input type="hidden" name="GameId" value="@Model.GameId" />
+
+                @* ── CHANGED: table styling, classes renamed for better visuals ── *@
+                <table class="matching-table">
+                    <thead>
                         <tr>
-                            <th style="width: 40%;">Từ</th>
+                            <th style="width:42%;">Từ</th>
                             <th>Chọn nghĩa tương ứng</th>
                         </tr>
                     </thead>
                     <tbody>
+                        @* ── ORIGINAL: Razor for loop — logic unchanged ── *@
                         @for (var i = 0; i < Model.Words.Count; i++)
                         {
                             var word = Model.Words[i];
                             <tr>
-                                <td class="fw-semibold">@word.Text</td>
                                 <td>
+                                    @* ── CHANGED: added word-label span for card-chip look ── *@
+                                    <span class="word-label">@word.Text</span>
+                                </td>
+                                <td>
+                                    @* ── ORIGINAL: hidden input + select — names/ids UNCHANGED ── *@
                                     <input type="hidden" name="Answers[@i].VocabularyId" value="@word.VocabularyId" />
-                                    <select name="Answers[@i].SelectedMeaningVocabularyId" class="form-select" required>
+                                    <select name="Answers[@i].SelectedMeaningVocabularyId" class="match-select" required>
                                         <option value="">— Chọn nghĩa —</option>
                                         @foreach (var meaning in Model.Meanings)
                                         {
@@ -51,14 +260,27 @@
                         }
                     </tbody>
                 </table>
-            </div>
-        </div>
 
-        <div class="d-flex justify-content-between align-items-center mt-4">
-            <span class="badge bg-warning text-dark">Tối đa +@Model.XPReward XP</span>
-            <button type="submit" class="btn btn-primary">
-                <i class="bi bi-check-lg"></i> Nộp đáp án
-            </button>
-        </div>
-    </form>
+                @* ── CHANGED: footer bar layout; XP badge and button restyled ── *@
+                <div class="game-footer">
+                    <span class="xp-pill">
+                        <i class="bi bi-star-fill"></i> Tối đa +@Model.XPReward XP
+                    </span>
+                    <button type="submit" class="btn-submit-game">
+                        <i class="bi bi-check-lg"></i> Nộp đáp án
+                    </button>
+                </div>
+            </form>
+
+        </div>@* /game-card *@
+    </div>
 </div>
+
+@* ── ADDED: micro-interaction — highlight select when a value is picked ── *@
+<script>
+    document.querySelectorAll('.match-select').forEach(sel => {
+        sel.addEventListener('change', function () {
+            this.style.borderColor = this.value ? '#22c55e' : '#d1d5db';
+        });
+    });
+</script>
