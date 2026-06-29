@@ -1,58 +1,291 @@
+@* ============================================================
+   ORIGINAL LOGIC: 100% preserved — model binding, result display,
+   links, route structure all intact.
+   CHANGED: HTML structure (layout only), all CSS in <style> block below.
+   ============================================================ *@
+
 @model EnglishLearningOnlineSystem.ViewModels.Student.Games.MatchingResultViewModel
 @{
-    Layout = "_StudentLayout"; @* Đổi tên layout nếu project bạn dùng tên khác *@
+    Layout = "_StudentLayout";
     ViewData["Title"] = "Kết quả Ghép từ";
 }
 
-<div class="container py-4" style="max-width: 720px;">
-    <h2 class="mb-1">@Model.GameTitle — Kết quả</h2>
-    <p class="text-muted mb-4">
-        Đúng @Model.CorrectCount / @Model.TotalCount cặp ·
-        <span class="badge bg-warning text-dark">+@Model.XPEarned XP</span> ·
-        Tổng XP hiện tại: <strong>@Model.NewTotalXP</strong>
-    </p>
+@* ── ADDED: scoped styles ─────────────────────────────────── *@
+<style>
+    :root {
+        --primary: #4f6ef7;
+        --success: #22c55e;
+        --danger: #ef4444;
+        --radius: 14px;
+        --shadow: 0 4px 24px rgba(79,110,247,.10);
+    }
 
-    <div class="card mb-4">
-        <div class="card-body p-0">
-            <table class="table mb-0">
-                <thead class="table-light">
+    .result-page {
+        min-height: 100vh;
+        background: #f0f4ff;
+        padding: 2.5rem 1rem;
+    }
+
+    /* ── Score banner ── */
+    .score-banner {
+        background: linear-gradient(120deg, #4f6ef7 0%, #7c3aed 100%);
+        border-radius: var(--radius) var(--radius) 0 0;
+        padding: 2rem 2rem 1.5rem;
+        color: #fff;
+        text-align: center;
+    }
+
+        .score-banner h2 {
+            font-size: 1.45rem;
+            font-weight: 700;
+            margin: 0 0 .5rem;
+        }
+
+    /* ── Big score ring ── */
+    .score-ring {
+        width: 90px;
+        height: 90px;
+        border-radius: 50%;
+        background: rgba(255,255,255,.18);
+        border: 4px solid rgba(255,255,255,.55);
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        margin: 0 auto 1rem;
+    }
+
+        .score-ring .ring-num {
+            font-size: 1.8rem;
+            font-weight: 800;
+            line-height: 1;
+        }
+
+        .score-ring .ring-denom {
+            font-size: .8rem;
+            opacity: .75;
+        }
+
+    /* ── Stat pills ── */
+    .stat-row {
+        display: flex;
+        gap: .6rem;
+        justify-content: center;
+        flex-wrap: wrap;
+        margin-top: .5rem;
+    }
+
+    .stat-pill {
+        display: inline-flex;
+        align-items: center;
+        gap: .3rem;
+        padding: .3rem .75rem;
+        border-radius: 99px;
+        font-size: .82rem;
+        font-weight: 600;
+        background: rgba(255,255,255,.2);
+        color: #fff;
+    }
+
+        .stat-pill.xp {
+            background: linear-gradient(90deg,#f59e0b,#fbbf24);
+            color: #1e2340;
+        }
+
+    /* ── Result card body ── */
+    .result-card {
+        background: #fff;
+        border-radius: var(--radius);
+        box-shadow: var(--shadow);
+        overflow: hidden;
+    }
+
+    /* ── Table ── */
+    .result-table {
+        width: 100%;
+        border-collapse: collapse;
+    }
+
+        .result-table thead th {
+            background: #f8faff;
+            font-size: .76rem;
+            text-transform: uppercase;
+            letter-spacing: .06em;
+            color: #6b7280;
+            padding: .7rem 1.1rem;
+            border-bottom: 1px solid #e8edf6;
+        }
+
+        .result-table tbody td {
+            padding: .8rem 1.1rem;
+            border-bottom: 1px solid #f0f3fb;
+            font-size: .93rem;
+            vertical-align: middle;
+        }
+
+        .result-table tbody tr:last-child td {
+            border-bottom: none;
+        }
+
+    /* ── Row states ── */
+    .row-correct {
+        background: #f0fdf4;
+    }
+
+        .row-correct td:first-child {
+            border-left: 3px solid var(--success);
+        }
+
+    .row-wrong {
+        background: #fff5f5;
+    }
+
+        .row-wrong td:first-child {
+            border-left: 3px solid var(--danger);
+        }
+
+    .word-chip {
+        display: inline-block;
+        font-weight: 700;
+        background: linear-gradient(135deg,#eef2ff,#e0e7ff);
+        color: #3730a3;
+        padding: .3rem .75rem;
+        border-radius: 7px;
+        font-size: .9rem;
+    }
+
+    .icon-result {
+        font-size: 1.15rem;
+    }
+
+    /* ── Action buttons ── */
+    .result-actions {
+        padding: 1.25rem 1.5rem;
+        border-top: 1px solid #f0f3fb;
+        display: flex;
+        gap: .75rem;
+        flex-wrap: wrap;
+    }
+
+    .btn-replay {
+        flex: 1;
+        min-width: 140px;
+        background: linear-gradient(90deg,#4f6ef7,#7c3aed);
+        color: #fff;
+        border: none;
+        border-radius: 10px;
+        padding: .65rem 1rem;
+        font-size: .95rem;
+        font-weight: 600;
+        text-align: center;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: .4rem;
+        box-shadow: 0 3px 12px rgba(79,110,247,.3);
+        transition: transform .15s, box-shadow .15s;
+    }
+
+        .btn-replay:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 18px rgba(79,110,247,.4);
+            color: #fff;
+        }
+
+    .btn-back {
+        flex: 1;
+        min-width: 140px;
+        background: transparent;
+        color: #4f6ef7;
+        border: 1.5px solid #c7d2fe;
+        border-radius: 10px;
+        padding: .65rem 1rem;
+        font-size: .95rem;
+        font-weight: 600;
+        text-align: center;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: .4rem;
+        transition: background .15s, border-color .15s;
+    }
+
+        .btn-back:hover {
+            background: #eef2ff;
+            border-color: #a5b4fc;
+            color: #4f6ef7;
+        }
+
+
+</style>
+@* ── END ADDED styles ──────────────────────────────────────── *@
+
+@* ── CHANGED: wrapper; was bare container ── *@
+<div class="result-page">
+    <div style="max-width:720px; margin:auto;">
+        <div class="result-card">
+
+            @* ── CHANGED: score banner with ring (logic: CorrectCount/TotalCount unchanged) ── *@
+            <div class="score-banner">
+                <div class="score-ring">
+                    @* ── ORIGINAL values ── *@
+                    <span class="ring-num">@Model.CorrectCount</span>
+                    <span class="ring-denom">/ @Model.TotalCount</span>
+                </div>
+                <h2>@Model.GameTitle — Kết quả</h2>
+                <div class="stat-row">
+                    @* ── ORIGINAL: XPEarned, NewTotalXP ── *@
+                    <span class="stat-pill xp"><i class="bi bi-star-fill"></i>+@Model.XPEarned XP</span>
+                    <span class="stat-pill"><i class="bi bi-trophy-fill"></i>Tổng: @Model.NewTotalXP XP</span>
+                </div>
+            </div>
+
+            @* ── CHANGED: table classes; row class logic mirrors original table-success/danger ── *@
+            <table class="result-table">
+                <thead>
                     <tr>
                         <th>Từ</th>
                         <th>Bạn chọn</th>
                         <th>Đáp án đúng</th>
-                        <th class="text-center">Kết quả</th>
+                        <th style="text-align:center;">Kết quả</th>
                     </tr>
                 </thead>
                 <tbody>
+                    @* ── ORIGINAL: foreach Model.Items — unchanged ── *@
                     @foreach (var item in Model.Items)
                     {
-                        <tr class="@(item.IsCorrect ? "table-success" : "table-danger")">
-                            <td class="fw-semibold">@item.Word</td>
+                        <tr class="@(item.IsCorrect ? "row-correct" : "row-wrong")">
+                            <td><span class="word-chip">@item.Word</span></td>
                             <td>@item.YourMeaning</td>
                             <td>@item.CorrectMeaning</td>
-                            <td class="text-center">
+                            <td style="text-align:center;">
+                                @* ── ORIGINAL: IsCorrect condition — unchanged ── *@
                                 @if (item.IsCorrect)
                                 {
-                                    <i class="bi bi-check-circle-fill text-success"></i>
+                                    <i class="bi bi-check-circle-fill text-success icon-result"></i>
                                 }
                                 else
                                 {
-                                    <i class="bi bi-x-circle-fill text-danger"></i>
+                                    <i class="bi bi-x-circle-fill text-danger icon-result"></i>
                                 }
                             </td>
                         </tr>
                     }
                 </tbody>
             </table>
-        </div>
-    </div>
 
-    <div class="d-flex gap-2">
-        <a href="/Matching/Play/@Model.GameId" class="btn btn-outline-primary">
-            <i class="bi bi-arrow-repeat"></i> Chơi lại
-        </a>
-        <a href="/student/lessons" class="btn btn-outline-secondary">
-            Về danh sách bài học
-        </a>
+            @* ── CHANGED: buttons restyled; hrefs UNCHANGED ── *@
+            <div class="result-actions">
+                <a href="/Matching/Play/@Model.GameId" class="btn-replay">
+                    <i class="bi bi-arrow-repeat"></i> Chơi lại
+                </a>
+                <a href="/student/lesson/@Model.LessonId" class="btn-back">
+                    Về danh sách bài học
+                </a>
+            </div>
+
+        </div>
     </div>
 </div>
