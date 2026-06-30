@@ -119,12 +119,13 @@
                 <label>Đối tượng nhận</label>
                 <select id="recipientFilter" class="filter-input form-select" onchange="onFilterChange()">
                     <option value="">Tất cả</option>
-                    <option value="1,2,3,4,5">Tất cả người dùng</option>
-                    <option value="3">Giáo viên</option>
-                    <option value="1">Học sinh</option>
-                    <option value="4">Phụ huynh</option>
-                    <option value="1,4">Học sinh, Phụ huynh</option>
-                    <option value="4,3">Phụ huynh, Giáo viên</option>
+                    @if (ViewBag.Roles != null)
+                    {
+                        @foreach (var role in ViewBag.Roles as List<EnglishLearningOnlineSystem.Models.Role>)
+                        {
+                            <option value="@role.Id">@role.Name</option>
+                        }
+                    }
                 </select>
             </div>
 
@@ -164,9 +165,9 @@
                         <input type="checkbox" id="selectAllCheckbox" class="form-check-input custom-checkbox" onchange="toggleSelectAll(this)" />
                     </th>
                     <th style="width: 35%;">Tiêu đề</th>
-                    <th style="width: 15%;">Đối tượng nhận</th>
+                    <th style="width: 15%;">Đối tượng nhận <i class="bi bi-funnel filter-icon"></i></th>
                     <th style="width: 12%;">Loại người dùng</th>
-                    <th style="width: 12%;">Trạng thái</th>
+                    <th style="width: 12%;">Trạng thái <i class="bi bi-funnel filter-icon"></i></th>
                     <th style="width: 14%;">Thời gian phát hành</th>
                     <th style="width: 12%;">Người tạo</th>
                     <th style="width: 10%; text-align: center;">Thao tác</th>
@@ -549,7 +550,23 @@
             filteredList = notifications.filter(n => {
                 const matchSearch = !searchText || n.title.toLowerCase().includes(searchText) || n.content.toLowerCase().includes(searchText);
                 const matchStatus = !status || n.status === status;
-                const matchRecipient = !recipient || n.recipient === recipient || getFriendlyRecipients(n.recipient) === getFriendlyRecipients(recipient);
+                
+                let matchRecipient = true;
+                if (recipient) {
+                    const textMap = {
+                        "1": "Học sinh",
+                        "2": "Admin",
+                        "3": "Giáo viên",
+                        "4": "Phụ huynh",
+                        "5": "Quản trị nội dung"
+                    };
+                    const roleName = textMap[recipient] || '';
+                    const isAllUsers = n.recipient === 'Tất cả người dùng' || n.recipient === '1,2,3,4,5';
+                    const parts = n.recipient.split(',').map(r => r.trim());
+                    const hasRoleIdOrName = parts.includes(recipient) || (roleName && parts.includes(roleName));
+                    matchRecipient = isAllUsers || hasRoleIdOrName;
+                }
+
                 const matchUserType = !userType || n.userType === userType;
                 
                 let matchTime = true;

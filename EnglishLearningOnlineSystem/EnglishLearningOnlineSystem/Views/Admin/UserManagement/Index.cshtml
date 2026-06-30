@@ -4,6 +4,7 @@
     ViewData["Title"] = "Quản lý người dùng";
     Layout = "~/Views/Shared/Admin/_AdminLayout.cshtml";
     var rolesList = ViewBag.Roles as List<EnglishLearningOnlineSystem.Models.Role> ?? new List<EnglishLearningOnlineSystem.Models.Role>();
+    var activeYearId = ViewBag.ActiveAcademicYearId as int?;
 
     // Calculate Stats
     var totalUsers = Model.Count;
@@ -238,7 +239,7 @@
                     <th>Trạng thái <i class="bi bi-funnel filter-icon"></i></th>
                     <th class="sortable" onclick="handleSort('birthdate')">Ngày sinh <i class="bi bi-arrow-down-up sort-icon"></i></th>
                     <th class="sortable" onclick="handleSort('lastlogin')">Lần đăng nhập cuối <i class="bi bi-arrow-down-up sort-icon"></i></th>
-                    <th class="sortable" onclick="handleSort('created')">Ngày tạo <i class="bi bi-arrow-down-up sort-icon"></i></th>
+                    <th class="sortable" onclick="handleSort('class')">Lớp <i class="bi bi-arrow-down-up sort-icon"></i></th>
                     <th style="width: 130px;">Thao tác</th>
                 </tr>
             </thead>
@@ -383,16 +384,32 @@
 @section Scripts {
     <script>
         // Load initial users list from Razor model
-        let users = @Html.Raw(Json.Serialize(Model.Select(u => new {
-            id = u.Id,
-            username = u.Username,
-            email = u.Email,
-            birthDate = u.BirthDate.HasValue ? u.BirthDate.Value.ToString("yyyy-MM-dd") : null,
-            isActive = u.IsActive,
-            roleId = u.RoleId,
-            roleName = u.Role?.Name,
-            createAt = u.CreateAt.ToString("yyyy-MM-ddTHH:mm:ss"),
-            lastLoginAt = u.LastLoginAt.HasValue ? u.LastLoginAt.Value.ToString("yyyy-MM-ddTHH:mm:ss") : null
+        let users = @Html.Raw(Json.Serialize(Model.Select(u => {
+            string userClass = "-";
+            if (activeYearId.HasValue)
+            {
+                if (u.Role?.Name == "Student")
+                {
+                    userClass = u.ClassEnrollments.FirstOrDefault(ce => ce.Class != null && ce.Class.AcademicYearId == activeYearId.Value && !ce.Class.IsDeleted)?.Class?.ClassName ?? "-";
+                }
+                else if (u.Role?.Name == "Teacher")
+                {
+                    var classes = u.TaughtClasses.Where(c => c.AcademicYearId == activeYearId.Value && !c.IsDeleted).Select(c => c.ClassName).ToList();
+                    userClass = classes.Any() ? string.Join(", ", classes) : "-";
+                }
+            }
+            return new {
+                id = u.Id,
+                username = u.Username,
+                email = u.Email,
+                birthDate = u.BirthDate.HasValue ? u.BirthDate.Value.ToString("yyyy-MM-dd") : null,
+                isActive = u.IsActive,
+                roleId = u.RoleId,
+                roleName = u.Role?.Name,
+                createAt = u.CreateAt.ToString("yyyy-MM-ddTHH:mm:ss"),
+                lastLoginAt = u.LastLoginAt.HasValue ? u.LastLoginAt.Value.ToString("yyyy-MM-ddTHH:mm:ss") : null,
+                className = userClass
+            };
         })));
 
         let filteredUsers = [...users];
@@ -530,6 +547,10 @@
                         valA = a.lastLoginAt || '0000-00-00T00:00:00';
                         valB = b.lastLoginAt || '0000-00-00T00:00:00';
                         break;
+                    case 'class':
+                        valA = a.className.toLowerCase();
+                        valB = b.className.toLowerCase();
+                        break;
                     case 'created':
                     default:
                         valA = a.createAt || '0000-00-00T00:00:00';
@@ -626,10 +647,10 @@
                 tdLastLogin.innerText = u.lastLoginAt ? formatDateTime(u.lastLoginAt) : 'Chưa đăng nhập';
                 tr.appendChild(tdLastLogin);
                 
-                // Created Date
-                const tdCreated = document.createElement('td');
-                tdCreated.innerText = formatDateTime(u.createAt);
-                tr.appendChild(tdCreated);
+                // Class Name
+                const tdClass = document.createElement('td');
+                tdClass.innerText = escapeHtml(u.className);
+                tr.appendChild(tdClass);
                 
                 // Operations Cell
                 const tdActions = document.createElement('td');

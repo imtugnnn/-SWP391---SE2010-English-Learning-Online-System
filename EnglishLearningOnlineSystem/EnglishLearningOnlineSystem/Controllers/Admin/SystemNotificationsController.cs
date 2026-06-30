@@ -25,6 +25,7 @@ namespace EnglishLearningOnlineSystem.Controllers.Admin
                 .AsNoTracking()
                 .OrderByDescending(n => n.PublishTime ?? n.CreatedAt)
                 .ToListAsync();
+            ViewBag.Roles = await _context.Roles.AsNoTracking().ToListAsync();
             return View("~/Views/Admin/SystemNotifications/Index.cshtml", notifications);
         }
 
@@ -121,7 +122,13 @@ namespace EnglishLearningOnlineSystem.Controllers.Admin
                 .ToListAsync();
 
             var adminNotifications = notifications
-                .Where(n => n.Recipient != null && n.Recipient.Split(',', StringSplitOptions.RemoveEmptyEntries).Select(s => s.Trim()).Contains("2"))
+                .Where(n => n.Recipient != null && (
+                    n.Recipient.Equals("Tất cả người dùng", StringComparison.OrdinalIgnoreCase) ||
+                    n.Recipient.Equals("Tất cả", StringComparison.OrdinalIgnoreCase) ||
+                    n.Recipient.Split(',', StringSplitOptions.RemoveEmptyEntries)
+                        .Select(s => s.Trim().ToLower())
+                        .Any(s => s == "2" || s == "admin")
+                ))
                 .Select(n => new
                 {
                     id = n.Id,
