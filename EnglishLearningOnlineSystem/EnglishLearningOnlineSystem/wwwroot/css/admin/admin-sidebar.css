@@ -1,142 +1,245 @@
 .admin-sidebar {
-    width: 210px;
+    width: 260px;
     min-height: 100vh;
-
-    background: linear-gradient(
-            180deg,
-            #1496db 0%,
-            #0d6ba8 100%
-    );
-
+    background: linear-gradient(180deg, #0c60da 0%, #0545b5 100%);
     color: white;
-
     display: flex;
     flex-direction: column;
+    transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    overflow-x: hidden;
+    position: relative;
+    box-shadow: 4px 0 15px rgba(0, 0, 0, 0.05);
 }
 
 /* Logo */
-
 .sidebar-logo {
     display: flex;
     align-items: center;
     gap: 15px;
-
-    padding: 18px;
-    border-bottom: 1px solid rgba(255,255,255,.15);
+    padding: 20px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    height: 72px;
+    box-sizing: border-box;
 }
 
 .sidebar-logo img {
-    width: 52px;
-    height: 52px;
-    border-radius: 14px;
+    width: 32px;
+    height: 32px;
+    border-radius: 8px;
     background: white;
-    padding: 6px;
+    padding: 3px;
+    flex-shrink: 0;
 }
 
-.sidebar-logo h4 {
+.logo-text {
+    display: flex;
+    flex-direction: column;
+    transition: opacity 0.2s ease;
+}
+
+.logo-text h4 {
     margin: 0;
     font-weight: 700;
+    font-size: 1.1rem;
+    letter-spacing: 0.5px;
 }
 
-.sidebar-logo span {
-    font-size: 13px;
-    opacity: .8;
+.logo-text span {
+    font-size: 11px;
+    opacity: 0.7;
+    margin-top: 1px;
 }
 
 /* Profile */
-
 .sidebar-profile {
     text-align: center;
-    padding: 20px 12px;
+    padding: 24px 16px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
 }
 
 .profile-avatar {
-    width: 55px;
-    height: 55px;
-
+    width: 64px;
+    height: 64px;
     border-radius: 50%;
-
-    border: 3px solid rgba(255,255,255,.4);
-
-    margin: auto auto 15px;
-
+    border: 3px solid rgba(255, 255, 255, 0.25);
+    background: rgba(255, 255, 255, 0.1);
+    margin-bottom: 12px;
     display: flex;
     justify-content: center;
     align-items: center;
-
     font-weight: 700;
-    font-size: 22px;
+    font-size: 24px;
+    color: white;
+    flex-shrink: 0;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
 }
 
-.sidebar-profile h5 {
-    margin-bottom: 4px;
+.profile-info {
+    transition: opacity 0.2s ease;
 }
 
-.sidebar-profile span {
-    opacity: .8;
+.profile-info h5 {
+    margin: 0 0 4px 0;
+    font-size: 1rem;
+    font-weight: 600;
+}
+
+.profile-info span {
+    font-size: 12px;
+    opacity: 0.75;
 }
 
 /* Menu */
-
 .sidebar-menu {
     list-style: none;
-    padding: 0 12px;
+    padding: 16px 12px;
     margin: 0;
     flex: 1;
+    overflow-y: auto;
+}
+
+.sidebar-menu::-webkit-scrollbar {
+    width: 4px;
+}
+.sidebar-menu::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.15);
+    border-radius: 2px;
 }
 
 .sidebar-menu li {
-    margin-bottom: 8px;
+    margin-bottom: 4px;
 }
 
 .sidebar-menu a {
     display: flex;
     align-items: center;
-    gap: 12px;
-
-    color: white;
+    gap: 14px;
+    color: rgba(255, 255, 255, 0.85);
     text-decoration: none;
-
-    padding: 14px 18px;
-
-    border-radius: 18px;
-
-    transition: .25s;
+    padding: 12px 16px;
+    border-radius: 12px;
+    transition: all 0.2s ease;
+    font-size: 0.92rem;
+    white-space: nowrap;
 }
 
 .sidebar-menu a:hover {
-    background: rgba(255,255,255,.15);
+    background: rgba(255, 255, 255, 0.08);
+    color: white;
 }
 
 .sidebar-menu a.active {
     background: white;
-    color: #1496db;
-
-    font-weight: 700;
+    color: #0c60da;
+    font-weight: 600;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
 }
 
 .sidebar-menu i {
-    font-size: 18px;
+    font-size: 1.15rem;
+    flex-shrink: 0;
+    width: 20px;
+    text-align: center;
 }
 
-/* Footer */
+.sidebar-menu span {
+    transition: opacity 0.2s ease;
+}
 
+/* Footer / Logout & Collapse */
 .sidebar-footer {
-    padding: 20px;
-    border-top: 1px solid rgba(255,255,255,.15);
+    padding: 16px;
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
 }
 
-.sidebar-footer button {
+.logout-form button {
     width: 100%;
-
     border: none;
     background: transparent;
-
-    color: white;
-
+    color: rgba(255, 255, 255, 0.8);
     display: flex;
     align-items: center;
-    gap: 10px;
+    gap: 14px;
+    font-weight: 500;
+    padding: 12px 16px;
+    border-radius: 12px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    font-size: 0.92rem;
+}
 
-    font-weight: 600;
+.logout-form button:hover {
+    background: rgba(255, 82, 82, 0.15);
+    color: #ff5252;
+}
+
+.collapse-toggle-btn {
+    align-self: center;
+    border: none;
+    background: rgba(255, 255, 255, 0.08);
+    color: rgba(255, 255, 255, 0.7);
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.collapse-toggle-btn:hover {
+    background: rgba(255, 255, 255, 0.2);
+    color: white;
+}
+
+/* ==========================================================================
+   COLLAPSED STATE Styling
+   ========================================================================== */
+.admin-sidebar.collapsed {
+    width: 76px;
+}
+
+.admin-sidebar.collapsed .logo-text,
+.admin-sidebar.collapsed .profile-info,
+.admin-sidebar.collapsed .sidebar-menu span,
+.admin-sidebar.collapsed .logout-form button span {
+    opacity: 0;
+    display: none;
+}
+
+.admin-sidebar.collapsed .sidebar-logo {
+    justify-content: center;
+    padding: 20px 0;
+}
+
+.admin-sidebar.collapsed .sidebar-profile {
+    padding: 16px 8px;
+}
+
+.admin-sidebar.collapsed .profile-avatar {
+    width: 44px;
+    height: 44px;
+    font-size: 18px;
+    margin-bottom: 0;
+}
+
+.admin-sidebar.collapsed .sidebar-menu {
+    padding: 16px 8px;
+}
+
+.admin-sidebar.collapsed .sidebar-menu a {
+    justify-content: center;
+    padding: 12px 0;
+}
+
+.admin-sidebar.collapsed .logout-form button {
+    justify-content: center;
+    padding: 12px 0;
 }

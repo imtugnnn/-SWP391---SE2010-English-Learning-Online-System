@@ -46,6 +46,11 @@ public class UserRepository : IUserRepository
     {
         return _context.Users
             .Include(u => u.Role)
+            .Include(u => u.ClassEnrollments)
+                .ThenInclude(ce => ce.Class)
+                    .ThenInclude(c => c.AcademicYear)
+            .Include(u => u.TaughtClasses)
+                .ThenInclude(c => c.AcademicYear)
             .AsNoTracking()
             .ToListAsync();
     }

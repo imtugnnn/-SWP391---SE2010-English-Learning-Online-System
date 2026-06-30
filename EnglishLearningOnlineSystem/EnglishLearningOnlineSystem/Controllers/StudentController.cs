@@ -367,7 +367,13 @@ public class StudentController : BaseStudentController
             .ToListAsync();
 
         var studentNotifications = notifications
-            .Where(n => n.Recipient != null && n.Recipient.Split(',', StringSplitOptions.RemoveEmptyEntries).Select(s => s.Trim()).Contains("1"))
+            .Where(n => n.Recipient != null && (
+                n.Recipient.Equals("Tất cả người dùng", StringComparison.OrdinalIgnoreCase) ||
+                n.Recipient.Equals("Tất cả", StringComparison.OrdinalIgnoreCase) ||
+                n.Recipient.Split(',', StringSplitOptions.RemoveEmptyEntries)
+                    .Select(s => s.Trim().ToLower())
+                    .Any(s => s == "1" || s == "học sinh" || s == "student")
+            ))
             .Select(n => new
             {
                 id = n.Id,

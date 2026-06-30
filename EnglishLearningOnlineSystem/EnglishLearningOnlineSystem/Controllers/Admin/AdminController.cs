@@ -23,8 +23,72 @@ public class AdminController : Controller
         _context = context;
     }
 
-    public IActionResult Dashboard()
+    public async Task<IActionResult> Dashboard()
     {
+        // Lấy năm học đang hoạt động trước
+        var activeAcademicYear = await _context.AcademicYears!
+            .AsNoTracking()
+            .FirstOrDefaultAsync(y => y.IsActive);
+
+        // 1. Stats grid counts (dữ liệu thực từ database)
+        var now = DateTime.UtcNow;
+        var startOfMonth = new DateTime(now.Year, now.Month, 1);
+
+        // Lọc người dùng đang hoạt động có đăng nhập (LastLoginAt) trong tháng này
+        var totalUsers = await _context.Users.CountAsync(u => u.IsActive && u.LastLoginAt >= startOfMonth);
+        var studentCount = await _context.Users.CountAsync(u => u.RoleId == 1 && u.IsActive && u.LastLoginAt >= startOfMonth);
+        var teacherCount = await _context.Users.CountAsync(u => u.RoleId == 3 && u.IsActive && u.LastLoginAt >= startOfMonth);
+        
+        // Lọc lớp học đang hoạt động dựa vào active academic year
+        var activeClassesCount = 0;
+        if (activeAcademicYear != null)
+        {
+            activeClassesCount = await _context.Classes!
+                .CountAsync(c => !c.IsDeleted && c.AcademicYearId == activeAcademicYear.AcademicYearId);
+        }
+        else
+        {
+            activeClassesCount = await _context.Classes!.CountAsync(c => !c.IsDeleted);
+        }
+        
+        var publishedNotifsThisMonth = await _context.SystemNotifications!
+            .CountAsync(n => n.Status == "Đã phát hành" && n.CreatedAt >= startOfMonth);
+        var scheduledNotifsThisMonth = await _context.SystemNotifications!
+            .CountAsync(n => n.Status == "Đã lên lịch" && n.CreatedAt >= startOfMonth);
+
+        // 2. Phân bố vai trò người dùng (cho biểu đồ Pie)
+        var studentCountAll = await _context.Users.CountAsync(u => u.RoleId == 1);
+        var teacherCountAll = await _context.Users.CountAsync(u => u.RoleId == 3);
+        var parentCountAll = await _context.Users.CountAsync(u => u.RoleId == 4);
+        var contentManagerCountAll = await _context.Users.CountAsync(u => u.RoleId == 5);
+
+        // 3. Tổng quan thông báo (cho biểu đồ Pie)
+        var publishedNotifsAll = await _context.SystemNotifications!.CountAsync(n => n.Status == "Đã phát hành");
+        var scheduledNotifsAll = await _context.SystemNotifications!.CountAsync(n => n.Status == "Đã lên lịch");
+        var draftNotifsAll = await _context.SystemNotifications!.CountAsync(n => n.Status == "Bản nháp");
+        var cancelledNotifsAll = await _context.SystemNotifications!.CountAsync(n => n.Status == "Đã hủy");
+
+        // Gán dữ liệu vào ViewBag
+        ViewBag.TotalUsers = totalUsers;
+        ViewBag.StudentCount = studentCount;
+        ViewBag.TeacherCount = teacherCount;
+        ViewBag.ActiveClassesCount = activeClassesCount;
+        ViewBag.ActiveAcademicYear = activeAcademicYear?.YearLabel ?? "Chưa kích hoạt";
+        ViewBag.PublishedNotifsThisMonth = publishedNotifsThisMonth;
+        ViewBag.ScheduledNotifsThisMonth = scheduledNotifsThisMonth;
+
+        ViewBag.StudentCountAll = studentCountAll;
+        ViewBag.TeacherCountAll = teacherCountAll;
+        ViewBag.ParentCountAll = parentCountAll;
+        ViewBag.ContentManagerCountAll = contentManagerCountAll;
+        ViewBag.TotalUsersForChart = studentCountAll + teacherCountAll + parentCountAll + contentManagerCountAll;
+
+        ViewBag.PublishedNotifsAll = publishedNotifsAll;
+        ViewBag.ScheduledNotifsAll = scheduledNotifsAll;
+        ViewBag.DraftNotifsAll = draftNotifsAll;
+        ViewBag.CancelledNotifsAll = cancelledNotifsAll;
+        ViewBag.TotalNotificationsAll = publishedNotifsAll + scheduledNotifsAll + draftNotifsAll + cancelledNotifsAll;
+
         return View("AdminDashboard");
     }
     
@@ -33,7 +97,12 @@ public class AdminController : Controller
         var usersResult = await _userService.GetAllAsync();
         var roles = await _roleService.GetAllAsync();
 
+        var activeYear = await _context.AcademicYears!
+            .AsNoTracking()
+            .FirstOrDefaultAsync(y => y.IsActive);
+
         ViewBag.Roles = roles;
+        ViewBag.ActiveAcademicYearId = activeYear?.AcademicYearId;
         var users = usersResult.Succeeded ? usersResult.Data : new List<User>();
         return View("~/Views/Admin/UserManagement/Index.cshtml", users);
     }

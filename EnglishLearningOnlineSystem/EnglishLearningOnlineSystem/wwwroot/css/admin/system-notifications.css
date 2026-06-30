@@ -596,3 +596,11 @@
     color: #0f172a;
     line-height: 1.5;
 }
+
+/* Filter icon in table headers */
+.notifications-table th .filter-icon {
+    font-size: 11px;
+    color: #64748b;
+    margin-left: 4px;
+    vertical-align: middle;
+}

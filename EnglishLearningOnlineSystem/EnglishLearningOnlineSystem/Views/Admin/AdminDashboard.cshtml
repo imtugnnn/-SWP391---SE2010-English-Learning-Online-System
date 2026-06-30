@@ -1,16 +1,460 @@
-﻿@{
-    ViewData["Title"] = "Dashboard";
+@{
+    ViewData["Title"] = "Bảng điều khiển";
     Layout = "~/Views/Shared/Admin/_AdminLayout.cshtml";
 }
 
 @section Styles
 {
-    <link rel="stylesheet"
-          href="~/css/admin/admin-dashboard.css" />
+    <link rel="stylesheet" href="~/css/admin/admin-dashboard.css" asp-append-version="true" />
 }
 
 <div class="dashboard-container">
 
-    <h2>Dashboard</h2>
+    <!-- Grid Chỉ số (6 cards trên cùng) -->
+    <div class="stats-grid-6">
+        <!-- Card 1: Tổng số người dùng -->
+        <div class="stat-card-custom">
+            <div class="icon-wrapper icon-users">
+                <i class="bi bi-people-fill"></i>
+            </div>
+            <div class="card-info">
+                <span class="card-label">Tổng số người dùng</span>
+                <span class="card-value">@ViewBag.TotalUsers</span>
+                <span class="card-trend trend-up">
+                    @ViewBag.TotalUsers người hoạt động tháng này
+                </span>
+            </div>
+        </div>
 
+        <!-- Card 2: Học sinh -->
+        <div class="stat-card-custom">
+            <div class="icon-wrapper icon-students">
+                <i class="bi bi-mortarboard-fill"></i>
+            </div>
+            <div class="card-info">
+                <span class="card-label">Học sinh</span>
+                <span class="card-value">@ViewBag.StudentCount</span>
+                <span class="card-trend trend-up">
+                    @ViewBag.StudentCount học sinh hoạt động tháng này
+                </span>
+            </div>
+        </div>
+
+        <!-- Card 3: Giáo viên -->
+        <div class="stat-card-custom">
+            <div class="icon-wrapper icon-teachers">
+                <i class="bi bi-person-badge-fill"></i>
+            </div>
+            <div class="card-info">
+                <span class="card-label">Giáo viên</span>
+                <span class="card-value">@ViewBag.TeacherCount</span>
+                <span class="card-trend trend-up">
+                    @ViewBag.TeacherCount giáo viên hoạt động tháng này
+                </span>
+            </div>
+        </div>
+
+        <!-- Card 4: Lớp học đang hoạt động -->
+        <div class="stat-card-custom">
+            <div class="icon-wrapper icon-classes">
+                <i class="bi bi-house-door-fill"></i>
+            </div>
+            <div class="card-info">
+                <span class="card-label">Lớp học đang hoạt động</span>
+                <span class="card-value">@ViewBag.ActiveClassesCount</span>
+                <span class="card-trend trend-neutral">
+                    Đang hoạt động ổn định
+                </span>
+            </div>
+        </div>
+
+        <!-- Card 5: Năm học hiện tại -->
+        <div class="stat-card-custom">
+            <div class="icon-wrapper icon-year">
+                <i class="bi bi-calendar3"></i>
+            </div>
+            <div class="card-info">
+                <span class="card-label">Năm học hiện tại</span>
+                <span class="card-value">@ViewBag.ActiveAcademicYear</span>
+                <span class="card-trend">
+                    <span class="badge-status">Đang hoạt động</span>
+                </span>
+            </div>
+        </div>
+
+        <!-- Card 6: Thông báo đã công bố -->
+        <div class="stat-card-custom">
+            <div class="icon-wrapper icon-notif">
+                <i class="bi bi-megaphone-fill"></i>
+            </div>
+            <div class="card-info">
+                <span class="card-label">Thông báo tháng này</span>
+                <span class="card-value">@ViewBag.PublishedNotifsThisMonth đã công bố</span>
+                <span class="card-trend trend-down" style="font-weight: 600;">
+                    @ViewBag.ScheduledNotifsThisMonth đang lên lịch gửi
+                </span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Dòng giữa: Biểu đồ & Hoạt động gần đây -->
+    <div class="middle-row-grid">
+        <!-- Widget 1: Phân bố người dùng theo vai trò -->
+        <div class="card-widget">
+            <div class="widget-header">
+                <h3>Phân bố người dùng theo vai trò</h3>
+            </div>
+            <div class="chart-content-box">
+                <div class="chart-wrapper">
+                    <canvas id="roleChart"></canvas>
+                </div>
+                <div class="chart-legend-list">
+                    <div class="legend-item">
+                        <span class="legend-label-group">
+                            <span class="legend-bullet" style="background: #3b82f6;"></span>
+                            <span class="legend-label-text">Học sinh</span>
+                        </span>
+                        <span class="legend-value-text">@((ViewBag.TotalUsersForChart == 0) ? 0 : Math.Round((double)ViewBag.StudentCountAll / ViewBag.TotalUsersForChart * 100))% (@ViewBag.StudentCountAll)</span>
+                    </div>
+                    <div class="legend-item">
+                        <span class="legend-label-group">
+                            <span class="legend-bullet" style="background: #10b981;"></span>
+                            <span class="legend-label-text">Giáo viên</span>
+                        </span>
+                        <span class="legend-value-text">@((ViewBag.TotalUsersForChart == 0) ? 0 : Math.Round((double)ViewBag.TeacherCountAll / ViewBag.TotalUsersForChart * 100))% (@ViewBag.TeacherCountAll)</span>
+                    </div>
+                    <div class="legend-item">
+                        <span class="legend-label-group">
+                            <span class="legend-bullet" style="background: #f97316;"></span>
+                            <span class="legend-label-text">Phụ huynh</span>
+                        </span>
+                        <span class="legend-value-text">@((ViewBag.TotalUsersForChart == 0) ? 0 : Math.Round((double)ViewBag.ParentCountAll / ViewBag.TotalUsersForChart * 100))% (@ViewBag.ParentCountAll)</span>
+                    </div>
+                    <div class="legend-item">
+                        <span class="legend-label-group">
+                            <span class="legend-bullet" style="background: #8b5cf6;"></span>
+                            <span class="legend-label-text">Quản trị nội dung</span>
+                        </span>
+                        <span class="legend-value-text">@((ViewBag.TotalUsersForChart == 0) ? 0 : Math.Round((double)ViewBag.ContentManagerCountAll / ViewBag.TotalUsersForChart * 100))% (@ViewBag.ContentManagerCountAll)</span>
+                    </div>
+                </div>
+            </div>
+            <div class="widget-footer-link">
+                <a asp-controller="Admin" asp-action="UserManagement">Xem tất cả người dùng <i class="bi bi-arrow-right-short"></i></a>
+            </div>
+        </div>
+
+        <!-- Widget 2: Tổng quan thông báo -->
+        <div class="card-widget">
+            <div class="widget-header">
+                <h3>Tổng quan thông báo</h3>
+            </div>
+            <div class="chart-content-box">
+                <div class="chart-wrapper">
+                    <canvas id="notificationChart"></canvas>
+                </div>
+                <div class="chart-legend-list">
+                    <div class="legend-item">
+                        <span class="legend-label-group">
+                            <span class="legend-bullet" style="background: #10b981;"></span>
+                            <span class="legend-label-text">Đã công bố</span>
+                        </span>
+                        <span class="legend-value-text">@ViewBag.PublishedNotifsAll</span>
+                    </div>
+                    <div class="legend-item">
+                        <span class="legend-label-group">
+                            <span class="legend-bullet" style="background: #f97316;"></span>
+                            <span class="legend-label-text">Đang lên lịch</span>
+                        </span>
+                        <span class="legend-value-text">@ViewBag.ScheduledNotifsAll</span>
+                    </div>
+                    <div class="legend-item">
+                        <span class="legend-label-group">
+                            <span class="legend-bullet" style="background: #3b82f6;"></span>
+                            <span class="legend-label-text">Bản nháp</span>
+                        </span>
+                        <span class="legend-value-text">@ViewBag.DraftNotifsAll</span>
+                    </div>
+                    <div class="legend-item">
+                        <span class="legend-label-group">
+                            <span class="legend-bullet" style="background: #94a3b8;"></span>
+                            <span class="legend-label-text">Đã hủy</span>
+                        </span>
+                        <span class="legend-value-text">@ViewBag.CancelledNotifsAll</span>
+                    </div>
+                </div>
+            </div>
+            <div class="widget-footer-link">
+                <a asp-controller="SystemNotifications" asp-action="Index">Quản lý thông báo <i class="bi bi-arrow-right-short"></i></a>
+            </div>
+        </div>
+
+        <!-- Widget 3: Hoạt động gần đây -->
+        <div class="card-widget">
+            <div class="widget-header">
+                <h3>Hoạt động gần đây</h3>
+                <a href="#" class="view-all-link">Xem tất cả <i class="bi bi-arrow-right-short"></i></a>
+            </div>
+            <div class="activity-list">
+                <!-- Activity 1 -->
+                <div class="activity-item">
+                    <div class="activity-icon" style="background: #eef2ff; color: #3b82f6;">
+                        <i class="bi bi-person-plus-fill"></i>
+                    </div>
+                    <div class="activity-item-content">
+                        <span class="activity-text">Quản trị viên đã tạo người dùng mới <strong>"teacher.hannah"</strong></span>
+                        <span class="activity-category">Quản lý người dùng</span>
+                    </div>
+                    <span class="activity-time">09:15 SA</span>
+                </div>
+
+                <!-- Activity 2 -->
+                <div class="activity-item">
+                    <div class="activity-icon" style="background: #ecfdf5; color: #10b981;">
+                        <i class="bi bi-calendar-check-fill"></i>
+                    </div>
+                    <div class="activity-item-content">
+                        <span class="activity-text">Năm học <strong>2025 - 2026</strong> đã được kích hoạt</span>
+                        <span class="activity-category">Quản lý năm học</span>
+                    </div>
+                    <span class="activity-time">08:42 SA</span>
+                </div>
+
+                <!-- Activity 3 -->
+                <div class="activity-item">
+                    <div class="activity-icon" style="background: #fff1f2; color: #f43f5e;">
+                        <i class="bi bi-megaphone-fill"></i>
+                    </div>
+                    <div class="activity-item-content">
+                        <span class="activity-text">Thông báo <strong>"Kỳ nghỉ hè"</strong> đã được công bố</span>
+                        <span class="activity-category">Quản lý thông báo</span>
+                    </div>
+                    <span class="activity-time">Hôm qua, 04:30 CH</span>
+                </div>
+
+                <!-- Activity 4 -->
+                <div class="activity-item">
+                    <div class="activity-icon" style="background: #fff7ed; color: #f97316;">
+                        <i class="bi bi-house-door-fill"></i>
+                    </div>
+                    <div class="activity-item-content">
+                        <span class="activity-text">Lớp <strong>10A5</strong> đã được tạo thành công</span>
+                        <span class="activity-category">Quản lý lớp học</span>
+                    </div>
+                    <span class="activity-time">Hôm qua, 02:11 CH</span>
+                </div>
+
+                <!-- Activity 5 -->
+                <div class="activity-item">
+                    <div class="activity-icon" style="background: #faf5ff; color: #8b5cf6;">
+                        <i class="bi bi-journal-check"></i>
+                    </div>
+                    <div class="activity-item-content">
+                        <span class="activity-text">Bài học <strong>"Unit 5: Daily Routine"</strong> đã được tạo</span>
+                        <span class="activity-category">Quản lý bài học</span>
+                    </div>
+                    <span class="activity-time">24/06/2025</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Dòng dưới: Tổng quan học tập (Trải rộng toàn bộ) -->
+    <div class="learning-overview-card">
+        <div class="widget-header" style="margin-bottom: 0;">
+            <h3>Tổng quan học tập (Tháng này)</h3>
+        </div>
+        <div class="learning-overview-grid">
+            <!-- Cột 1 -->
+            <div class="learning-stat-col">
+                <div class="learning-icon-box learning-icon-book">
+                    <i class="bi bi-journal-bookmark-fill"></i>
+                </div>
+                <div class="learning-stat-info">
+                    <span class="learning-stat-title">Bài học đã hoàn thành</span>
+                    <span class="learning-stat-val">1.254</span>
+                    <span class="learning-stat-trend">
+                        18% so với tháng trước
+                    </span>
+                </div>
+            </div>
+
+            <!-- Cột 2 -->
+            <div class="learning-stat-col">
+                <div class="learning-icon-box learning-icon-quiz">
+                    <i class="bi bi-card-checklist"></i>
+                </div>
+                <div class="learning-stat-info">
+                    <span class="learning-stat-title">Lượt làm bài quiz</span>
+                    <span class="learning-stat-val">3.912</span>
+                    <span class="learning-stat-trend">
+                        12% so với tháng trước
+                    </span>
+                </div>
+            </div>
+
+            <!-- Cột 3 -->
+            <div class="learning-stat-col">
+                <div class="learning-icon-box learning-icon-trophy">
+                    <i class="bi bi-trophy-fill"></i>
+                </div>
+                <div class="learning-stat-info">
+                    <span class="learning-stat-title">Điểm trung bình</span>
+                    <span class="learning-stat-val">82%</span>
+                    <span class="learning-stat-trend">
+                        5% so với tháng trước
+                    </span>
+                </div>
+            </div>
+
+            <!-- Cột 4 -->
+            <div class="learning-stat-col">
+                <div class="learning-icon-box learning-icon-streak">
+                    <i class="bi bi-fire"></i>
+                </div>
+                <div class="learning-stat-info">
+                    <span class="learning-stat-title">Người dùng có chuỗi ngày</span>
+                    <span class="learning-stat-val">418</span>
+                    <span class="learning-stat-trend">
+                        27% so với tháng trước
+                    </span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Thao tác nhanh -->
+    <div class="quick-actions-section">
+        <h3>Thao tác nhanh</h3>
+        <div class="quick-actions-grid">
+            <!-- Action 1 -->
+            <a asp-controller="Admin" asp-action="UserManagement" class="quick-action-btn-custom" style="text-decoration: none;">
+                <div class="btn-icon-wrapper btn-icon-users">
+                    <i class="bi bi-person-plus-fill"></i>
+                </div>
+                <div class="btn-text-content">
+                    <span class="btn-title">+ Thêm người dùng</span>
+                    <span class="btn-desc">Tạo tài khoản người dùng mới</span>
+                </div>
+            </a>
+
+            <!-- Action 2 -->
+            <a asp-controller="Classes" asp-action="Index" class="quick-action-btn-custom" style="text-decoration: none;">
+                <div class="btn-icon-wrapper btn-icon-classes">
+                    <i class="bi bi-house-door-fill"></i>
+                </div>
+                <div class="btn-text-content">
+                    <span class="btn-title">+ Tạo lớp học</span>
+                    <span class="btn-desc">Tạo lớp học mới</span>
+                </div>
+            </a>
+
+            <!-- Action 3 -->
+            <a asp-controller="SystemNotifications" asp-action="Index" class="quick-action-btn-custom" style="text-decoration: none;">
+                <div class="btn-icon-wrapper btn-icon-notif">
+                    <i class="bi bi-megaphone-fill"></i>
+                </div>
+                <div class="btn-text-content">
+                    <span class="btn-title">+ Tạo thông báo</span>
+                    <span class="btn-desc">Gửi thông báo hệ thống</span>
+                </div>
+            </a>
+
+            <!-- Action 4 -->
+            <a asp-controller="AcademicYears" asp-action="Index" class="quick-action-btn-custom" style="text-decoration: none;">
+                <div class="btn-icon-wrapper btn-icon-year">
+                    <i class="bi bi-calendar-plus-fill"></i>
+                </div>
+                <div class="btn-text-content">
+                    <span class="btn-title">+ Tạo năm học</span>
+                    <span class="btn-desc">Thiết lập năm học mới</span>
+                </div>
+            </a>
+
+            <!-- Action 5 -->
+            <a asp-controller="Reports" asp-action="Index" class="quick-action-btn-custom" style="text-decoration: none;">
+                <div class="btn-icon-wrapper btn-icon-report">
+                    <i class="bi bi-bar-chart-line-fill"></i>
+                </div>
+                <div class="btn-text-content">
+                    <span class="btn-title">Xem báo cáo</span>
+                    <span class="btn-desc">Xem báo cáo & thống kê</span>
+                </div>
+            </a>
+        </div>
+    </div>
 </div>
+
+@section Scripts
+{
+    <!-- Load Chart.js CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            // Chart 1: Role Distribution
+            const roleCtx = document.getElementById('roleChart').getContext('2d');
+            new Chart(roleCtx, {
+                type: 'pie',
+                data: {
+                    labels: ['Học sinh', 'Giáo viên', 'Phụ huynh', 'Quản trị nội dung'],
+                    datasets: [{
+                        data: [@ViewBag.StudentCountAll, @ViewBag.TeacherCountAll, @ViewBag.ParentCountAll, @ViewBag.ContentManagerCountAll],
+                        backgroundColor: ['#3b82f6', '#10b981', '#f97316', '#8b5cf6'],
+                        borderWidth: 2,
+                        borderColor: '#ffffff',
+                        hoverOffset: 4
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            display: false // We use custom legends HTML
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    let label = context.label || '';
+                                    if (label) {
+                                        label += ': ';
+                                    }
+                                    if (context.parsed !== null) {
+                                        label += context.parsed + '%';
+                                    }
+                                    return label;
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+
+            // Chart 2: Notification Overview
+            const notifCtx = document.getElementById('notificationChart').getContext('2d');
+            new Chart(notifCtx, {
+                type: 'pie',
+                data: {
+                    labels: ['Đã công bố', 'Đang lên lịch', 'Bản nháp', 'Đã hủy'],
+                    datasets: [{
+                        data: [@ViewBag.PublishedNotifsAll, @ViewBag.ScheduledNotifsAll, @ViewBag.DraftNotifsAll, @ViewBag.CancelledNotifsAll],
+                        backgroundColor: ['#10b981', '#f97316', '#3b82f6', '#94a3b8'],
+                        borderWidth: 2,
+                        borderColor: '#ffffff',
+                        hoverOffset: 4
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            display: false // We use custom legends HTML
+                        }
+                    }
+                }
+            });
+        });
+    </script>
+}

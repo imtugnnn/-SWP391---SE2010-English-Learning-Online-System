@@ -6,128 +6,161 @@
     <!-- Logo -->
     <div class="sidebar-logo">
         <img src="/images/logo/els logo.png" alt="ELS Logo">
-
-        <div>
+        <div class="logo-text">
             <h4>EduLearn</h4>
-            <span>Admin Panel</span>
+            <span>Trang quản trị</span>
         </div>
     </div>
 
     <!-- Profile -->
     <div class="sidebar-profile">
-
         <div class="profile-avatar">
             A
         </div>
-
-        <h5>Administrator</h5>
-
-        <span>System Manager</span>
-
+        <div class="profile-info">
+            <h5>Quản trị viên</h5>
+            <span>Quản trị hệ thống</span>
+        </div>
     </div>
 
     <!-- Menu -->
     <ul class="sidebar-menu">
-
         <li>
             <a class="@(controller == "Admin" && action == "Dashboard" ? "active" : "")"
                asp-controller="Admin"
-               asp-action="Dashboard">
+               asp-action="Dashboard"
+               title="Bảng điều khiển">
                 <i class="bi bi-grid-fill"></i>
-                Bảng điều khiển
+                <span>Bảng điều khiển</span>
             </a>
         </li>
 
         <li>
             <a class="@(controller == "Admin" && action == "UserManagement" ? "active" : "")"
                asp-controller="Admin"
-               asp-action="UserManagement">
+               asp-action="UserManagement"
+               title="Quản lý người dùng">
                 <i class="bi bi-people-fill"></i>
-                Người dùng
+                <span>Quản lý người dùng</span>
             </a>
         </li>
 
         <li>
             <a class="@(controller == "AcademicYears" ? "active" : "")"
                asp-controller="AcademicYears"
-               asp-action="Index">
-                <i class="bi bi-calendar3-range-fill"></i>
-                Academic Years
+               asp-action="Index"
+               title="Quản lý năm học">
+                <i class="bi bi-calendar3"></i>
+                <span>Quản lý năm học</span>
+            </a>
+        </li>
+
+        <li>
+            <a class="@(controller == "Classes" ? "active" : "")"
+               asp-controller="AcademicYears"
+               asp-action="Index"
+               title="Quản lý lớp học">
+                <i class="bi bi-mortarboard-fill"></i>
+                <span>Quản lý lớp học</span>
             </a>
         </li>
 
         <li>
             <a class="@(controller == "SystemNotifications" && action == "Index" ? "active" : "")"
                asp-controller="SystemNotifications"
-               asp-action="Index">
+               asp-action="Index"
+               title="Quản lý thông báo">
                 <i class="bi bi-bell-fill"></i>
-                Thông báo hệ thống
+                <span>Quản lý thông báo</span>
             </a>
         </li>
 
         <li>
             <a class="@(controller == "CourseManagement" ? "active" : "")"
                asp-controller="CourseManagement"
-               asp-action="Index">
+               asp-action="Index"
+               title="Quản lý khóa học">
                 <i class="bi bi-book-fill"></i>
-                Khóa học
+                <span>Quản lý khóa học</span>
             </a>
         </li>
 
         <li>
             <a class="@(controller == "LessonManagement" ? "active" : "")"
                asp-controller="LessonManagement"
-               asp-action="Index">
+               asp-action="Index"
+               title="Quản lý bài học">
                 <i class="bi bi-journal-text"></i>
-                Bài học
-            </a>
-        </li>
-
-        <li>
-            <a class="@(controller == "TeacherManagement" ? "active" : "")"
-               asp-controller="TeacherManagement"
-               asp-action="Index">
-                <i class="bi bi-mortarboard-fill"></i>
-                Giáo viên
+                <span>Quản lý bài học</span>
             </a>
         </li>
 
         <li>
             <a class="@(controller == "Reports" ? "active" : "")"
                asp-controller="Reports"
-               asp-action="Index">
+               asp-action="Index"
+               title="Báo cáo & thống kê">
                 <i class="bi bi-bar-chart-fill"></i>
-                Báo cáo
+                <span>Báo cáo & thống kê</span>
             </a>
         </li>
 
         <li>
             <a class="@(controller == "Settings" ? "active" : "")"
                asp-controller="Settings"
-               asp-action="Index">
+               asp-action="Index"
+               title="Cài đặt hệ thống">
                 <i class="bi bi-gear-fill"></i>
-                Cài đặt
+                <span>Cài đặt hệ thống</span>
             </a>
         </li>
-
     </ul>
 
-    <!-- Logout -->
+    <!-- Footer / Collapse & Logout -->
     <div class="sidebar-footer">
-
         <form asp-controller="Auth"
               asp-action="Logout"
-              method="post">
-
+              method="post"
+              class="logout-form">
             @Html.AntiForgeryToken()
-
-            <button type="submit">
+            <button type="submit" title="Đăng xuất">
                 <i class="bi bi-box-arrow-right"></i>
-                Đăng xuất
+                <span>Đăng xuất</span>
             </button>
-
         </form>
 
+        <button type="button" class="collapse-toggle-btn" id="sidebarCollapseBtn" title="Thu gọn sidebar">
+            <i class="bi bi-chevron-double-left"></i>
+        </button>
     </div>
-
 </div>
+
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+        const sidebar = document.querySelector(".admin-sidebar");
+        const toggleBtn = document.getElementById("sidebarCollapseBtn");
+        
+        if (sidebar && toggleBtn) {
+            // Restore state from localStorage
+            const isCollapsed = localStorage.getItem("admin-sidebar-collapsed") === "true";
+            if (isCollapsed) {
+                sidebar.classList.add("collapsed");
+                toggleBtn.innerHTML = '<i class="bi bi-chevron-double-right"></i>';
+                toggleBtn.setAttribute("title", "Mở rộng sidebar");
+            }
+
+            toggleBtn.addEventListener("click", function () {
+                const collapsed = sidebar.classList.toggle("collapsed");
+                localStorage.setItem("admin-sidebar-collapsed", collapsed);
+                
+                if (collapsed) {
+                    toggleBtn.innerHTML = '<i class="bi bi-chevron-double-right"></i>';
+                    toggleBtn.setAttribute("title", "Mở rộng sidebar");
+                } else {
+                    toggleBtn.innerHTML = '<i class="bi bi-chevron-double-left"></i>';
+                    toggleBtn.setAttribute("title", "Thu gọn sidebar");
+                }
+            });
+        }
+    });
+</script>
