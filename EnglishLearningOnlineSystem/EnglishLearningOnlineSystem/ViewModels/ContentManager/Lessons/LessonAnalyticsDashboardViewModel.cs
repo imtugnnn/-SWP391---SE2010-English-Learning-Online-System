@@ -15,14 +15,11 @@ public class LessonAnalyticsDashboardViewModel
     public List<LessonAnalyticsSummaryViewModel> Items { get; set; } = [];
     public List<CourseFilterItem> Courses { get; set; } = [];
     public int? FilterCourseId { get; set; }
-    public string? SearchTerm { get; set; }
-    public string? SortBy { get; set; }
 
     // Top KPI bar
     public int TotalLessons { get; set; }
-    public int TotalStudentsAll { get; set; }     // tổng lượt tham gia (1 học viên có thể tính ở nhiều bài)
-    public int TotalUniqueStudents { get; set; }  // học viên KHÔNG trùng lặp
-    public double OverallAvgScore { get; set; }   // trung bình có trọng số theo số lượt làm bài
+    public int TotalStudentsAll { get; set; }
+    public double OverallAvgScore { get; set; }
     public int TotalXpAll { get; set; }
 }
 
@@ -38,10 +35,11 @@ public class LessonAnalyticsSummaryViewModel
     public int EstimatedMinutes { get; set; }
 
     public int TotalStudents { get; set; }
-    public double AvgQuizScore { get; set; }
-    public double FlashcardCompletionRate { get; set; }
+    public double AvgQuizScore { get; set; }   // 0–100
+    public double FlashcardCompletionRate { get; set; }   // 0–100
     public int TotalXpAwarded { get; set; }
 
+    // Helper for colour-coded badge
     public string ScoreBadgeClass => AvgQuizScore switch
     {
         >= 85 => "bg-success-subtle text-success border-success-subtle",
@@ -55,6 +53,7 @@ public class LessonAnalyticsSummaryViewModel
 
 public class LessonAnalyticsDetailViewModel
 {
+    // ── Lesson info ──────────────────────────────────────────────────────────
     public int LessonId { get; set; }
     public string Title { get; set; } = string.Empty;
     public string Topic { get; set; } = string.Empty;
@@ -64,25 +63,20 @@ public class LessonAnalyticsDetailViewModel
     public int CourseId { get; set; }
     public string CourseName { get; set; } = string.Empty;
 
+    // ── KPI metrics ─────────────────────────────────────────────────────────
     public int TotalStudents { get; set; }
     public double AvgQuizScore { get; set; }
     public double FlashcardCompletionRate { get; set; }
-    public double FlashcardAccuracyRate { get; set; }
     public int TotalXpAwarded { get; set; }
     public double AvgStudyMinutes { get; set; }
     public int TotalQuizAttempts { get; set; }
     public int TotalFlashcardSessions { get; set; }
 
-    public int SelectedRangeDays { get; set; } = 30;
+    // ── Chart data ───────────────────────────────────────────────────────────
 
-    public string ScoreBadgeClass => AvgQuizScore switch
-    {
-        >= 85 => "bg-success-subtle text-success border-success-subtle",
-        >= 70 => "bg-info-subtle text-info border-info-subtle",
-        >= 50 => "bg-warning-subtle text-warning border-warning-subtle",
-        _ => "bg-danger-subtle text-danger border-danger-subtle"
-    };
-
+    /// <summary>Key = "MMM dd", Value = attempt count. Last 30 days.</summary>
     public Dictionary<string, int> DailyAttemptCounts { get; set; } = [];
+
+    /// <summary>Score buckets: "0–49", "50–69", "70–84", "85–100".</summary>
     public Dictionary<string, int> ScoreDistribution { get; set; } = [];
 }
