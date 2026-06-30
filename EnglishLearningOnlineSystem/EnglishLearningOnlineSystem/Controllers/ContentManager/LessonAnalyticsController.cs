@@ -18,21 +18,21 @@ public class LessonAnalyticsController : BaseContentManagerController
 
     // GET: /ContentManager/Analytics
     [HttpGet("")]
-    public async Task<IActionResult> Index(int? courseId)
+    public async Task<IActionResult> Index(int? courseId, string? search, string? sortBy)
     {
         if (!IsAuthorized()) return RedirectToLogin();
 
-        var vm = await _analyticsService.GetDashboardAsync(courseId);
+        var vm = await _analyticsService.GetDashboardAsync(courseId, search, sortBy);
         return View("~/Views/ContentManager/Analytics/Index.cshtml", vm);
     }
 
     // GET: /ContentManager/Analytics/Details/5
     [HttpGet("Details/{id}")]
-    public async Task<IActionResult> Details(int id)
+    public async Task<IActionResult> Details(int id, int days = 30)
     {
         if (!IsAuthorized()) return RedirectToLogin();
 
-        var vm = await _analyticsService.GetDetailAsync(id);
+        var vm = await _analyticsService.GetDetailAsync(id, days);
 
         if (vm == null)
             return NotFound();

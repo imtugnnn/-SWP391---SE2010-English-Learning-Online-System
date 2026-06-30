@@ -1,61 +1,261 @@
+@* ============================================================
+   ORIGINAL LOGIC: 100% preserved — model binding, IsCorrect branching,
+   CorrectWord, StudentAnswer, XPEarned, NewTotalXP, GameId, LessonId,
+   all hrefs — unchanged.
+   CHANGED: HTML structure (layout only), all CSS in <style> block below.
+   ============================================================ *@
+
 @model EnglishLearningOnlineSystem.ViewModels.Student.Games.WordScrambleResultViewModel
 @{
     ViewData["Title"] = "Kết quả";
     Layout = "_StudentLayout";
 }
 
-<div class="container py-5" style="max-width: 520px;">
-    <div class="card shadow text-center">
-        <div class="card-body py-5">
+@* ── ADDED: scoped styles ─────────────────────────────────── *@
+<style>
+    :root {
+        --primary: #4f6ef7;
+        --success: #22c55e;
+        --danger: #ef4444;
+        --radius: 16px;
+        --shadow: 0 8px 40px rgba(0,0,0,.12);
+    }
 
+    .ws-result-page {
+        min-height: 100vh;
+        background: linear-gradient(160deg, #eef2ff 0%, #f5f3ff 100%);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 2rem 1rem;
+    }
+
+    /* ── Result card ── */
+    .ws-result-card {
+        width: 100%;
+        max-width: 480px;
+        background: #fff;
+        border-radius: var(--radius);
+        box-shadow: var(--shadow);
+        overflow: hidden;
+        animation: cardIn .4s cubic-bezier(.22,1,.36,1) both;
+    }
+
+
+    /* ── Result header ── */
+    .ws-result-header {
+        padding: 2.25rem 1.5rem 1.75rem;
+        text-align: center;
+    }
+
+        .ws-result-header.correct {
+            background: linear-gradient(160deg,#f0fdf4,#dcfce7);
+        }
+
+        .ws-result-header.wrong {
+            background: linear-gradient(160deg,#fff5f5,#fee2e2);
+        }
+
+    /* ── Icon ── */
+    .result-icon {
+        font-size: 3.5rem;
+        line-height: 1;
+        margin-bottom: .75rem;
+        display: block;
+        animation: iconPop .45s cubic-bezier(.22,1,.36,1) .1s both;
+    }
+
+
+    .result-headline {
+        font-size: 1.55rem;
+        font-weight: 800;
+        margin: 0 0 .3rem;
+    }
+
+    .result-sub {
+        font-size: .9rem;
+        color: #6b7280;
+        margin: 0;
+    }
+
+    /* ── Stats grid ── */
+    .stats-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 1px;
+        background: #f0f3fb;
+        border-top: 1px solid #f0f3fb;
+        border-bottom: 1px solid #f0f3fb;
+    }
+
+    .stat-cell {
+        background: #fff;
+        padding: 1rem 1.25rem;
+        text-align: center;
+    }
+
+        .stat-cell .stat-label {
+            font-size: .73rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: .07em;
+            color: #9ca3af;
+            margin-bottom: .3rem;
+        }
+
+        .stat-cell .stat-value {
+            font-size: 1.05rem;
+            font-weight: 800;
+            color: #1e2340;
+        }
+
+            .stat-cell .stat-value.correct-val {
+                color: var(--success);
+            }
+
+            .stat-cell .stat-value.wrong-val {
+                color: var(--danger);
+            }
+
+    /* ── XP badges ── */
+    .xp-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: .3rem;
+        background: linear-gradient(90deg,#f59e0b,#fbbf24);
+        color: #1e2340;
+        font-weight: 800;
+        font-size: .95rem;
+        padding: .3rem .9rem;
+        border-radius: 99px;
+        box-shadow: 0 2px 8px rgba(245,158,11,.3);
+    }
+
+    .total-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: .3rem;
+        background: #f3f4f6;
+        color: #374151;
+        font-weight: 700;
+        font-size: .95rem;
+        padding: .3rem .9rem;
+        border-radius: 99px;
+    }
+
+    /* ── Action buttons ── */
+    .ws-result-actions {
+        padding: 1.25rem 1.5rem 1.5rem;
+        display: flex;
+        flex-direction: column;
+        gap: .65rem;
+    }
+
+    .btn-play-again {
+        background: linear-gradient(90deg,#4f6ef7,#7c3aed);
+        color: #fff;
+        border: none;
+        border-radius: 10px;
+        padding: .75rem 1rem;
+        font-size: 1rem;
+        font-weight: 700;
+        text-align: center;
+        text-decoration: none;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: .45rem;
+        box-shadow: 0 3px 12px rgba(79,110,247,.3);
+        transition: transform .12s, box-shadow .12s;
+    }
+
+        .btn-play-again:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 18px rgba(79,110,247,.4);
+            color: #fff;
+        }
+
+    .btn-lesson-back {
+        background: transparent;
+        color: #4b5563;
+        border: 1.5px solid #d1d5db;
+        border-radius: 10px;
+        padding: .7rem 1rem;
+        font-size: .95rem;
+        font-weight: 600;
+        text-align: center;
+        text-decoration: none;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: .45rem;
+        transition: background .15s, border-color .15s;
+    }
+
+        .btn-lesson-back:hover {
+            background: #f3f4f6;
+            border-color: #9ca3af;
+            color: #1e2340;
+        }
+</style>
+@* ── END ADDED styles ──────────────────────────────────────── *@
+
+@* ── CHANGED: wrapper — was container py-5; now centred flex page ── *@
+<div class="ws-result-page">
+    <div class="ws-result-card">
+
+        @* ── CHANGED: header section with correct/wrong gradient; IsCorrect logic UNCHANGED ── *@
+        <div class="ws-result-header @(Model.IsCorrect ? "correct" : "wrong")">
+            @* ── ORIGINAL: IsCorrect branch ── *@
             @if (Model.IsCorrect)
             {
-                <div class="mb-3">
-                    <i class="bi bi-check-circle-fill text-success" style="font-size: 4rem;"></i>
-                </div>
-                <h3 class="text-success mb-1">Chính xác! 🎉</h3>
-                <p class="text-muted mb-4">Bạn đã trả lời đúng.</p>
+                <i class="bi bi-check-circle-fill text-success result-icon"></i>
+                <p class="result-headline text-success">Chính xác! 🎉</p>
+                <p class="result-sub">Bạn đã trả lời đúng.</p>
             }
             else
             {
-                <div class="mb-3">
-                    <i class="bi bi-x-circle-fill text-danger" style="font-size: 4rem;"></i>
-                </div>
-                <h3 class="text-danger mb-1">Chưa đúng!</h3>
-                <p class="text-muted mb-4">Hãy cố gắng hơn lần sau nhé.</p>
+                <i class="bi bi-x-circle-fill text-danger result-icon"></i>
+                <p class="result-headline text-danger">Chưa đúng!</p>
+                <p class="result-sub">Hãy cố gắng hơn lần sau nhé.</p>
             }
-
-            <dl class="row text-start mb-4">
-                <dt class="col-6">Đáp án đúng</dt>
-                <dd class="col-6 fw-bold text-success">@Model.CorrectWord</dd>
-
-                <dt class="col-6">Câu trả lời của bạn</dt>
-                <dd class="col-6 @(Model.IsCorrect ? "text-success" : "text-danger")">
-                    @Model.StudentAnswer
-                </dd>
-
-                <dt class="col-6">XP nhận được</dt>
-                <dd class="col-6">
-                    <span class="badge bg-warning text-dark fs-6">+@Model.XPEarned XP</span>
-                </dd>
-
-                <dt class="col-6">Tổng XP hiện tại</dt>
-                <dd class="col-6">
-                    <span class="badge bg-secondary fs-6">@Model.NewTotalXP XP</span>
-                </dd>
-            </dl>
-
-            <div class="d-flex flex-column gap-2">
-                <!-- Chơi lại cùng game -->
-                <a href="/WordScramble/Play/@Model.GameId" class="btn btn-primary">
-                    <i class="bi bi-arrow-repeat me-1"></i> Chơi lại
-                </a>
-                <!-- Quay lại trang chi tiết bài học -->
-                <a href="/student/lesson/@Model.LessonId" class="btn btn-outline-secondary">
-                    <i class="bi bi-book me-1"></i> Quay lại bài học
-                </a>
-            </div>
-
         </div>
+
+        @* ── CHANGED: stat cells replace dl/dt/dd; model values UNCHANGED ── *@
+        <div class="stats-grid">
+            <div class="stat-cell">
+                <div class="stat-label">Đáp án đúng</div>
+                <div class="stat-value correct-val">@Model.CorrectWord</div>
+            </div>
+            <div class="stat-cell">
+                <div class="stat-label">Câu trả lời của bạn</div>
+                <div class="stat-value @(Model.IsCorrect ? "correct-val" : "wrong-val")">@Model.StudentAnswer</div>
+            </div>
+            <div class="stat-cell">
+                <div class="stat-label">XP nhận được</div>
+                <div class="stat-value">
+                    @* ── ORIGINAL: XPEarned ── *@
+                    <span class="xp-badge"><i class="bi bi-star-fill"></i>+@Model.XPEarned</span>
+                </div>
+            </div>
+            <div class="stat-cell">
+                <div class="stat-label">Tổng XP hiện tại</div>
+                <div class="stat-value">
+                    @* ── ORIGINAL: NewTotalXP ── *@
+                    <span class="total-badge"><i class="bi bi-award-fill"></i>@Model.NewTotalXP</span>
+                </div>
+            </div>
+        </div>
+
+        @* ── CHANGED: button styles; hrefs UNCHANGED ── *@
+        <div class="ws-result-actions">
+            <a href="/WordScramble/Play/@Model.GameId" class="btn-play-again">
+                <i class="bi bi-arrow-repeat"></i> Chơi lại
+            </a>
+            <a href="/student/lesson/@Model.LessonId" class="btn-lesson-back">
+                <i class="bi bi-book"></i> Quay lại bài học
+            </a>
+        </div>
+
     </div>
 </div>
