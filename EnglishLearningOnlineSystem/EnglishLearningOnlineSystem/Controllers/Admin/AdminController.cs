@@ -282,9 +282,10 @@ public class AdminController : Controller
                     var thirtyDaysAgo = DateTime.UtcNow.AddDays(-30);
                     activeStudents = c.Enrollments.Count(e => e.Student.LastLoginAt >= thirtyDaysAgo);
 
+                    var lessonIds = classTotalLessons > 0 ? c.Course.Lessons.Select(l => l.LessonId).ToList() : new List<int>();
+
                     if (classTotalLessons > 0)
                     {
-                        var lessonIds = c.Course.Lessons.Select(l => l.LessonId).ToList();
                         var completedCount = _context.Progresses != null
                             ? await _context.Progresses
                                 .CountAsync(p => studentIds.Contains(p.StudentId) && lessonIds.Contains(p.LessonId) && p.CompletionStatus == "Completed")
@@ -293,16 +294,19 @@ public class AdminController : Controller
                         completionRate = (double)completedCount / (studentCount * classTotalLessons) * 100;
                     }
 
-                    var quizAttempts = _context.QuizAttempts != null
-                        ? await _context.QuizAttempts
-                            .Where(qa => studentIds.Contains(qa.StudentId))
-                            .Select(qa => (double?)qa.Score)
-                            .ToListAsync()
-                        : new List<double?>();
-                    
-                    if (quizAttempts.Any(q => q.HasValue))
+                    if (lessonIds.Any())
                     {
-                        classAvgQuizScore = quizAttempts.Where(q => q.HasValue).Average(q => q.Value);
+                        var quizAttempts = _context.QuizAttempts != null
+                            ? await _context.QuizAttempts
+                                .Where(qa => studentIds.Contains(qa.StudentId) && lessonIds.Contains(qa.LessonId))
+                                .Select(qa => (double?)qa.Score)
+                                .ToListAsync()
+                            : new List<double?>();
+                        
+                        if (quizAttempts.Any(q => q.HasValue))
+                        {
+                            classAvgQuizScore = quizAttempts.Where(q => q.HasValue).Average(q => q.Value);
+                        }
                     }
                 }
 

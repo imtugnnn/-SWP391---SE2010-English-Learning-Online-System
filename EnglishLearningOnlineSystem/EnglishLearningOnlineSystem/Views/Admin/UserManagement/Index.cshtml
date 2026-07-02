@@ -182,7 +182,16 @@
             <div class="filter-item">
                 <label>Tìm kiếm</label>
                 <div class="search-input-wrapper">
-                    <input type="text" id="mainSearchInput" placeholder="Tìm kiếm username hoặc email..." oninput="onMainFilterChange()" />
+                    <input type="text" id="mainSearchInput" placeholder="Tìm kiếm username hoặc email..." oninput="onMainFilterChange(); showSuggestions(this.value);" autocomplete="off" />
+                    <button class="search-icon-btn"><i class="bi bi-search"></i></button>
+                    <div id="searchSuggestions" class="search-suggestions-dropdown" style="display: none;"></div>
+                </div>
+            </div>
+            
+            <div class="filter-item">
+                <label>Lớp học</label>
+                <div class="search-input-wrapper">
+                    <input type="text" id="mainClassSearchInput" placeholder="Tìm kiếm lớp..." oninput="onMainFilterChange()" autocomplete="off" />
                     <button class="search-icon-btn"><i class="bi bi-search"></i></button>
                 </div>
             </div>
@@ -442,6 +451,23 @@
             }
 
             applyFilters();
+
+            // Set up search input suggestions events
+            const searchInput = document.getElementById('mainSearchInput');
+            if (searchInput) {
+                searchInput.addEventListener('focus', function() {
+                    showSuggestions(this.value);
+                });
+            }
+
+            // Hide dropdown when clicking outside
+            document.addEventListener('click', function(e) {
+                const suggestions = document.getElementById('searchSuggestions');
+                const searchInput = document.getElementById('mainSearchInput');
+                if (suggestions && e.target !== searchInput && !suggestions.contains(e.target)) {
+                    suggestions.style.display = 'none';
+                }
+            });
         });
 
         // HTML escaping helper
@@ -493,6 +519,7 @@
 
         function applyFilters() {
             const mainSearch = document.getElementById('mainSearchInput').value.toLowerCase().trim();
+            const mainClass = document.getElementById('mainClassSearchInput') ? document.getElementById('mainClassSearchInput').value.toLowerCase().trim() : '';
             const mainRole = document.getElementById('mainRoleFilter').value;
             const mainStatus = document.getElementById('mainStatusFilter').value;
             const mainFrom = document.getElementById('mainCreatedFrom').value;
@@ -501,6 +528,7 @@
             filteredUsers = users.filter(u => {
                 // Main filters
                 const matchSearch = !mainSearch || u.username.toLowerCase().includes(mainSearch) || u.email.toLowerCase().includes(mainSearch);
+                const matchClass = !mainClass || (u.className && u.className.toLowerCase().includes(mainClass));
                 const matchRole = !mainRole || u.roleName === mainRole;
                 const matchStatus = !mainStatus || String(u.isActive) === mainStatus;
                 
@@ -516,7 +544,7 @@
                     if (uDate > toDate) matchDateRange = false;
                 }
 
-                return matchSearch && matchRole && matchStatus && matchDateRange;
+                return matchSearch && matchClass && matchRole && matchStatus && matchDateRange;
             });
 
             // Reset page and perform sort & render
@@ -527,11 +555,78 @@
 
         function resetFilters() {
             document.getElementById('mainSearchInput').value = '';
+            const classInput = document.getElementById('mainClassSearchInput');
+            if (classInput) classInput.value = '';
             document.getElementById('mainRoleFilter').value = '';
             document.getElementById('mainStatusFilter').value = '';
             document.getElementById('mainCreatedFrom').value = '';
             document.getElementById('mainCreatedTo').value = '';
+            
+            // Hide suggestions dropdown
+            const dropdown = document.getElementById('searchSuggestions');
+            if (dropdown) {
+                dropdown.style.display = 'none';
+                dropdown.innerHTML = '';
+            }
+            
             applyFilters();
+        }
+
+        function showSuggestions(query) {
+            const dropdown = document.getElementById('searchSuggestions');
+            if (!dropdown) return;
+            
+            const trimmedQuery = query.toLowerCase().trim();
+            if (trimmedQuery.length < 1) {
+                dropdown.style.display = 'none';
+                dropdown.innerHTML = '';
+                return;
+            }
+            
+            // Filter matching users
+            const matches = users.filter(u => 
+                u.username.toLowerCase().includes(trimmedQuery) || 
+                u.email.toLowerCase().includes(trimmedQuery)
+            ).slice(0, 5); // Limit to top 5 suggestions
+            
+            if (matches.length === 0) {
+                dropdown.style.display = 'none';
+                dropdown.innerHTML = '';
+                return;
+            }
+            
+            dropdown.innerHTML = '';
+            matches.forEach(u => {
+                const item = document.createElement('div');
+                item.className = 'suggestion-item';
+                
+                // Get role badge style
+                let roleClass = 'badge-student';
+                if (u.roleName === 'Admin') roleClass = 'badge-admin';
+                else if (u.roleName === 'Teacher') roleClass = 'badge-teacher';
+                else if (u.roleName === 'Parent') roleClass = 'badge-parent';
+                else if (u.roleName === 'Content Manager') roleClass = 'badge-content';
+                
+                item.innerHTML = `
+                    <div class="suggestion-info">
+                        <span class="suggestion-username">${escapeHtml(u.username)}</span>
+                        <span class="suggestion-email">${escapeHtml(u.email)}</span>
+                    </div>
+                    <div style="display: flex; gap: 4px; align-items: center;">
+                        <span class="role-badge ${roleClass}" style="font-size: 10px; padding: 2px 6px; margin: 0;">${u.roleName || 'Student'}</span>
+                        ${u.className && u.className !== '-' ? `<span class="badge-class-suggestion" style="font-size: 10px; background: #e2e8f0; color: #475569; padding: 2px 6px; border-radius: 4px; font-weight: 600; white-space: nowrap;">${escapeHtml(u.className)}</span>` : ''}
+                    </div>
+                `;
+                item.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    document.getElementById('mainSearchInput').value = u.username;
+                    dropdown.style.display = 'none';
+                    applyFilters();
+                });
+                dropdown.appendChild(item);
+            });
+            
+            dropdown.style.display = 'block';
         }
 
         // Sorting logic
