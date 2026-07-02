@@ -1,10 +1,12 @@
-/* Admin Dashboard Stylesheet */
+/* Redesigned Admin Dashboard Stylesheet matching reference UI */
 
 .dashboard-container {
     display: flex;
     flex-direction: column;
     gap: 24px;
     padding-bottom: 40px;
+    background-color: #f8fafc;
+    min-height: 100vh;
 }
 
 /* Page Header Title */
@@ -38,6 +40,9 @@
     gap: 12px;
     box-shadow: 0 1px 3px rgba(0,0,0,0.02), 0 4px 6px -1px rgba(0,0,0,0.03);
     transition: transform 0.2s ease, box-shadow 0.2s ease;
+    cursor: pointer;
+    text-decoration: none;
+    color: inherit;
 }
 
 .stat-card-custom:hover {
@@ -57,7 +62,7 @@
 }
 
 /* Icon thematic colors */
-.stat-card-custom .icon-users { background: #eef2ff; color: #4f46e5; }
+.stat-card-custom .icon-users { background: #eef2ff; color: #3b82f6; }
 .stat-card-custom .icon-students { background: #ecfdf5; color: #10b981; }
 .stat-card-custom .icon-teachers { background: #faf5ff; color: #8b5cf6; }
 .stat-card-custom .icon-classes { background: #fff7ed; color: #f97316; }
@@ -99,17 +104,24 @@
 .badge-status {
     background: #d1fae5;
     color: #065f46;
-    padding: 2px 6px;
+    padding: 2px 8px;
     border-radius: 999px;
     font-size: 10px;
     font-weight: 600;
     display: inline-block;
 }
 
-/* Middle Row Layout (3 Columns) */
-.middle-row-grid {
+/* Row Grids (3 Columns) */
+.row-grid-3 {
     display: grid;
-    grid-template-columns: 1.25fr 1fr 1.35fr;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 20px;
+}
+
+/* Row Grids (2 Columns) */
+.row-grid-2 {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
     gap: 20px;
 }
 
@@ -127,29 +139,92 @@
     display: flex;
     justify-content: space-between;
     align-items: center;
-    margin-bottom: 16px;
+    margin-bottom: 20px;
 }
 
 .widget-header h3 {
     margin: 0;
-    font-size: 1rem;
+    font-size: 1.05rem;
     font-weight: 700;
     color: #0f172a;
 }
 
-.widget-header .view-all-link {
-    font-size: 0.82rem;
-    color: #0c60da;
-    text-decoration: none;
+/* Widget 1: Overview stats */
+.overview-grid-2x2 {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 16px;
+    flex: 1;
+}
+
+.overview-subcard {
+    background: #f8fafc;
+    border: 1px solid #f1f5f9;
+    border-radius: 14px;
+    padding: 16px;
+    display: flex;
+    gap: 12px;
+    align-items: flex-start;
+}
+
+.subcard-icon {
+    width: 38px;
+    height: 38px;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.15rem;
+    flex-shrink: 0;
+}
+
+.subcard-info {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+}
+
+.subcard-title {
+    font-size: 0.72rem;
+    color: #64748b;
+    font-weight: 500;
+    line-height: 1.2;
+}
+
+.subcard-val {
+    font-size: 1.25rem;
+    font-weight: 750;
+    color: #0f172a;
+    margin: 4px 0 2px 0;
+}
+
+.subcard-trend {
+    font-size: 0.68rem;
     font-weight: 600;
+    display: flex;
+    align-items: center;
 }
 
-.widget-header .view-all-link:hover {
-    text-decoration: underline;
+/* Thematic colors for overview subcards */
+.bg-primary-light { background: #eff6ff; }
+.text-primary { color: #3b82f6; }
+.bg-success-light { background: #ecfdf5; }
+.text-success { color: #10b981; }
+.bg-warning-light { background: #fff7ed; }
+.text-warning { color: #f97316; }
+.bg-secondary-light { background: #faf5ff; }
+.text-secondary { color: #8b5cf6; }
+
+/* Widget 2: Trend Chart */
+.chart-container {
+    position: relative;
+    height: 200px;
+    width: 100%;
+    flex: 1;
 }
 
-/* Donut Chart Layout */
-.chart-content-box {
+/* Widget 3: Donut chart */
+.donut-chart-box {
     display: flex;
     align-items: center;
     justify-content: space-between;
@@ -157,83 +232,113 @@
     flex: 1;
 }
 
-.chart-wrapper {
+.donut-chart-wrapper {
     position: relative;
     width: 140px;
     height: 140px;
     flex-shrink: 0;
 }
 
-.chart-center-text {
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    text-align: center;
-}
-
-.chart-center-text .num {
-    font-size: 1.5rem;
-    font-weight: 800;
-    color: #0f172a;
-    line-height: 1;
-}
-
-.chart-center-text .lbl {
-    font-size: 0.7rem;
-    color: #64748b;
-    font-weight: 500;
-    margin-top: 2px;
-}
-
-.chart-legend-list {
+.donut-legend {
     display: flex;
     flex-direction: column;
-    gap: 8px;
+    gap: 12px;
     flex: 1;
+}
+
+.donut-legend-item {
+    display: flex;
+    align-items: center;
     font-size: 0.8rem;
+    color: #475569;
 }
 
-.legend-item {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    color: #334155;
-}
-
-.legend-label-group {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-}
-
-.legend-bullet {
+.legend-dot {
     width: 8px;
     height: 8px;
     border-radius: 50%;
-    display: inline-block;
+    margin-right: 8px;
+    flex-shrink: 0;
 }
 
-.legend-label-text {
+.legend-lbl {
+    flex: 1;
     font-weight: 500;
 }
 
-.legend-value-text {
-    font-weight: 600;
+.legend-val {
+    font-weight: 700;
     color: #0f172a;
+    margin-left: 8px;
+}
+
+/* Widget 4: Class performance table */
+.table-responsive {
+    flex: 1;
+    overflow-x: auto;
+}
+
+.table-custom {
+    width: 100%;
+    border-collapse: collapse;
+    margin-bottom: 0;
+}
+
+.table-custom th {
+    font-size: 0.72rem;
+    text-transform: uppercase;
+    color: #64748b;
+    font-weight: 600;
+    letter-spacing: 0.5px;
+    padding: 8px 12px;
+    border-bottom: 1px solid #e2e8f0;
+}
+
+.table-custom td {
+    padding: 12px;
+    font-size: 0.82rem;
+    color: #334155;
+    border-bottom: 1px solid #f1f5f9;
+    vertical-align: middle;
+}
+
+.table-custom tr:last-child td {
+    border-bottom: none;
+}
+
+.progress-bar-wrapper {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.custom-progress {
+    height: 6px;
+    width: 80px;
+    background-color: #f1f5f9;
+    border-radius: 99px;
+    margin-bottom: 0;
+    overflow: hidden;
+}
+
+.progress-val {
+    font-size: 11px;
+    font-weight: 600;
+    color: #475569;
+    min-width: 28px;
 }
 
 .widget-footer-link {
     display: flex;
     justify-content: center;
-    margin-top: 16px;
+    margin-top: 12px;
     padding-top: 12px;
     border-top: 1px solid #f1f5f9;
 }
 
 .widget-footer-link a {
     font-size: 0.82rem;
-    color: #0c60da;
+    color: #3b82f6;
     text-decoration: none;
     font-weight: 600;
     display: flex;
@@ -245,140 +350,193 @@
     text-decoration: underline;
 }
 
-/* Recent Activity List */
-.activity-list {
+/* Widget 5: Content stats & Top courses usage */
+.content-stats-top-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 12px;
+    margin-bottom: 20px;
+}
+
+.content-stat-item {
     display: flex;
     flex-direction: column;
+    align-items: center;
+    text-align: center;
+}
+
+.cs-icon {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.95rem;
+    margin-bottom: 6px;
+}
+
+.cs-info {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+}
+
+.cs-title {
+    font-size: 0.72rem;
+    color: #64748b;
+    font-weight: 500;
+}
+
+.cs-val {
+    font-size: 1.05rem;
+    font-weight: 750;
+    color: #0f172a;
+    line-height: 1.2;
+}
+
+.cs-sub {
+    font-size: 0.62rem;
+    color: #94a3b8;
+    white-space: nowrap;
+}
+
+.top-courses-usage {
+    border-top: 1px solid #f1f5f9;
+    padding-top: 16px;
+}
+
+.top-courses-usage h4 {
+    margin: 0 0 12px 0;
+    font-size: 0.82rem;
+    font-weight: 700;
+    color: #334155;
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+}
+
+.course-usage-list {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.course-usage-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.course-rank {
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    background-color: #f1f5f9;
+    color: #475569;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 11px;
+    font-weight: 700;
+    flex-shrink: 0;
+}
+
+.course-use-details {
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+}
+
+.course-use-header {
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.78rem;
+    margin-bottom: 4px;
+}
+
+.course-use-name {
+    font-weight: 600;
+    color: #1e293b;
+}
+
+.course-use-stats {
+    color: #64748b;
+    font-size: 11px;
+}
+
+.custom-progress-small {
+    height: 4px;
+    background-color: #f1f5f9;
+    border-radius: 99px;
+    margin-bottom: 0;
+    overflow: hidden;
+}
+
+/* Widget 6: Gamification */
+.gamification-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
     gap: 12px;
     flex: 1;
 }
 
-.activity-item {
+.g-card {
+    background: #f8fafc;
+    border: 1px solid #f1f5f9;
+    border-radius: 14px;
+    padding: 12px;
     display: flex;
+    gap: 10px;
     align-items: center;
-    gap: 12px;
-    padding-bottom: 12px;
-    border-bottom: 1px solid #f1f5f9;
 }
 
-.activity-item:last-child {
-    border-bottom: none;
-    padding-bottom: 0;
-}
-
-.activity-icon {
+.g-card-icon {
     width: 36px;
     height: 36px;
     border-radius: 50%;
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 1rem;
+    font-size: 1.05rem;
     flex-shrink: 0;
 }
 
-.activity-item-content {
+.star-theme { background: #fff7ed; color: #f97316; }
+.badge-theme { background: #faf5ff; color: #8b5cf6; }
+.level-theme { background: #ecfdf5; color: #10b981; }
+.active-theme { background: #eff6ff; color: #3b82f6; }
+
+.g-card-info {
     display: flex;
     flex-direction: column;
-    flex: 1;
     min-width: 0;
 }
 
-.activity-text {
-    font-size: 0.82rem;
-    color: #1e293b;
-    line-height: 1.4;
-    font-weight: 500;
-}
-
-.activity-text strong {
-    font-weight: 600;
-    color: #0f172a;
-}
-
-.activity-category {
+.g-card-title {
     font-size: 0.72rem;
     color: #64748b;
-    margin-top: 2px;
     font-weight: 500;
+    line-height: 1.1;
 }
 
-.activity-time {
-    font-size: 0.75rem;
-    color: #64748b;
-    font-weight: 500;
-    text-align: right;
-    white-space: nowrap;
-}
-
-/* Fourth Row: Learning Overview (Full Width) */
-.learning-overview-card {
-    background: white;
-    border-radius: 16px;
-    border: 1px solid #e2e8f0;
-    padding: 20px;
-    box-shadow: 0 1px 3px rgba(0,0,0,0.02);
-}
-
-.learning-overview-grid {
-    display: grid;
-    grid-template-columns: repeat(4, 1fr);
-    margin-top: 16px;
-}
-
-.learning-stat-col {
-    display: flex;
-    align-items: center;
-    gap: 16px;
-    padding: 12px 24px;
-    border-right: 1px solid #e2e8f0;
-}
-
-.learning-stat-col:last-child {
-    border-right: none;
-}
-
-.learning-icon-box {
-    width: 48px;
-    height: 48px;
-    border-radius: 12px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 1.35rem;
-    flex-shrink: 0;
-}
-
-.learning-icon-book { background: #eff6ff; color: #3b82f6; }
-.learning-icon-quiz { background: #ecfdf5; color: #10b981; }
-.learning-icon-trophy { background: #fff7ed; color: #f97316; }
-.learning-icon-streak { background: #faf5ff; color: #8b5cf6; }
-
-.learning-stat-info {
-    display: flex;
-    flex-direction: column;
-}
-
-.learning-stat-title {
-    font-size: 0.8rem;
-    color: #64748b;
-    font-weight: 500;
-}
-
-.learning-stat-val {
-    font-size: 1.35rem;
-    font-weight: 700;
+.g-card-val {
+    font-size: 1.15rem;
+    font-weight: 750;
     color: #0f172a;
-    margin: 4px 0;
+    margin: 2px 0;
 }
 
-.learning-stat-trend {
-    font-size: 0.72rem;
+.g-card-trend {
+    font-size: 0.65rem;
     font-weight: 600;
-    color: #10b981;
-    display: flex;
-    align-items: center;
-    gap: 2px;
+}
+
+.text-success {
+    color: #10b981 !important;
+}
+
+.text-danger {
+    color: #ef4444 !important;
 }
 
 /* Bottom Row: Quick Actions */
@@ -390,7 +548,7 @@
 
 .quick-actions-section h3 {
     margin: 0;
-    font-size: 1rem;
+    font-size: 1.05rem;
     font-weight: 700;
     color: #0f172a;
 }
@@ -413,12 +571,13 @@
     text-align: left;
     transition: all 0.2s ease;
     box-shadow: 0 1px 3px rgba(0,0,0,0.02);
+    text-decoration: none;
 }
 
 .quick-action-btn-custom:hover {
     transform: translateY(-2px);
-    border-color: #0c60da;
-    box-shadow: 0 10px 15px -3px rgba(12, 96, 218, 0.08), 0 4px 6px -2px rgba(12, 96, 218, 0.04);
+    border-color: #3b82f6;
+    box-shadow: 0 10px 15px -3px rgba(59, 130, 246, 0.08), 0 4px 6px -2px rgba(59, 130, 246, 0.04);
 }
 
 .quick-action-btn-custom .btn-icon-wrapper {
@@ -457,15 +616,18 @@
     font-weight: 500;
 }
 
-/* Responsive Breakpoints */
-@media (max-width: 1400px) {
+/* ==========================================================================
+   Responsive Breakpoints
+   ========================================================================== */
+@media (max-width: 1600px) {
     .stats-grid-6 {
         grid-template-columns: repeat(3, 1fr);
     }
-    .middle-row-grid {
+    .row-grid-3 {
         grid-template-columns: repeat(2, 1fr);
     }
-    .middle-row-grid > .card-widget:last-child {
+    /* Make the last widget in row-grid-3 span full width when wrapped to 2 columns */
+    .row-grid-3 > .card-widget:last-child {
         grid-column: span 2;
     }
     .quick-actions-grid {
@@ -473,45 +635,21 @@
     }
 }
 
-@media (max-width: 992px) {
-    .learning-overview-grid {
-        grid-template-columns: repeat(2, 1fr);
-        gap: 16px;
+@media (max-width: 1200px) {
+    .row-grid-3, .row-grid-2 {
+        grid-template-columns: 1fr;
     }
-    .learning-stat-col {
-        border-right: none;
-        border-bottom: 1px solid #e2e8f0;
-    }
-    .learning-stat-col:nth-child(even) {
-        border-left: 1px solid #e2e8f0;
-    }
-    .learning-stat-col:nth-last-child(-n+2) {
-        border-bottom: none;
+    .row-grid-3 > .card-widget:last-child {
+        grid-column: span 1;
     }
     .quick-actions-grid {
         grid-template-columns: repeat(2, 1fr);
     }
 }
 
-@media (max-width: 768px) {
+@media (max-width: 800px) {
     .stats-grid-6 {
         grid-template-columns: repeat(2, 1fr);
-    }
-    .middle-row-grid {
-        grid-template-columns: 1fr;
-    }
-    .middle-row-grid > .card-widget:last-child {
-        grid-column: span 1;
-    }
-    .learning-overview-grid {
-        grid-template-columns: 1fr;
-    }
-    .learning-stat-col {
-        border-left: none !important;
-        border-bottom: 1px solid #e2e8f0;
-    }
-    .learning-stat-col:last-child {
-        border-bottom: none;
     }
     .quick-actions-grid {
         grid-template-columns: 1fr;

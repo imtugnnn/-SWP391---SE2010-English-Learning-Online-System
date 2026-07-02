@@ -61,7 +61,7 @@
     <!-- Stats Cards Row -->
     <div class="stats-cards-grid">
         <!-- Card 1: All -->
-        <div class="stat-card card-all">
+        <div class="stat-card card-all" onclick="filterByUserStat('', '')">
             <div class="stat-card-header">
                 <span class="stat-card-title">Tất cả tài khoản</span>
                 <div class="stat-card-icon">
@@ -80,7 +80,7 @@
         </div>
 
         <!-- Card 2: Active -->
-        <div class="stat-card card-active">
+        <div class="stat-card card-active" onclick="filterByUserStat('', 'true')">
             <div class="stat-card-header">
                 <span class="stat-card-title">Đang hoạt động</span>
                 <div class="stat-card-icon">
@@ -99,7 +99,7 @@
         </div>
 
         <!-- Card 3: Students -->
-        <div class="stat-card card-student">
+        <div class="stat-card card-student" onclick="filterByUserStat('Student', '')">
             <div class="stat-card-header">
                 <span class="stat-card-title">Học sinh</span>
                 <div class="stat-card-icon">
@@ -118,7 +118,7 @@
         </div>
 
         <!-- Card 4: Teachers -->
-        <div class="stat-card card-teacher">
+        <div class="stat-card card-teacher" onclick="filterByUserStat('Teacher', '')">
             <div class="stat-card-header">
                 <span class="stat-card-title">Giáo viên</span>
                 <div class="stat-card-icon">
@@ -137,7 +137,7 @@
         </div>
 
         <!-- Card 5: Parents -->
-        <div class="stat-card card-parent">
+        <div class="stat-card card-parent" onclick="filterByUserStat('Parent', '')">
             <div class="stat-card-header">
                 <span class="stat-card-title">Phụ huynh</span>
                 <div class="stat-card-icon">
@@ -156,7 +156,7 @@
         </div>
 
         <!-- Card 6: Content Manager -->
-        <div class="stat-card card-content">
+        <div class="stat-card card-content" onclick="filterByUserStat('Content Manager', '')">
             <div class="stat-card-header">
                 <span class="stat-card-title">Quản trị nội dung</span>
                 <div class="stat-card-icon">
@@ -418,8 +418,29 @@
         let currentSortColumn = 'created';
         let currentSortDirection = 'desc'; // default sorted by newest
 
+        function filterByUserStat(role, status) {
+            const roleFilter = document.getElementById('mainRoleFilter');
+            const statusFilter = document.getElementById('mainStatusFilter');
+            if (roleFilter) roleFilter.value = role;
+            if (statusFilter) statusFilter.value = status;
+            applyFilters();
+        }
+
         // Page load initialization
         document.addEventListener('DOMContentLoaded', () => {
+            const urlParams = new URLSearchParams(window.location.search);
+            const roleParam = urlParams.get('role');
+            const statusParam = urlParams.get('status');
+
+            if (roleParam) {
+                const roleFilter = document.getElementById('mainRoleFilter');
+                if (roleFilter) roleFilter.value = roleParam;
+            }
+            if (statusParam) {
+                const statusFilter = document.getElementById('mainStatusFilter');
+                if (statusFilter) statusFilter.value = statusParam;
+            }
+
             applyFilters();
         });
 
