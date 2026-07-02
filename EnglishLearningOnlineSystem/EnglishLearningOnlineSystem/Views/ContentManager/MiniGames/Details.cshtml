@@ -1,47 +1,210 @@
+@* ============================================================
+   ORIGINAL LOGIC: 100% preserved — model fields (Title, GameType,
+   XPReward, LessonTitle, CourseName), Edit link, Delete form
+   (asp-action, asp-route-id, asp-route-lessonId, AntiForgeryToken,
+   confirm dialog) — all unchanged.
+   CHANGED: HTML structure (layout only) + CSS, to match the Content
+   Manager admin visual language and the redesigned Create/Edit pages.
+   ============================================================ *@
+
 @model EnglishLearningOnlineSystem.ViewModels.ContentManager.Minigames.MiniGameDetailsViewModel
 @{
     Layout = "_ContentManagerLayout";
     ViewData["Title"] = "Chi tiết Mini Game";
 }
 
-<div class="container py-4" style="max-width: 700px;">
-    <div class="d-flex align-items-center mb-4 gap-3">
+@* ── ADDED: scoped styles — same tokens as Create/Edit for consistency ── *@
+<style>
+    .mg-form-wrap {
+        max-width: 680px;
+        margin: 0 auto;
+    }
+
+    .mg-header {
+        display: flex;
+        align-items: center;
+        gap: .9rem;
+        margin-bottom: 1.5rem;
+    }
+
+    .mg-header-icon {
+        width: 46px;
+        height: 46px;
+        border-radius: .65rem;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+    }
+
+    .mg-header h4 {
+        margin: 0;
+        font-weight: 600;
+    }
+
+    .mg-header .subtitle {
+        font-size: .82rem;
+        color: #6c757d;
+    }
+
+    .mg-card {
+        border: none;
+        border-radius: .9rem;
+    }
+
+        .mg-card .card-body {
+            padding: 0;
+        }
+
+    /* ── Info list rows ── */
+    .mg-info-row {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 1rem;
+        padding: 1rem 1.5rem;
+        border-bottom: 1px solid #f0f2f5;
+    }
+
+        .mg-info-row:last-child {
+            border-bottom: none;
+        }
+
+        .mg-info-row .label {
+            display: flex;
+            align-items: center;
+            gap: .55rem;
+            font-size: .85rem;
+            color: #6c757d;
+            font-weight: 500;
+        }
+
+            .mg-info-row .label i {
+                font-size: 1rem;
+                color: #9099a3;
+                width: 20px;
+                text-align: center;
+            }
+
+        .mg-info-row .value {
+            font-weight: 600;
+            font-size: .93rem;
+            color: #212529;
+            text-align: right;
+        }
+
+    .mg-xp-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: .3rem;
+        background: linear-gradient(90deg,#f59e0b,#fbbf24);
+        color: #1e2340;
+        font-weight: 700;
+        font-size: .85rem;
+        padding: .3rem .8rem;
+        border-radius: 99px;
+    }
+
+    .mg-type-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: .4rem;
+        background: #eef4ff;
+        border: 1px solid #dce8ff;
+        color: #3557a6;
+        font-weight: 600;
+        font-size: .82rem;
+        padding: .32rem .8rem;
+        border-radius: .5rem;
+    }
+
+    /* ── Actions ── */
+    .mg-actions {
+        display: flex;
+        gap: .6rem;
+        margin-top: 1.25rem;
+    }
+
+    .btn-mg-primary {
+        background: linear-gradient(90deg, #4f6ef7, #7c3aed);
+        border: none;
+        color: #fff;
+        font-weight: 600;
+        padding: .55rem 1.4rem;
+        border-radius: .55rem;
+        transition: box-shadow .15s, transform .15s;
+    }
+
+        .btn-mg-primary:hover {
+            box-shadow: 0 4px 14px rgba(79,110,247,.35);
+            transform: translateY(-1px);
+            color: #fff;
+        }
+</style>
+@* ── END ADDED styles ──────────────────────────────────────── *@
+
+<div class="mg-form-wrap">
+
+    @* ── CHANGED: header replaces the old plain back-button + h2 row ── *@
+    <div class="mg-header">
         <a asp-controller="Lessons" asp-action="Details" asp-route-id="@Model.LessonId"
            class="btn btn-outline-secondary btn-sm">
-            <i class="bi bi-arrow-left"></i> Quay lại bài học
+            <i class="bi bi-arrow-left"></i>
         </a>
-        <h2 class="mb-0">Chi tiết Mini Game</h2>
-    </div>
-
-    <div class="card">
-        <div class="card-body">
-            <dl class="row mb-0">
-                <dt class="col-sm-4">Tiêu đề</dt>
-                <dd class="col-sm-8">@Model.Title</dd>
-
-                <dt class="col-sm-4">Loại game</dt>
-                <dd class="col-sm-8">
-                    <span class="badge bg-info text-dark">@Model.GameType</span>
-                </dd>
-
-                <dt class="col-sm-4">XP Thưởng</dt>
-                <dd class="col-sm-8">
-                    <span class="badge bg-warning text-dark">+@Model.XPReward XP</span>
-                </dd>
-
-                <dt class="col-sm-4">Bài học</dt>
-                <dd class="col-sm-8">@Model.LessonTitle</dd>
-
-                <dt class="col-sm-4">Khóa học</dt>
-                <dd class="col-sm-8">@Model.CourseName</dd>
-            </dl>
+        <div class="mg-header-icon bg-primary-subtle">
+            <i class="bi bi-eye-fill text-primary fs-6"></i>
+        </div>
+        <div>
+            <h4>Chi tiết Mini Game</h4>
+            <div class="subtitle">@Model.Title</div>
         </div>
     </div>
 
-    <div class="mt-3 d-flex gap-2">
-        <a asp-action="Edit" asp-route-id="@Model.GameId" class="btn btn-primary">
+    @* ── CHANGED: dl/dd replaced with labeled info rows ── *@
+    <div class="card shadow-sm mg-card">
+        <div class="card-body">
+
+            <div class="mg-info-row">
+                <span class="label"><i class="bi bi-textarea-t"></i> Tiêu đề</span>
+                <span class="value">@Model.Title</span>
+            </div>
+
+            <div class="mg-info-row">
+                <span class="label"><i class="bi bi-puzzle"></i> Loại game</span>
+                <span class="value">
+                    <span class="mg-type-badge">@Model.GameType</span>
+                </span>
+            </div>
+
+            <div class="mg-info-row">
+                <span class="label"><i class="bi bi-star"></i> XP Thưởng</span>
+                <span class="value">
+                    <span class="mg-xp-badge"><i class="bi bi-star-fill"></i>+@Model.XPReward XP</span>
+                </span>
+            </div>
+
+            <div class="mg-info-row">
+                <span class="label"><i class="bi bi-journal-bookmark"></i> Bài học</span>
+                <span class="value">@Model.LessonTitle</span>
+            </div>
+
+            <div class="mg-info-row">
+                <span class="label"><i class="bi bi-mortarboard"></i> Khóa học</span>
+                <span class="value">@Model.CourseName</span>
+            </div>
+
+        </div>
+    </div>
+
+    @* ── CHANGED: action buttons restyled; routes/logic UNCHANGED ── *@
+    <div class="mg-actions">
+        @* ── ORIGINAL: Edit link — UNCHANGED ── *@
+        <a asp-action="Edit" asp-route-id="@Model.GameId" class="btn btn-mg-primary">
             <i class="bi bi-pencil"></i> Chỉnh sửa
         </a>
+
+        @* ── ORIGINAL: Delete form, asp-route-id, asp-route-lessonId,
+             AntiForgeryToken, confirm dialog — UNCHANGED ── *@
         <form asp-action="Delete" asp-route-id="@Model.GameId"
               asp-route-lessonId="@Model.LessonId"
               method="post"
