@@ -6,6 +6,8 @@ public interface IAssignmentRepository
 {
     Task<List<Lesson>> GetPublishedLessonsByCourseIdAsync(int courseId);
 
+    Task<List<Course>> GetPublishedCoursesAsync();
+
     Task<List<int>> GetAssignedLessonIdsAsync(
         int courseId,
         List<int> lessonIds,

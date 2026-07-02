@@ -5,8 +5,9 @@ namespace EnglishLearningOnlineSystem.Services.Interfaces;
 public interface ITeacherAssignmentService
 {
     Task<AssignWeeklyLessonViewModel?> GetAssignWeeklyLessonsFormAsync(
-        int classId,
-        int teacherId);
+    int classId,
+    int teacherId,
+    int? selectedCourseId = null);
 
     Task<bool> AssignWeeklyLessonsAsync(
         AssignWeeklyLessonViewModel model,

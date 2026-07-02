@@ -19,26 +19,46 @@ public class TeacherAssignmentService : ITeacherAssignmentService
     }
 
     public async Task<AssignWeeklyLessonViewModel?> GetAssignWeeklyLessonsFormAsync(
-        int classId,
-        int teacherId)
+    int classId,
+    int teacherId,
+    int? selectedCourseId = null)
     {
         var classEntity = await ValidateTeacherAccessAsync(classId, teacherId);
 
-        if (classEntity == null || classEntity.CourseId == null)
+        if (classEntity == null)
         {
             return null;
         }
 
-        var lessons = await _assignmentRepository.GetPublishedLessonsByCourseIdAsync(
-            classEntity.CourseId.Value);
+        var courses = await _assignmentRepository.GetPublishedCoursesAsync();
+
+        var courseIdToLoad = classEntity.CourseId ?? selectedCourseId;
+
+        var lessons = courseIdToLoad.HasValue
+            ? await _assignmentRepository.GetPublishedLessonsByCourseIdAsync(courseIdToLoad.Value)
+            : new List<Lesson>();
+
+        var selectedCourse = courses.FirstOrDefault(c => c.CourseId == courseIdToLoad);
 
         return new AssignWeeklyLessonViewModel
         {
             ClassId = classEntity.ClassId,
             ClassName = classEntity.ClassName,
-            CourseId = classEntity.CourseId.Value,
+
+            CourseId = classEntity.CourseId,
+            SelectedCourseId = courseIdToLoad,
+            CourseName = selectedCourse?.CourseName ?? "Chưa chọn chương trình học",
+
             WeekStartDate = DateTime.Today,
             DueDate = DateTime.Today.AddDays(7),
+
+            Courses = courses.Select(c => new CourseOptionViewModel
+            {
+                CourseId = c.CourseId,
+                CourseName = c.CourseName,
+                GradeLevel = c.GradeLevel ?? "Chưa cập nhật"
+            }).ToList(),
+
             Lessons = lessons.Select(l => new AssignLessonItemViewModel
             {
                 LessonId = l.LessonId,
@@ -51,12 +71,17 @@ public class TeacherAssignmentService : ITeacherAssignmentService
     }
 
     public async Task<bool> AssignWeeklyLessonsAsync(
-        AssignWeeklyLessonViewModel model,
-        int teacherId)
+    AssignWeeklyLessonViewModel model,
+    int teacherId)
     {
         var classEntity = await ValidateTeacherAccessAsync(model.ClassId, teacherId);
 
-        if (classEntity == null || classEntity.CourseId == null)
+        if (classEntity == null)
+        {
+            return false;
+        }
+
+        if (!model.SelectedCourseId.HasValue)
         {
             return false;
         }
@@ -66,10 +91,21 @@ public class TeacherAssignmentService : ITeacherAssignmentService
             return false;
         }
 
-        var selectedLessonIds = model.SelectedLessonIds.Distinct().ToList();
+        var courseId = classEntity.CourseId ?? model.SelectedCourseId.Value;
+
+        if (classEntity.CourseId == null)
+        {
+            await _classRepository.UpdateClassCourseAsync(
+                classEntity.ClassId,
+                courseId);
+        }
+
+        var selectedLessonIds = model.SelectedLessonIds
+            .Distinct()
+            .ToList();
 
         var existingLessonIds = await _assignmentRepository.GetAssignedLessonIdsAsync(
-            classEntity.CourseId.Value,
+            courseId,
             selectedLessonIds,
             model.WeekStartDate);
 
@@ -84,7 +120,7 @@ public class TeacherAssignmentService : ITeacherAssignmentService
 
         var assignments = newLessonIds.Select(lessonId => new WeeklyAssignment
         {
-            CourseId = classEntity.CourseId.Value,
+            CourseId = courseId,
             LessonId = lessonId,
             WeekStartDate = model.WeekStartDate,
             DueDate = model.DueDate,

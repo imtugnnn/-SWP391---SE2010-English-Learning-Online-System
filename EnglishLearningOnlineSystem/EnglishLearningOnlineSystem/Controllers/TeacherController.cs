@@ -164,7 +164,7 @@ public class TeacherController : Controller
             });
     }
     [HttpGet]
-    public async Task<IActionResult> AssignWeeklyLessons(int classId)
+    public async Task<IActionResult> AssignWeeklyLessons(int classId, int? selectedCourseId)
     {
         var teacherId = GetCurrentUserId();
 
@@ -175,7 +175,8 @@ public class TeacherController : Controller
 
         var viewModel = await _teacherAssignmentService.GetAssignWeeklyLessonsFormAsync(
             classId,
-            teacherId.Value);
+            teacherId.Value,
+            selectedCourseId);
 
         if (viewModel == null)
         {
@@ -220,6 +221,7 @@ public class TeacherController : Controller
             reloadModel.WeekStartDate = model.WeekStartDate;
             reloadModel.DueDate = model.DueDate;
             reloadModel.SelectedLessonIds = model.SelectedLessonIds ?? new List<int>();
+            reloadModel.SelectedCourseId = model.SelectedCourseId;
 
             return View(reloadModel);
         }
@@ -233,8 +235,9 @@ public class TeacherController : Controller
             ModelState.AddModelError(string.Empty, "Không thể giao bài. Có thể các bài học đã được giao trong tuần này.");
 
             var reloadModel = await _teacherAssignmentService.GetAssignWeeklyLessonsFormAsync(
-                model.ClassId,
-                teacherId.Value);
+    model.ClassId,
+    teacherId.Value,
+    model.SelectedCourseId);
 
             if (reloadModel == null)
             {
@@ -247,6 +250,12 @@ public class TeacherController : Controller
 
             return View(reloadModel);
         }
+
+        if (!model.SelectedCourseId.HasValue)
+        {
+            ModelState.AddModelError(string.Empty, "Vui lòng chọn chương trình học trước khi giao bài.");
+        }
+
 
         TempData["SuccessMessage"] = "Giao bài học theo tuần thành công.";
 
@@ -273,6 +282,7 @@ public class TeacherController : Controller
     status,
     sortBy,
     page);
+
 
         return View(viewModel);
     }

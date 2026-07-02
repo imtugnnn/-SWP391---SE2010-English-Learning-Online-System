@@ -146,6 +146,18 @@
             box-shadow: 0 0 0 .2rem rgba(14,165,233,.15);
         }
 
+
+    .form-select {
+        border-radius: 14px;
+        border: 1.5px solid #bae6fd;
+        padding: 10px 12px;
+    }
+
+        .form-select:focus {
+            border-color: #38bdf8;
+            box-shadow: 0 0 0 .2rem rgba(14,165,233,.15);
+        }
+
     .btn-teacher {
         border: none;
         border-radius: 14px;
@@ -291,7 +303,49 @@
                             </div>
                         </div>
                     </div>
+                    @if (Model.HasCourse)
+                    {
+                        <div class="summary-card mb-4">
+                            <div class="summary-label">Chương trình học</div>
+                            <p class="summary-value">@Model.CourseName</p>
+                        </div>
 
+                        <input type="hidden" asp-for="SelectedCourseId" />
+                    }
+                    else
+                    {
+                        <div class="section-card mb-4">
+                            <div class="section-header">
+                                <h2 class="section-title">Chương trình học</h2>
+                            </div>
+
+                            <div class="p-4">
+                                <label asp-for="SelectedCourseId" class="form-label">
+                                    Chọn chương trình học
+                                </label>
+
+                                <select asp-for="SelectedCourseId"
+                                        class="form-select"
+                                        id="selectedCourseId">
+                                    <option value="">-- Chọn chương trình học --</option>
+
+                                    @foreach (var course in Model.Courses)
+                                    {
+                                        <option value="@course.CourseId">
+                                            @course.CourseName - @course.GradeLevel
+                                        </option>
+                                    }
+                                </select>
+
+                                <span asp-validation-for="SelectedCourseId"
+                                      class="text-danger small fw-semibold"></span>
+
+                                <div class="alert alert-warning mt-3 mb-0">
+                                    Lớp này chưa có chương trình học. Vui lòng chọn chương trình học để tải danh sách bài học.
+                                </div>
+                            </div>
+                        </div>
+                    }
                     <div class="section-card mb-4">
                         <div class="section-header">
                             <h2 class="section-title">Danh sách bài học</h2>
@@ -342,7 +396,14 @@
                         else
                         {
                             <div class="empty-state">
-                                Khóa học của lớp này chưa có bài học đã xuất bản.
+                                @if (!Model.SelectedCourseId.HasValue)
+                                {
+                                    <div>Vui lòng chọn chương trình học để hiển thị danh sách bài học.</div>
+                                }
+                                else
+                                {
+                                    <div>Chương trình học này chưa có bài học đã xuất bản.</div>
+                                }
                             </div>
                         }
                     </div>
@@ -355,9 +416,12 @@
                             Hủy
                         </a>
 
-                        <button type="submit" class="btn-teacher">
-                            Giao bài học
-                        </button>
+                        @if (Model.Lessons.Any())
+                        {
+                            <button type="submit" class="btn-teacher">
+                                Giao bài học
+                            </button>
+                        }
                     </div>
                 </form>
             </div>
@@ -368,4 +432,29 @@
 
 @section Scripts {
     <partial name="_ValidationScriptsPartial" />
+
+    @if (!Model.HasCourse)
+    {
+        <script>
+            document.addEventListener("DOMContentLoaded", function () {
+                const courseSelect = document.getElementById("selectedCourseId");
+
+                if (!courseSelect) {
+                    return;
+                }
+
+                courseSelect.addEventListener("change", function () {
+                    if (this.value === "") {
+                        return;
+                    }
+
+                    window.location.href =
+                        "/Teacher/AssignWeeklyLessons" +
+                        "?classId=@Model.ClassId" +
+                        "&selectedCourseId=" +
+                        this.value;
+                });
+            });
+        </script>
+    }
 }
