@@ -427,6 +427,20 @@
             now.setMinutes(now.getMinutes() - now.getTimezoneOffset());
             document.getElementById('createPublishTime').value = now.toISOString().slice(0, 16);
 
+            // Parse URL parameters
+            const urlParams = new URLSearchParams(window.location.search);
+            const statusParam = urlParams.get('status');
+            const timeRangeParam = urlParams.get('timeRange');
+
+            if (statusParam) {
+                const statusFilter = document.getElementById('statusFilter');
+                if (statusFilter) statusFilter.value = statusParam;
+            }
+            if (timeRangeParam) {
+                const timeRangeFilter = document.getElementById('timeRangeFilter');
+                if (timeRangeFilter) timeRangeFilter.value = timeRangeParam;
+            }
+
             // Initially filter and render
             applyFilters();
         });

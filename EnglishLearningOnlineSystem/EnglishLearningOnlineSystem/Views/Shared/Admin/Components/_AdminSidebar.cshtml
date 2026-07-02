@@ -1,7 +1,9 @@
+@inject EnglishLearningOnlineSystem.Data.AppDbContext _context
 <div class="admin-sidebar">
     @{
         var controller = ViewContext.RouteData.Values["controller"]?.ToString();
         var action = ViewContext.RouteData.Values["action"]?.ToString();
+        var activeYearId = _context.AcademicYears?.FirstOrDefault(y => y.IsActive)?.AcademicYearId;
     }
     <!-- Logo -->
     <div class="sidebar-logo">
@@ -46,7 +48,7 @@
         </li>
 
         <li>
-            <a class="@(controller == "AcademicYears" ? "active" : "")"
+            <a class="@(controller == "AcademicYears" && (action == "Index" || action == "Create") ? "active" : "")"
                asp-controller="AcademicYears"
                asp-action="Index"
                title="Quản lý năm học">
@@ -56,13 +58,27 @@
         </li>
 
         <li>
-            <a class="@(controller == "Classes" ? "active" : "")"
-               asp-controller="AcademicYears"
-               asp-action="Index"
-               title="Quản lý lớp học">
-                <i class="bi bi-mortarboard-fill"></i>
-                <span>Quản lý lớp học</span>
-            </a>
+            @if (activeYearId.HasValue)
+            {
+                <a class="@(controller == "AcademicYears" && action == "Edit" ? "active" : "")"
+                   asp-controller="AcademicYears"
+                   asp-action="Edit"
+                   asp-route-id="@activeYearId.Value"
+                   title="Quản lý lớp học">
+                    <i class="bi bi-mortarboard-fill"></i>
+                    <span>Quản lý lớp học</span>
+                </a>
+            }
+            else
+            {
+                <a class="@(controller == "AcademicYears" && action == "Edit" ? "active" : "")"
+                   asp-controller="AcademicYears"
+                   asp-action="Index"
+                   title="Quản lý lớp học">
+                    <i class="bi bi-mortarboard-fill"></i>
+                    <span>Quản lý lớp học</span>
+                </a>
+            }
         </li>
 
         <li>

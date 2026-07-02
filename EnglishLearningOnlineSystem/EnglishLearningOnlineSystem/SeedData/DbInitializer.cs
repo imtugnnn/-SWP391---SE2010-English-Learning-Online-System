@@ -403,5 +403,266 @@ public static class DbInitializer
 
             await context.SaveChangesAsync();
         }
+
+        await SeedAcademicYear2026Async(context);
+    }
+
+    private static async Task SeedAcademicYear2026Async(AppDbContext context)
+    {
+        // 1. Kiểm tra xem năm học 2026-2027 đã tồn tại chưa
+        var yearLabel = "2026 - 2027";
+        var year = await context.AcademicYears!.FirstOrDefaultAsync(y => y.YearLabel == yearLabel);
+        if (year == null)
+        {
+            // Deactivate other years first to make this one the only active year
+            var existingYears = await context.AcademicYears!.ToListAsync();
+            foreach (var y in existingYears)
+            {
+                y.IsActive = false;
+            }
+            
+            year = new AcademicYear
+            {
+                YearLabel = yearLabel,
+                StartDate = new DateTime(2026, 9, 1),
+                EndDate = new DateTime(2027, 6, 30),
+                IsActive = true
+            };
+            context.AcademicYears.Add(year);
+            await context.SaveChangesAsync();
+        }
+        else
+        {
+            year.IsActive = true;
+            await context.SaveChangesAsync();
+        }
+
+        // 2. Tạo Teacher nếu chưa có
+        var teacher = await context.Users.FirstOrDefaultAsync(u => u.Username == "teacher01");
+        if (teacher == null)
+        {
+            teacher = new User
+            {
+                Username = "teacher01",
+                Email = "teacher@english.com",
+                Password = BCrypt.Net.BCrypt.HashPassword("123456"),
+                IsActive = true,
+                RoleId = 3
+            };
+            context.Users.Add(teacher);
+            await context.SaveChangesAsync();
+        }
+
+        // 3. Tạo Courses cho khối 10, 11, 12
+        var course10 = await context.Courses!.FirstOrDefaultAsync(c => c.CourseName == "English Grade 10");
+        if (course10 == null)
+        {
+            course10 = new Course { CourseName = "English Grade 10", GradeLevel = "10", IsPublished = true, CreatorId = teacher.Id };
+            context.Courses!.Add(course10);
+        }
+        var course11 = await context.Courses!.FirstOrDefaultAsync(c => c.CourseName == "English Grade 11");
+        if (course11 == null)
+        {
+            course11 = new Course { CourseName = "English Grade 11", GradeLevel = "11", IsPublished = true, CreatorId = teacher.Id };
+            context.Courses!.Add(course11);
+        }
+        var course12 = await context.Courses!.FirstOrDefaultAsync(c => c.CourseName == "English Grade 12");
+        if (course12 == null)
+        {
+            course12 = new Course { CourseName = "English Grade 12", GradeLevel = "12", IsPublished = true, CreatorId = teacher.Id };
+            context.Courses!.Add(course12);
+        }
+        await context.SaveChangesAsync();
+
+        // 4. Tạo Lessons cho từng Course
+        var lessons = new List<Lesson>();
+        if (!await context.Lessons!.AnyAsync(l => l.CourseId == course10.CourseId))
+        {
+            lessons.Add(new Lesson { CourseId = course10.CourseId, Title = "Unit 1: Back to School", Topic = "Vocabulary", XPReward = 50, EstimatedMinutes = 15, OrderIndex = 1, IsPublished = true });
+            lessons.Add(new Lesson { CourseId = course10.CourseId, Title = "Unit 2: Life in the Countryside", Topic = "Grammar", XPReward = 50, EstimatedMinutes = 20, OrderIndex = 2, IsPublished = true });
+        }
+        if (!await context.Lessons!.AnyAsync(l => l.CourseId == course11.CourseId))
+        {
+            lessons.Add(new Lesson { CourseId = course11.CourseId, Title = "Unit 1: Generation Gap", Topic = "Vocabulary", XPReward = 60, EstimatedMinutes = 20, OrderIndex = 1, IsPublished = true });
+            lessons.Add(new Lesson { CourseId = course11.CourseId, Title = "Unit 2: Relationships", Topic = "Vocabulary", XPReward = 60, EstimatedMinutes = 20, OrderIndex = 2, IsPublished = true });
+        }
+        if (!await context.Lessons!.AnyAsync(l => l.CourseId == course12.CourseId))
+        {
+            lessons.Add(new Lesson { CourseId = course12.CourseId, Title = "Unit 1: Life Stories", Topic = "Reading", XPReward = 70, EstimatedMinutes = 25, OrderIndex = 1, IsPublished = true });
+            lessons.Add(new Lesson { CourseId = course12.CourseId, Title = "Unit 2: Urbanisation", Topic = "Vocabulary", XPReward = 70, EstimatedMinutes = 25, OrderIndex = 2, IsPublished = true });
+        }
+        if (lessons.Any())
+        {
+            context.Lessons!.AddRange(lessons);
+            await context.SaveChangesAsync();
+        }
+
+        // Fetch lessons for reference
+        var lessons10 = await context.Lessons!.Where(l => l.CourseId == course10.CourseId).ToListAsync();
+        var lessons11 = await context.Lessons!.Where(l => l.CourseId == course11.CourseId).ToListAsync();
+        var lessons12 = await context.Lessons!.Where(l => l.CourseId == course12.CourseId).ToListAsync();
+
+        // 5. Tạo các lớp học cho năm học 2026-2027
+        var classes = new List<Class>();
+        var classNames = new[] { "10A1", "10A2", "11A3", "11B1", "12A1" };
+        var classDict = new Dictionary<string, Class>();
+        foreach (var className in classNames)
+        {
+            var cls = await context.Classes!.FirstOrDefaultAsync(c => c.ClassName == className && c.AcademicYearId == year.AcademicYearId && !c.IsDeleted);
+            if (cls == null)
+            {
+                int? courseId = className.StartsWith("10") ? course10.CourseId 
+                              : className.StartsWith("11") ? course11.CourseId 
+                              : course12.CourseId;
+                              
+                string gradeLevel = className.StartsWith("10") ? "10" 
+                                  : className.StartsWith("11") ? "11" 
+                                  : "12";
+
+                cls = new Class
+                {
+                    ClassName = className,
+                    GradeLevel = gradeLevel,
+                    AcademicYearId = year.AcademicYearId,
+                    TeacherId = teacher.Id,
+                    CourseId = courseId
+                };
+                context.Classes!.Add(cls);
+                classes.Add(cls);
+            }
+            classDict[className] = cls;
+        }
+        await context.SaveChangesAsync();
+
+        // 6. Tạo Học sinh và enroll vào các lớp
+        var random = new Random();
+        var now = DateTime.UtcNow;
+        var startOfMonth = new DateTime(now.Year, now.Month, 1, 0, 0, 0, DateTimeKind.Utc);
+        var startOfLastMonth = startOfMonth.AddMonths(-1);
+
+        foreach (var kvp in classDict)
+        {
+            var className = kvp.Key;
+            var cls = kvp.Value;
+
+            // Kiểm tra xem lớp đã có học sinh enroll chưa
+            var currentEnrolled = await context.ClassEnrollments.CountAsync(ce => ce.ClassId == cls.ClassId);
+            if (currentEnrolled >= 5) continue;
+
+            // Tạo và enroll học sinh
+            for (int i = 1; i <= 8; i++)
+            {
+                var username = $"std_{className.ToLower()}_{i}";
+                var email = $"{username}@english.com";
+                
+                var student = await context.Users.FirstOrDefaultAsync(u => u.Email == email);
+                if (student == null)
+                {
+                    student = new User
+                    {
+                        Username = username,
+                        Email = email,
+                        Password = BCrypt.Net.BCrypt.HashPassword("123456"),
+                        IsActive = true,
+                        RoleId = 1,
+                        LastLoginAt = now.AddDays(-random.Next(0, 45))
+                    };
+                    context.Users.Add(student);
+                    await context.SaveChangesAsync();
+
+                    // Profile
+                    context.StudentProfiles!.Add(new StudentProfile
+                    {
+                        StudentId = student.Id,
+                        Nickname = $"Học sinh {className} - {i}",
+                        AvatarUrl = "/images/default-avatar.png",
+                        Level = random.Next(1, 5),
+                        XP = random.Next(100, 1000),
+                        CurrentStreakDays = random.Next(0, 10),
+                        LastActiveDate = student.LastLoginAt
+                    });
+                    await context.SaveChangesAsync();
+                }
+
+                // Enroll vào lớp
+                var enrollment = await context.ClassEnrollments.FirstOrDefaultAsync(ce => ce.ClassId == cls.ClassId && ce.StudentId == student.Id);
+                if (enrollment == null)
+                {
+                    context.ClassEnrollments.Add(new ClassEnrollment
+                    {
+                        ClassId = cls.ClassId,
+                        StudentId = student.Id,
+                        EnrolledAt = startOfLastMonth
+                    });
+                    await context.SaveChangesAsync();
+                }
+
+                // 7. Tạo dữ liệu tiến trình hoàn thành bài học (Lesson progress)
+                var classLessons = className.StartsWith("10") ? lessons10 
+                                 : className.StartsWith("11") ? lessons11 
+                                 : lessons12;
+
+                foreach (var lesson in classLessons)
+                {
+                    int successRate = className == "10A1" ? 95 
+                                    : className == "10A2" ? 89 
+                                    : className == "11A3" ? 82 
+                                    : className == "11B1" ? 76 
+                                    : 68;
+
+                    if (random.Next(1, 101) <= successRate)
+                    {
+                        bool completedThisMonth = random.Next(1, 101) <= 60;
+                        var completedDate = completedThisMonth 
+                            ? startOfMonth.AddDays(random.Next(0, now.Day)) 
+                            : startOfLastMonth.AddDays(random.Next(0, 28));
+
+                        var progress = await context.Progresses!.FirstOrDefaultAsync(p => p.StudentId == student.Id && p.LessonId == lesson.LessonId);
+                        if (progress == null)
+                        {
+                            context.Progresses!.Add(new Progress
+                            {
+                                StudentId = student.Id,
+                                LessonId = lesson.LessonId,
+                                CompletionStatus = "Completed",
+                                QuizScore = random.Next(60, 100),
+                                XPEarned = lesson.XPReward,
+                                CompletedAt = completedDate,
+                                IsBestAttempt = true
+                            });
+
+                            context.QuizAttempts!.Add(new QuizAttempt
+                            {
+                                StudentId = student.Id,
+                                LessonId = lesson.LessonId,
+                                StartedAt = completedDate.AddMinutes(-5),
+                                SubmittedAt = completedDate,
+                                TotalQuestions = 5,
+                                CorrectCount = random.Next(3, 6),
+                                Score = random.Next(60, 100),
+                                XpAwarded = true
+                            });
+                        }
+                    }
+                    else if (random.Next(1, 101) <= 40)
+                    {
+                        var progress = await context.Progresses!.FirstOrDefaultAsync(p => p.StudentId == student.Id && p.LessonId == lesson.LessonId);
+                        if (progress == null)
+                        {
+                            context.Progresses!.Add(new Progress
+                            {
+                                StudentId = student.Id,
+                                LessonId = lesson.LessonId,
+                                CompletionStatus = "In Progress",
+                                QuizScore = 0,
+                                XPEarned = 0,
+                                IsBestAttempt = false
+                            });
+                        }
+                    }
+                }
+                await context.SaveChangesAsync();
+            }
+        }
     }
 }
