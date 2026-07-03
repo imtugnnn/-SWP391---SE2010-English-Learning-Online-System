@@ -110,4 +110,18 @@ public class ClassRepository : IClassRepository
             .AsNoTracking()
             .ToListAsync();
     }
+    public async Task UpdateClassCourseAsync(int classId, int courseId)
+    {
+        var classEntity = await _context.Classes!
+            .FirstOrDefaultAsync(c => c.ClassId == classId);
+
+        if (classEntity == null)
+        {
+            return;
+        }
+
+        classEntity.CourseId = courseId;
+
+        await _context.SaveChangesAsync();
+    }
 }

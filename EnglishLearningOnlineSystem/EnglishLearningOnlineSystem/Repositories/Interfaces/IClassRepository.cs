@@ -14,4 +14,5 @@ public interface IClassRepository
     Task<List<TeacherFeedback>> GetTeacherFeedbackByStudentIdAsync(int studentId);
     Task AddTeacherFeedbackAsync(TeacherFeedback feedback);
     Task<List<Class>> GetClassesByTeacherIdAsync(int teacherId);
+    Task UpdateClassCourseAsync(int classId, int courseId);
 }

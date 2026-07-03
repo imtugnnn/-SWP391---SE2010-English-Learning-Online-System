@@ -57,4 +57,13 @@ public class AssignmentRepository : IAssignmentRepository
             .OrderByDescending(a => a.DueDate)
             .ToListAsync();
     }
+    public async Task<List<Course>> GetPublishedCoursesAsync()
+    {
+        return await _context.Courses!
+            .Where(c => c.IsPublished && !c.IsDeleted)
+            .AsNoTracking()
+            .OrderBy(c => c.GradeLevel)
+            .ThenBy(c => c.CourseName)
+            .ToListAsync();
+    }
 }
