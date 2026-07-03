@@ -99,15 +99,6 @@ public class AuthController : Controller
 
         var displayName = User.FindFirstValue(ClaimTypes.Name);
         var avatarUrl = User.FindFirstValue("urn:google:picture") ?? User.FindFirstValue("picture");
-        var existingUser = await _userRepository.FindByEmailAsync(email);
-        if (existingUser == null)
-        {
-            HttpContext.Session.SetString("PendingGoogleEmail", email.Trim());
-            HttpContext.Session.SetString("PendingGoogleName", displayName ?? string.Empty);
-            HttpContext.Session.SetString("PendingGoogleAvatar", avatarUrl ?? string.Empty);
-
-            return RedirectToAction(nameof(CompleteGoogleLogin));
-        }
 
         var (result, user) = await _authService.LoginWithGoogleAsync(email, displayName, avatarUrl);
 

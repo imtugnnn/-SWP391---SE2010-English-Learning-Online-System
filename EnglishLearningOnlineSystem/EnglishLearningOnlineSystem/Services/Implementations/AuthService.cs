@@ -62,7 +62,7 @@ public class AuthService : IAuthService
             return (AuthServiceResult.Success(), user);
         }
 
-        return (AuthServiceResult.Failure((string.Empty, "Vui lòng hoàn tất thông tin tài khoản để tiếp tục.")), null);
+        return (AuthServiceResult.Failure((string.Empty, "Tài khoản Google này chưa được đăng ký trong hệ thống.")), null);
     }
 
     public async Task<(AuthServiceResult Result, User? User)> CompleteGoogleLoginAsync(GoogleLoginCompletionViewModel model, string? displayName, string? avatarUrl)
