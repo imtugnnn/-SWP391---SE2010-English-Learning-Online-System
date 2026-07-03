@@ -251,7 +251,6 @@ public class AppDbContext : Microsoft.EntityFrameworkCore.DbContext
             new Role { Id = 1, Name = "Student" },
             new Role { Id = 2, Name = "Admin" },
             new Role { Id = 3, Name = "Teacher" },
-            new Role { Id = 4, Name = "Parent" },
             new Role { Id = 5, Name = "Content Manager" }
         );
     }

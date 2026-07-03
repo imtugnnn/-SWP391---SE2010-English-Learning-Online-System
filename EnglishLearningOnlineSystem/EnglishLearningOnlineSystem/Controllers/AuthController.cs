@@ -177,33 +177,6 @@ public class AuthController : Controller
         return RedirectByRole(user);
     }
 
-    [HttpGet("/register")]
-    public async Task<IActionResult> Register()
-    {
-        return View(new RegisterViewModel
-        {
-            RoleOptions = await LoadRoleOptionsAsync()
-        });
-    }
-
-    [HttpPost("/register")]
-    [ValidateAntiForgeryToken]
-    public async Task<IActionResult> Register(RegisterViewModel model)
-    {
-        model.RoleOptions = await LoadRoleOptionsAsync();
-
-        if (!ModelState.IsValid)
-        {
-            return View(model);
-        }
-
-        var result = await _authService.RegisterAsync(model);
-
-        return result.Succeeded
-            ? RedirectToAction(nameof(Login))
-            : ViewWithErrors(model, result);
-    }
-
     [HttpGet("/forgot-password")]
     public IActionResult ForgotPassword()
     {
