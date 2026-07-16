@@ -42,6 +42,7 @@ public class AppDbContext : Microsoft.EntityFrameworkCore.DbContext
     public DbSet<QuizAttemptAnswer> QuizAttemptAnswers { get; set; }
     public DbSet<FlashcardSession> FlashcardSessions { get; set; }
     public DbSet<FlashcardCardResult> FlashcardCardResults { get; set; }
+    public DbSet<AuditLog> AuditLogs { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -251,7 +252,6 @@ public class AppDbContext : Microsoft.EntityFrameworkCore.DbContext
             new Role { Id = 1, Name = "Student" },
             new Role { Id = 2, Name = "Admin" },
             new Role { Id = 3, Name = "Teacher" },
-            new Role { Id = 4, Name = "Parent" },
             new Role { Id = 5, Name = "Content Manager" }
         );
     }

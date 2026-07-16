@@ -1,3 +1,6 @@
+//Create by TungDPL
+//Create at 6/26/2026
+//Last update: 7/15/2026
 using Microsoft.AspNetCore.Mvc;
 using EnglishLearningOnlineSystem.Data;
 using EnglishLearningOnlineSystem.Models;
@@ -55,6 +58,9 @@ namespace EnglishLearningOnlineSystem.Controllers.Admin
             _context.SystemNotifications!.Add(notification);
             await _context.SaveChangesAsync();
 
+            var currentAdminId = GetCurrentUserId() ?? adminId;
+            await LogActivityAsync(currentAdminId, $"Tạo thông báo hệ thống: '{notification.Title}' ({notification.Status})");
+
             return Json(new { success = true });
         }
 
@@ -89,6 +95,12 @@ namespace EnglishLearningOnlineSystem.Controllers.Admin
             _context.SystemNotifications.Update(notification);
             await _context.SaveChangesAsync();
 
+            var currentAdminId = GetCurrentUserId();
+            if (currentAdminId.HasValue)
+            {
+                await LogActivityAsync(currentAdminId.Value, $"Chỉnh sửa thông báo hệ thống: '{notification.Title}' (ID: {notification.Id})");
+            }
+
             return Json(new { success = true });
         }
 
@@ -107,6 +119,12 @@ namespace EnglishLearningOnlineSystem.Controllers.Admin
 
             _context.SystemNotifications.Update(notification);
             await _context.SaveChangesAsync();
+
+            var currentAdminId = GetCurrentUserId();
+            if (currentAdminId.HasValue)
+            {
+                await LogActivityAsync(currentAdminId.Value, $"Hủy (xóa mềm) thông báo hệ thống: '{notification.Title}' (ID: {notification.Id})");
+            }
 
             return Json(new { success = true });
         }
@@ -139,6 +157,29 @@ namespace EnglishLearningOnlineSystem.Controllers.Admin
                 .ToList();
 
             return Json(adminNotifications);
+        }
+
+        private int? GetCurrentUserId()
+        {
+            var raw = HttpContext.Session.GetString("UserId");
+            return int.TryParse(raw, out var id) ? id : null;
+        }
+
+        private async Task LogActivityAsync(int userId, string action)
+        {
+            var user = await _context.Users.Include(u => u.Role).FirstOrDefaultAsync(u => u.Id == userId);
+            if (user != null)
+            {
+                _context.AuditLogs.Add(new AuditLog
+                {
+                    UserId = userId,
+                    Username = user.Username,
+                    UserRole = user.Role?.Name ?? "Admin",
+                    Action = action,
+                    Timestamp = DateTime.UtcNow
+                });
+                await _context.SaveChangesAsync();
+            }
         }
     }
 }

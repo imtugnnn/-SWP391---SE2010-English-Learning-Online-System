@@ -99,15 +99,6 @@ public class AuthController : Controller
 
         var displayName = User.FindFirstValue(ClaimTypes.Name);
         var avatarUrl = User.FindFirstValue("urn:google:picture") ?? User.FindFirstValue("picture");
-        var existingUser = await _userRepository.FindByEmailAsync(email);
-        if (existingUser == null)
-        {
-            HttpContext.Session.SetString("PendingGoogleEmail", email.Trim());
-            HttpContext.Session.SetString("PendingGoogleName", displayName ?? string.Empty);
-            HttpContext.Session.SetString("PendingGoogleAvatar", avatarUrl ?? string.Empty);
-
-            return RedirectToAction(nameof(CompleteGoogleLogin));
-        }
 
         var (result, user) = await _authService.LoginWithGoogleAsync(email, displayName, avatarUrl);
 
@@ -175,33 +166,6 @@ public class AuthController : Controller
         HttpContext.Session.SetString("UserRole", user.RoleId.ToString());
 
         return RedirectByRole(user);
-    }
-
-    [HttpGet("/register")]
-    public async Task<IActionResult> Register()
-    {
-        return View(new RegisterViewModel
-        {
-            RoleOptions = await LoadRoleOptionsAsync()
-        });
-    }
-
-    [HttpPost("/register")]
-    [ValidateAntiForgeryToken]
-    public async Task<IActionResult> Register(RegisterViewModel model)
-    {
-        model.RoleOptions = await LoadRoleOptionsAsync();
-
-        if (!ModelState.IsValid)
-        {
-            return View(model);
-        }
-
-        var result = await _authService.RegisterAsync(model);
-
-        return result.Succeeded
-            ? RedirectToAction(nameof(Login))
-            : ViewWithErrors(model, result);
     }
 
     [HttpGet("/forgot-password")]

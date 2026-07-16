@@ -1,6 +1,11 @@
-﻿using EnglishLearningOnlineSystem.Services.Interfaces;
+using EnglishLearningOnlineSystem.Services.Interfaces;
 using EnglishLearningOnlineSystem.ViewModels;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
+using EnglishLearningOnlineSystem.Models;
+using System;
+using System.Threading.Tasks;
+using System.Linq;
 
 namespace EnglishLearningOnlineSystem.Controllers;
 
@@ -10,13 +15,20 @@ public class TeacherController : Controller
     private readonly IStudentManagementService _studentManagementService;
     private readonly ITeacherAssignmentService _teacherAssignmentService;
     private readonly ITeacherDashboardService _teacherDashboardService;
+    private readonly EnglishLearningOnlineSystem.Data.AppDbContext _context;
 
-    public TeacherController(IClassService classService, IStudentManagementService studentManagementService, ITeacherAssignmentService teacherAssignmentService,ITeacherDashboardService teacherDashboardService)
+    public TeacherController(
+        IClassService classService,
+        IStudentManagementService studentManagementService,
+        ITeacherAssignmentService teacherAssignmentService,
+        ITeacherDashboardService teacherDashboardService,
+        EnglishLearningOnlineSystem.Data.AppDbContext context)
     {
         _classService = classService;
         _studentManagementService = studentManagementService;
         _teacherAssignmentService = teacherAssignmentService;
         _teacherDashboardService = teacherDashboardService;
+        _context = context;
     }
     public async Task<IActionResult> Dashboard()
     {
@@ -153,6 +165,8 @@ public class TeacherController : Controller
             return View(model);
         }
 
+        await LogActivityAsync(teacherId.Value, $"Gửi phản hồi cho học sinh (ID: {model.StudentId}) tại lớp (ID: {model.ClassId})");
+
         TempData["SuccessMessage"] = "Phản hồi đã được gửi thành công.";
 
         return RedirectToAction(
@@ -256,6 +270,7 @@ public class TeacherController : Controller
             ModelState.AddModelError(string.Empty, "Vui lòng chọn chương trình học trước khi giao bài.");
         }
 
+        await LogActivityAsync(teacherId.Value, $"Giao bài học theo tuần cho lớp (ID: {model.ClassId}), các bài học ID: [{string.Join(", ", model.SelectedLessonIds ?? new List<int>())}] từ ngày {model.WeekStartDate:dd/MM/yyyy} đến ngày {model.DueDate:dd/MM/yyyy}");
 
         TempData["SuccessMessage"] = "Giao bài học theo tuần thành công.";
 
@@ -285,5 +300,22 @@ public class TeacherController : Controller
 
 
         return View(viewModel);
+    }
+
+    private async Task LogActivityAsync(int userId, string action)
+    {
+        var user = await _context.Users.Include(u => u.Role).FirstOrDefaultAsync(u => u.Id == userId);
+        if (user != null)
+        {
+            _context.AuditLogs.Add(new AuditLog
+            {
+                UserId = userId,
+                Username = user.Username,
+                UserRole = user.Role?.Name ?? "Teacher",
+                Action = action,
+                Timestamp = DateTime.UtcNow
+            });
+            await _context.SaveChangesAsync();
+        }
     }
 }

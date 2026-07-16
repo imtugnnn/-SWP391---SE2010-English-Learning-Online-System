@@ -1,4 +1,5 @@
 using Microsoft.EntityFrameworkCore;
+using Microsoft.AspNetCore.Builder;
 using EnglishLearningOnlineSystem.Repositories.Implementations;
 using EnglishLearningOnlineSystem.Repositories.Interfaces;
 using EnglishLearningOnlineSystem.Services.Implementations;
@@ -88,7 +89,11 @@ builder.Services
         options.DefaultScheme = CookieAuthenticationDefaults.AuthenticationScheme;
         options.DefaultChallengeScheme = GoogleDefaults.AuthenticationScheme;
     })
-    .AddCookie()
+    .AddCookie(options =>
+    {
+        options.AccessDeniedPath = "/Home/Error/403";
+        options.LoginPath = "/login";
+    })
     .AddGoogle(options =>
     {
         options.ClientId = builder.Configuration["Authentication:Google:ClientId"]!;
@@ -101,13 +106,19 @@ var app = builder.Build();
 // Cấu hình xử lý lỗi và bảo mật cho môi trường Production
 if (!app.Environment.IsDevelopment())
 {
-    app.UseExceptionHandler("/Home/Error");
+    app.UseExceptionHandler("/Home/Error/500");
     app.UseHsts();
+}
+else
+{
+    app.UseExceptionHandler("/Home/Error/500");
 }
 
 // Cấu hình pipeline xử lý request
 app.UseHttpsRedirection();
 app.UseStaticFiles();
+
+app.UseStatusCodePagesWithReExecute("/Home/Error/{0}");
 
 app.UseRouting();
 

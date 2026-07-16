@@ -1,3 +1,6 @@
+//Create by TungDPL
+//Create at 6/24/2026
+//Last update: 7/15/2026
 using EnglishLearningOnlineSystem.Data;
 using EnglishLearningOnlineSystem.Helpers.Admin.AcademicYears;
 using EnglishLearningOnlineSystem.Models;
@@ -84,6 +87,12 @@ public class AcademicYearsController : Controller
 
         _context.AcademicYears!.Add(academicYear);
         await _context.SaveChangesAsync();
+
+        var adminId = GetCurrentUserId();
+        if (adminId.HasValue)
+        {
+            await LogActivityAsync(adminId.Value, $"Tạo năm học mới: {academicYear.YearLabel} ({academicYear.StartDate:dd/MM/yyyy} - {academicYear.EndDate:dd/MM/yyyy})");
+        }
 
         return RedirectToAction(nameof(Edit), new { id = academicYear.AcademicYearId });
     }
@@ -218,6 +227,12 @@ public class AcademicYearsController : Controller
 
         _context.ClassEnrollments!.AddRange(enrollments);
         await _context.SaveChangesAsync();
+
+        var adminId = GetCurrentUserId();
+        if (adminId.HasValue)
+        {
+            await LogActivityAsync(adminId.Value, $"Thêm lớp học '{newClass.ClassName}' (Khối: {newClass.GradeLevel}) vào năm học '{academicYear.YearLabel}' với {enrollments.Count} học sinh");
+        }
 
         return RedirectToAction(nameof(Edit), new { id = academicYear.AcademicYearId });
     }
@@ -437,6 +452,12 @@ public class AcademicYearsController : Controller
         academicYear.IsActive = true;
         await _context.SaveChangesAsync();
 
+        var adminId = GetCurrentUserId();
+        if (adminId.HasValue)
+        {
+            await LogActivityAsync(adminId.Value, $"Kích hoạt năm học: {academicYear.YearLabel}");
+        }
+
         return RedirectToAction(nameof(Index));
     }
 
@@ -452,6 +473,12 @@ public class AcademicYearsController : Controller
             classEntity.IsDeleted = true;
             await _context.SaveChangesAsync();
             TempData["SuccessMessage"] = $"Lớp học '{classEntity.ClassName}' đã được xóa thành công.";
+
+            var adminId = GetCurrentUserId();
+            if (adminId.HasValue)
+            {
+                await LogActivityAsync(adminId.Value, $"Xóa lớp học '{classEntity.ClassName}' khỏi năm học (ID: {id})");
+            }
         }
 
         return RedirectToAction(nameof(Edit), new { id = id });
@@ -478,6 +505,12 @@ public class AcademicYearsController : Controller
             classEntity.IsDeleted = false;
             await _context.SaveChangesAsync();
             TempData["SuccessMessage"] = $"Lớp học '{classEntity.ClassName}' đã được kích hoạt lại thành công.";
+
+            var adminId = GetCurrentUserId();
+            if (adminId.HasValue)
+            {
+                await LogActivityAsync(adminId.Value, $"Khôi phục lớp học '{classEntity.ClassName}' trong năm học (ID: {id})");
+            }
         }
 
         return RedirectToAction(nameof(Edit), new { id = id, selectedClassId = classId });
@@ -584,6 +617,12 @@ public class AcademicYearsController : Controller
         _context.ClassEnrollments!.AddRange(newEnrollments);
         await _context.SaveChangesAsync();
 
+        var adminId = GetCurrentUserId();
+        if (adminId.HasValue)
+        {
+            await LogActivityAsync(adminId.Value, $"Thêm {newEnrollments.Count} học sinh vào lớp '{classEntity.ClassName}' trong năm học (ID: {id})");
+        }
+
         TempData["SuccessMessage"] = $"Đã thêm thành công {newEnrollments.Count} học sinh vào lớp '{classEntity.ClassName}'.";
         return RedirectToAction(nameof(Edit), new { id = id, selectedClassId = classId });
     }
@@ -613,6 +652,12 @@ public class AcademicYearsController : Controller
                 _context.ClassEnrollments!.Remove(enrollment);
                 await _context.SaveChangesAsync();
                 TempData["SuccessMessage"] = $"Đã xóa học sinh '{studentEmail}' khỏi lớp '{classEntity.ClassName}' thành công.";
+
+                var adminId = GetCurrentUserId();
+                if (adminId.HasValue)
+                {
+                    await LogActivityAsync(adminId.Value, $"Xóa học sinh '{studentEmail}' khỏi lớp '{classEntity.ClassName}' (ID: {classId}) trong năm học (ID: {id})");
+                }
             }
             else
             {
@@ -656,5 +701,28 @@ public class AcademicYearsController : Controller
         return preserveOrder
             ? emails
             : emails.Distinct(StringComparer.OrdinalIgnoreCase).ToList();
+    }
+
+    private int? GetCurrentUserId()
+    {
+        var raw = HttpContext.Session.GetString("UserId");
+        return int.TryParse(raw, out var id) ? id : null;
+    }
+
+    private async Task LogActivityAsync(int userId, string action)
+    {
+        var user = await _context.Users.Include(u => u.Role).FirstOrDefaultAsync(u => u.Id == userId);
+        if (user != null)
+        {
+            _context.AuditLogs.Add(new AuditLog
+            {
+                UserId = userId,
+                Username = user.Username,
+                UserRole = user.Role?.Name ?? "Admin",
+                Action = action,
+                Timestamp = DateTime.UtcNow
+            });
+            await _context.SaveChangesAsync();
+        }
     }
 }

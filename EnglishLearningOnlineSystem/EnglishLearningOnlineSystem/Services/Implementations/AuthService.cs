@@ -62,7 +62,7 @@ public class AuthService : IAuthService
             return (AuthServiceResult.Success(), user);
         }
 
-        return (AuthServiceResult.Failure((string.Empty, "Vui lòng hoàn tất thông tin tài khoản để tiếp tục.")), null);
+        return (AuthServiceResult.Failure((string.Empty, "Tài khoản Google này chưa được đăng ký trong hệ thống.")), null);
     }
 
     public async Task<(AuthServiceResult Result, User? User)> CompleteGoogleLoginAsync(GoogleLoginCompletionViewModel model, string? displayName, string? avatarUrl)
@@ -106,48 +106,6 @@ public class AuthService : IAuthService
         await EnsureStudentProfileAsync(user, string.IsNullOrWhiteSpace(displayName) ? username : displayName, avatarUrl);
 
         return (AuthServiceResult.Success(), user);
-    }
-
-    public async Task<AuthServiceResult> RegisterAsync(RegisterViewModel model)
-    {
-        var username = model.Username.Trim();
-        var email = model.Email.Trim();
-        var errors = new List<(string Field, string Message)>();
-
-        if (await _roleRepository.FindRegistrationRoleAsync(model.RoleId) == null)
-        {
-            errors.Add((nameof(model.RoleId), "Vui lòng chọn vai trò."));
-        }
-
-        if (await _userRepository.UsernameExistsAsync(username))
-        {
-            errors.Add((nameof(model.Username), "Tên đăng nhập đã tồn tại."));
-        }
-
-        if (await _userRepository.EmailExistsAsync(email))
-        {
-            errors.Add((nameof(model.Email), "Email đã được đăng ký."));
-        }
-
-        if (errors.Count > 0)
-        {
-            return AuthServiceResult.Failure(errors.ToArray());
-        }
-
-        var user = new User
-        {
-            Username = username,
-            Email = email,
-            Password = BCrypt.Net.BCrypt.HashPassword(model.Password),
-            BirthDate = model.BirthDate,
-            IsActive = true,
-            RoleId = model.RoleId
-        };
-
-        await _userRepository.AddAsync(user);
-        await EnsureStudentProfileAsync(user, username, null);
-
-        return AuthServiceResult.Success();
     }
 
     public Task<List<Role>> GetRegistrationRolesAsync()
