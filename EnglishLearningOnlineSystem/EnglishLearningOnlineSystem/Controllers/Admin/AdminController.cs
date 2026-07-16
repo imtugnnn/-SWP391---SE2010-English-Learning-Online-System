@@ -508,6 +508,12 @@ public class AdminController : Controller
             return Json(new { success = false, message = result.ErrorMessage ?? "Lỗi khi tạo người dùng." });
         }
 
+        var adminId = GetCurrentUserId();
+        if (adminId.HasValue)
+        {
+            await LogActivityAsync(adminId.Value, $"Tạo người dùng mới: {vm.Username} ({vm.Email}) với vai trò ID {vm.RoleId}");
+        }
+
         return Json(new { success = true });
     }
 
@@ -523,6 +529,12 @@ public class AdminController : Controller
         if (!result.Succeeded)
         {
             return Json(new { success = false, message = result.ErrorMessage ?? "Lỗi khi cập nhật người dùng." });
+        }
+
+        var adminId = GetCurrentUserId();
+        if (adminId.HasValue)
+        {
+            await LogActivityAsync(adminId.Value, $"Cập nhật thông tin người dùng: {vm.Username} (ID: {vm.Id})");
         }
 
         return Json(new { success = true });
@@ -555,6 +567,13 @@ public class AdminController : Controller
             return Json(new { success = false, message = updateResult.ErrorMessage ?? "Lỗi khi cập nhật trạng thái." });
         }
 
+        var adminId = GetCurrentUserId();
+        if (adminId.HasValue)
+        {
+            var statusStr = vm.IsActive ? "kích hoạt" : "vô hiệu hóa";
+            await LogActivityAsync(adminId.Value, $"Thay đổi trạng thái của người dùng (ID: {id}) thành {statusStr}");
+        }
+
         return Json(new { success = true, isActive = vm.IsActive });
     }
 
@@ -567,7 +586,36 @@ public class AdminController : Controller
             return Json(new { success = false, message = result.ErrorMessage ?? "Lỗi khi xóa người dùng." });
         }
 
+        var adminId = GetCurrentUserId();
+        if (adminId.HasValue)
+        {
+            await LogActivityAsync(adminId.Value, $"Xóa người dùng (ID: {id})");
+        }
+
         return Json(new { success = true });
+    }
+
+    private int? GetCurrentUserId()
+    {
+        var raw = HttpContext.Session.GetString("UserId");
+        return int.TryParse(raw, out var id) ? id : null;
+    }
+
+    private async Task LogActivityAsync(int userId, string action)
+    {
+        var user = await _context.Users.Include(u => u.Role).FirstOrDefaultAsync(u => u.Id == userId);
+        if (user != null)
+        {
+            _context.AuditLogs.Add(new AuditLog
+            {
+                UserId = userId,
+                Username = user.Username,
+                UserRole = user.Role?.Name ?? "Admin",
+                Action = action,
+                Timestamp = DateTime.UtcNow
+            });
+            await _context.SaveChangesAsync();
+        }
     }
 }
 
