@@ -8,6 +8,8 @@ namespace EnglishLearningOnlineSystem.Services.Implementations;
 public class StudentManagementService : IStudentManagementService
 {
     private const int PageSize = 10;
+    private const int LowQuizScoreThreshold = 60;
+    private const int InactiveDaysThreshold = 7;
 
     private readonly IClassRepository _classRepository;
 
@@ -66,6 +68,211 @@ public class StudentManagementService : IStudentManagementService
             totalStudents,
             activeStudents,
             inactiveStudents);
+    }
+
+    public async Task<TeacherStudentsNeedSupportViewModel> GetStudentsNeedSupportAsync(
+        int teacherId,
+        string? classFilter,
+        string? reasonFilter,
+        string? sortBy)
+    {
+        var classes = await _classRepository.GetClassesByTeacherIdAsync(teacherId);
+        var selectedClassId = ParseClassFilter(classFilter);
+        var classesToScan = classes
+            .Where(c => !c.IsDeleted && (!selectedClassId.HasValue || c.ClassId == selectedClassId.Value))
+            .OrderBy(c => c.ClassName)
+            .ToList();
+
+        var items = new List<TeacherSupportStudentItemViewModel>();
+
+        foreach (var classEntity in classesToScan)
+        {
+            items.AddRange(await BuildSupportItemsForClassAsync(classEntity));
+        }
+
+        var normalizedReason = NormalizeSupportReason(reasonFilter);
+        var filteredItems = ApplySupportReasonFilter(items, normalizedReason);
+        filteredItems = ApplySupportSorting(filteredItems, sortBy);
+
+        return new TeacherStudentsNeedSupportViewModel
+        {
+            ClassFilter = selectedClassId?.ToString() ?? "all",
+            ReasonFilter = normalizedReason,
+            SortBy = NormalizeSupportSort(sortBy),
+            TotalNeedSupport = items.Count,
+            LowScoreCount = items.Count(i => i.HasLowScore),
+            OverdueCount = items.Count(i => i.HasOverdueAssignments),
+            InactiveCount = items.Count(i => i.IsInactive),
+            NotStartedCount = items.Count(i => i.HasNotStartedLessons),
+            Classes = classes
+                .Where(c => !c.IsDeleted)
+                .OrderBy(c => c.ClassName)
+                .Select(c => new TeacherSupportClassOptionViewModel
+                {
+                    ClassId = c.ClassId,
+                    ClassName = c.ClassName
+                })
+                .ToList(),
+            Students = filteredItems
+        };
+    }
+
+    public async Task<int> CountStudentsNeedSupportAsync(int teacherId)
+    {
+        var model = await GetStudentsNeedSupportAsync(teacherId, "all", "all", "risk");
+        return model.TotalNeedSupport;
+    }
+
+    private async Task<List<TeacherSupportStudentItemViewModel>> BuildSupportItemsForClassAsync(Class classEntity)
+    {
+        var enrollments = await _classRepository.GetStudentsByClassIdAsync(classEntity.ClassId);
+        var assignments = await _classRepository.GetAssignmentsByClassCourseAsync(classEntity.CourseId);
+        var lessonIds = assignments
+            .Where(a => a.LessonId.HasValue)
+            .Select(a => a.LessonId!.Value)
+            .Distinct()
+            .ToList();
+
+        var studentIds = enrollments.Select(e => e.StudentId).Distinct().ToList();
+        var progressRecords = await _classRepository.GetProgressByStudentIdsAndLessonIdsAsync(studentIds, lessonIds);
+        var progressByStudent = progressRecords
+            .GroupBy(p => p.StudentId)
+            .ToDictionary(g => g.Key, g => g.ToList());
+
+        var overdueLessonIds = assignments
+            .Where(a => a.DueDate < DateTime.UtcNow && a.LessonId.HasValue)
+            .Select(a => a.LessonId!.Value)
+            .Distinct()
+            .ToList();
+
+        var items = new List<TeacherSupportStudentItemViewModel>();
+
+        foreach (var enrollment in enrollments)
+        {
+            var studentProgress = progressByStudent.GetValueOrDefault(enrollment.StudentId) ?? new List<Progress>();
+            var studentProfile = await _classRepository.GetStudentProfileByIdAsync(enrollment.StudentId);
+            var lastActiveDate = studentProfile?.LastActiveDate ?? enrollment.Student.LastLoginAt;
+
+            var completedLessonIds = studentProgress
+                .Where(p => string.Equals(p.CompletionStatus, "Completed", StringComparison.OrdinalIgnoreCase))
+                .Select(p => p.LessonId)
+                .ToHashSet();
+
+            var startedLessonIds = studentProgress
+                .Select(p => p.LessonId)
+                .ToHashSet();
+
+            var avgScore = studentProgress.Any()
+                ? Math.Round(studentProgress.Average(p => p.QuizScore), 1)
+                : (double?)null;
+
+            var overdueCount = overdueLessonIds.Count(id => !completedLessonIds.Contains(id));
+            var notStartedCount = lessonIds.Count(id => !startedLessonIds.Contains(id));
+            var hasLowScore = avgScore.HasValue && avgScore.Value < LowQuizScoreThreshold;
+            var isInactive = !enrollment.Student.IsActive ||
+                !lastActiveDate.HasValue ||
+                lastActiveDate.Value.Date < DateTime.UtcNow.Date.AddDays(-InactiveDaysThreshold);
+
+            var reasons = new List<string>();
+            if (hasLowScore) reasons.Add("Điểm quiz thấp");
+            if (overdueCount > 0) reasons.Add("Bài quá hạn");
+            if (isInactive) reasons.Add("Không hoạt động");
+            if (notStartedCount > 0) reasons.Add("Chưa bắt đầu");
+
+            if (!reasons.Any())
+            {
+                continue;
+            }
+
+            items.Add(new TeacherSupportStudentItemViewModel
+            {
+                ClassId = classEntity.ClassId,
+                ClassName = classEntity.ClassName,
+                StudentId = enrollment.StudentId,
+                StudentName = enrollment.Student.Username,
+                Email = enrollment.Student.Email,
+                AverageQuizScore = avgScore,
+                OverdueLessonCount = overdueCount,
+                NotStartedLessonCount = notStartedCount,
+                LastActiveDate = lastActiveDate,
+                IsInactive = isInactive,
+                HasLowScore = hasLowScore,
+                HasOverdueAssignments = overdueCount > 0,
+                HasNotStartedLessons = notStartedCount > 0,
+                RiskScore = CalculateRiskScore(hasLowScore, overdueCount, isInactive, notStartedCount),
+                Reasons = reasons
+            });
+        }
+
+        return items;
+    }
+
+    private static int? ParseClassFilter(string? classFilter)
+    {
+        return int.TryParse(classFilter, out var classId) ? classId : null;
+    }
+
+    private static string NormalizeSupportReason(string? reason)
+    {
+        return string.IsNullOrWhiteSpace(reason)
+            ? "all"
+            : reason.Trim().ToLower();
+    }
+
+    private static string NormalizeSupportSort(string? sortBy)
+    {
+        return string.IsNullOrWhiteSpace(sortBy)
+            ? "risk"
+            : sortBy.Trim();
+    }
+
+    private static List<TeacherSupportStudentItemViewModel> ApplySupportReasonFilter(
+        List<TeacherSupportStudentItemViewModel> items,
+        string reason)
+    {
+        return reason switch
+        {
+            "low-score" => items.Where(i => i.HasLowScore).ToList(),
+            "overdue" => items.Where(i => i.HasOverdueAssignments).ToList(),
+            "inactive" => items.Where(i => i.IsInactive).ToList(),
+            "not-started" => items.Where(i => i.HasNotStartedLessons).ToList(),
+            _ => items
+        };
+    }
+
+    private static List<TeacherSupportStudentItemViewModel> ApplySupportSorting(
+        List<TeacherSupportStudentItemViewModel> items,
+        string? sortBy)
+    {
+        return NormalizeSupportSort(sortBy) switch
+        {
+            "score" => items
+                .OrderBy(i => i.AverageQuizScore ?? double.MaxValue)
+                .ThenByDescending(i => i.RiskScore)
+                .ToList(),
+            "overdue" => items
+                .OrderByDescending(i => i.OverdueLessonCount)
+                .ThenByDescending(i => i.RiskScore)
+                .ToList(),
+            "last-active" => items
+                .OrderBy(i => i.LastActiveDate ?? DateTime.MinValue)
+                .ThenByDescending(i => i.RiskScore)
+                .ToList(),
+            _ => items
+                .OrderByDescending(i => i.RiskScore)
+                .ThenBy(i => i.StudentName)
+                .ToList()
+        };
+    }
+
+    private static int CalculateRiskScore(bool hasLowScore, int overdueCount, bool isInactive, int notStartedCount)
+    {
+        var score = 0;
+        if (hasLowScore) score += 3;
+        if (isInactive) score += 2;
+        score += overdueCount * 2;
+        score += notStartedCount;
+        return score;
     }
 
     private async Task<Class?> ValidateTeacherAccessAsync(int classId, int teacherId)
