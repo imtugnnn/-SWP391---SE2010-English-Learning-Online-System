@@ -1,4 +1,4 @@
-﻿@model EnglishLearningOnlineSystem.ViewModels.TeacherDashboardViewModel
+@model EnglishLearningOnlineSystem.ViewModels.TeacherDashboardViewModel
 
 @{
     ViewData["Title"] = "Teacher Dashboard";
@@ -222,6 +222,30 @@
         color: #64748b;
         background: #ffffff;
     }
+
+    /* Notification Styles */
+    .pulse-icon {
+        animation: pulse-animation 2s infinite;
+    }
+
+    @@keyframes pulse-animation {
+        0% { transform: scale(1); opacity: 1; }
+        50% { transform: scale(1.2); opacity: 0.8; }
+        100% { transform: scale(1); opacity: 1; }
+    }
+
+    .hover-shadow:hover {
+        box-shadow: 0 4px 12px rgba(14,165,233,.12);
+        border-color: #bae6fd !important;
+    }
+
+    .transition {
+        transition: all 0.2s ease;
+    }
+
+    .bg-light-blue {
+        background-color: #f0f9ff !important;
+    }
 </style>
 
 <div class="teacher-class-shell">
@@ -247,6 +271,16 @@
                         </p>
                     </div>
 
+                    <div>
+                        <button type="button" class="btn btn-outline-primary d-flex align-items-center gap-2 px-3 py-2 border-2 rounded-pill shadow-sm" data-bs-toggle="modal" data-bs-target="#notificationModal" style="border-color: #0ea5e9; color: #0369a1;">
+                            <i class="bi bi-bell-fill fs-5 text-warning @(ViewBag.NotificationCount > 0 ? "pulse-icon" : "")"></i>
+                            <span class="fw-bold">Thông báo hệ thống</span>
+                            @if (ViewBag.NotificationCount > 0)
+                            {
+                                <span class="badge bg-danger rounded-pill">@ViewBag.NotificationCount</span>
+                            }
+                        </button>
+                    </div>
                 </div>
 
                 <div class="row g-3">
@@ -374,5 +408,102 @@
             }
         </div>
 
+    </div>
+</div>
+
+<!-- Modal Thông báo -->
+<div class="modal fade" id="notificationModal" tabindex="-1" aria-labelledby="notificationModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content border-0 shadow-lg" style="border-radius: 20px;">
+            <div class="modal-header bg-light border-0 py-3" style="border-top-left-radius: 20px; border-top-right-radius: 20px;">
+                <h5 class="modal-title fw-bold text-primary" id="notificationModalLabel">
+                    <i class="bi bi-bell-fill text-warning me-2"></i> Thông báo hệ thống
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body p-4">
+                <!-- Nav tabs -->
+                <ul class="nav nav-pills nav-fill mb-4" id="notifTab" role="tablist">
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link active fw-bold" id="system-tab" data-bs-toggle="tab" data-bs-target="#system" type="button" role="tab" aria-controls="system" aria-selected="true" style="border-radius: 12px;">
+                            <i class="bi bi-broadcast me-1"></i> Thông báo chung
+                        </button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link fw-bold" id="personal-tab" data-bs-toggle="tab" data-bs-target="#personal" type="button" role="tab" aria-controls="personal" aria-selected="false" style="border-radius: 12px;">
+                            <i class="bi bi-person-badge me-1"></i> Thông báo cá nhân
+                        </button>
+                    </li>
+                </ul>
+
+                <!-- Tab panes -->
+                <div class="tab-content" id="notifTabContent">
+                    <!-- Tab Thông báo chung -->
+                    <div class="tab-pane fade show active" id="system" role="tabpanel" aria-labelledby="system-tab">
+                        @{
+                            var sysNotifs = ViewBag.SystemNotifications as List<EnglishLearningOnlineSystem.Models.SystemNotification>;
+                        }
+                        @if (sysNotifs == null || !sysNotifs.Any())
+                        {
+                            <div class="text-center py-5 text-muted">
+                                <i class="bi bi-chat-square-text fs-1 mb-2"></i>
+                                <p class="mb-0">Không có thông báo chung nào dành cho giáo viên.</p>
+                            </div>
+                        }
+                        else
+                        {
+                            <div class="notif-list" style="max-height: 400px; overflow-y: auto; padding-right: 5px;">
+                                @foreach (var notif in sysNotifs)
+                                {
+                                    <div class="notif-item p-3 mb-3 border rounded-3 bg-white hover-shadow transition" style="border-color: #e2e8f0;">
+                                        <div class="d-flex justify-content-between align-items-center mb-2">
+                                            <h6 class="fw-bold text-dark mb-0">@notif.Title</h6>
+                                            <span class="text-muted small">
+                                                <i class="bi bi-clock me-1"></i> @(notif.PublishTime.HasValue ? notif.PublishTime.Value.ToString("dd/MM/yyyy HH:mm") : notif.CreatedAt.ToString("dd/MM/yyyy HH:mm"))
+                                            </span>
+                                        </div>
+                                        <p class="mb-0 text-secondary" style="font-size: 0.9rem; white-space: pre-line;">@notif.Content</p>
+                                    </div>
+                                }
+                            </div>
+                        }
+                    </div>
+
+                    <!-- Tab Thông báo cá nhân -->
+                    <div class="tab-pane fade" id="personal" role="tabpanel" aria-labelledby="personal-tab">
+                        @{
+                            var persNotifs = ViewBag.PersonalNotifications as List<EnglishLearningOnlineSystem.Models.Notification>;
+                        }
+                        @if (persNotifs == null || !persNotifs.Any())
+                        {
+                            <div class="text-center py-5 text-muted">
+                                <i class="bi bi-envelope-open fs-1 mb-2"></i>
+                                <p class="mb-0">Không có thông báo cá nhân nào dành cho bạn.</p>
+                            </div>
+                        }
+                        else
+                        {
+                            <div class="notif-list" style="max-height: 400px; overflow-y: auto; padding-right: 5px;">
+                                @foreach (var notif in persNotifs)
+                                {
+                                    <div class="notif-item p-3 mb-3 border rounded-3 bg-white hover-shadow transition @(notif.IsRead ? "" : "border-primary bg-light-blue")" style="border-color: #e2e8f0;">
+                                        <div class="d-flex justify-content-between align-items-center mb-2">
+                                            <span class="badge @(notif.Type == "Warning" ? "bg-warning text-dark" : "bg-info")">@notif.Type</span>
+                                            <span class="text-muted small">
+                                                <i class="bi bi-clock me-1"></i> @notif.CreateAt.AddHours(7).ToString("dd/MM/yyyy HH:mm")
+                                            </span>
+                                        </div>
+                                        <p class="mb-0 text-secondary" style="font-size: 0.9rem;">@notif.Message</p>
+                                    </div>
+                                }
+                            </div>
+                        }
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer bg-light border-0" style="border-bottom-left-radius: 20px; border-bottom-right-radius: 20px;">
+                <button type="button" class="btn btn-secondary px-4 rounded-pill" data-bs-dismiss="modal">Đóng</button>
+            </div>
+        </div>
     </div>
 </div>

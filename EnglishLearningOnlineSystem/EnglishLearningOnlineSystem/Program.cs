@@ -124,6 +124,8 @@ app.UseRouting();
 
 app.UseSession();
 
+app.UseMiddleware<EnglishLearningOnlineSystem.Middleware.MaintenanceModeMiddleware>();
+
 app.UseAuthentication();
 app.UseAuthorization();
 

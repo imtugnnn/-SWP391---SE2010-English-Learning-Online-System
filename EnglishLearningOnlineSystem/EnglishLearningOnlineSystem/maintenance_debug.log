@@ -1,0 +1,173 @@
+2026-07-17 00:59:28 - Path: / | Active: ?? | UserRole: null | SessionId: 6c2dc1ae-761d-0e5a-beba-a512879850dc
+2026-07-17 00:59:28 - Active: True | Path: / | isAdmin: False | isAuthPath: False | isMaintenancePage: False
+2026-07-17 00:59:28 - REDIRECT TO /maintenance for path: /
+2026-07-17 00:59:28 - Path: /maintenance | Active: ?? | UserRole: null | SessionId: 1ea1b0e5-7865-d0d7-6860-b5ccea9b1dd3
+2026-07-17 00:59:28 - Active: True | Path: /maintenance | isAdmin: False | isAuthPath: False | isMaintenancePage: True
+2026-07-17 00:59:37 - Path: /login | Active: ?? | UserRole: null | SessionId: 9263021e-63d9-1eb5-b9dc-9a23fb29a817
+2026-07-17 00:59:37 - Active: True | Path: /login | isAdmin: False | isAuthPath: True | isMaintenancePage: False
+2026-07-17 01:01:25 - Path: / | Active: ?? | UserRole: null | SessionId: 3abcd5bd-26d0-8781-ace1-b5c9125d81e3
+2026-07-17 01:01:25 - Active: True | Path: / | isAdmin: False | isAuthPath: False | isMaintenancePage: False
+2026-07-17 01:01:25 - REDIRECT TO /maintenance for path: /
+2026-07-17 01:01:25 - Path: /maintenance | Active: ?? | UserRole: null | SessionId: 4656927b-92a8-511a-0d3d-17a005d77fe4
+2026-07-17 01:01:25 - Active: True | Path: /maintenance | isAdmin: False | isAuthPath: False | isMaintenancePage: True
+2026-07-17 01:01:42 - Path: /login | Active: ?? | UserRole: null | SessionId: 631fc81f-aa4a-5a3a-2f51-3cb238b1e6aa
+2026-07-17 01:01:42 - Active: True | Path: /login | isAdmin: False | isAuthPath: True | isMaintenancePage: False
+2026-07-17 01:01:44 - Path: /login/google | Active: ?? | UserRole: null | SessionId: 84f0ab75-be65-2fb8-0eed-143dfa9fd081
+2026-07-17 01:01:44 - Active: True | Path: /login/google | isAdmin: False | isAuthPath: True | isMaintenancePage: False
+2026-07-17 01:01:48 - Path: /signin-google | Active: ?? | UserRole: null | SessionId: a3324d33-a3b4-f0db-15a3-bb0c8f2ddfb8
+2026-07-17 01:01:48 - Active: True | Path: /signin-google | isAdmin: False | isAuthPath: False | isMaintenancePage: False
+2026-07-17 01:01:48 - REDIRECT TO /maintenance for path: /signin-google
+2026-07-17 01:01:48 - Path: /maintenance | Active: ?? | UserRole: null | SessionId: 957ed7ef-c2a2-4c6c-6c0b-77f748e0f727
+2026-07-17 01:01:48 - Active: True | Path: /maintenance | isAdmin: False | isAuthPath: False | isMaintenancePage: True
+2026-07-17 01:03:58 - Path: / | Active: ?? | UserRole: null | SessionId: 23cccaba-d085-6636-5cdc-2db9f478a239
+2026-07-17 01:03:58 - Active: True | Path: / | isAdmin: False | isAuthPath: False | isMaintenancePage: False
+2026-07-17 01:03:58 - REDIRECT TO /maintenance for path: /
+2026-07-17 01:03:58 - Path: /maintenance | Active: ?? | UserRole: null | SessionId: 584f8227-77e5-9c79-7815-728986ebd1d6
+2026-07-17 01:03:58 - Active: True | Path: /maintenance | isAdmin: False | isAuthPath: False | isMaintenancePage: True
+2026-07-17 01:04:04 - Path: /login | Active: ?? | UserRole: null | SessionId: d79b7523-9c6b-022e-c3f0-65b2485fb534
+2026-07-17 01:04:04 - Active: True | Path: /login | isAdmin: False | isAuthPath: True | isMaintenancePage: False
+2026-07-17 01:04:05 - Path: /login/google | Active: ?? | UserRole: null | SessionId: c7470c57-250d-c18f-b9f3-0f096f618cd1
+2026-07-17 01:04:05 - Active: True | Path: /login/google | isAdmin: False | isAuthPath: True | isMaintenancePage: False
+2026-07-17 01:04:10 - Path: /signin-google | Active: ?? | UserRole: null | SessionId: 13795c02-9bb9-07d0-69a5-5cc8c29351b7
+2026-07-17 01:04:10 - Active: True | Path: /signin-google | isAdmin: False | isAuthPath: True | isMaintenancePage: False
+2026-07-17 01:04:11 - Path: /login/google-callback | Active: ?? | UserRole: null | SessionId: 5d7bdc5d-7e44-2a53-b5cf-2b6c0f418872
+2026-07-17 01:04:11 - Active: True | Path: /login/google-callback | isAdmin: False | isAuthPath: True | isMaintenancePage: False
+2026-07-17 01:04:11 - Path: /Admin/Dashboard | Active: ?? | UserRole: 2 | SessionId: 5d7bdc5d-7e44-2a53-b5cf-2b6c0f418872
+2026-07-17 01:04:11 - Active: True | Path: /Admin/Dashboard | isAdmin: True | isAuthPath: False | isMaintenancePage: False
+2026-07-17 01:04:13 - Path: /admin/notifications/api | Active: ?? | UserRole: 2 | SessionId: 5d7bdc5d-7e44-2a53-b5cf-2b6c0f418872
+2026-07-17 01:04:13 - Active: True | Path: /admin/notifications/api | isAdmin: True | isAuthPath: False | isMaintenancePage: False
+2026-07-17 01:04:16 - Path: /Admin/Maintenance | Active: ?? | UserRole: 2 | SessionId: 5d7bdc5d-7e44-2a53-b5cf-2b6c0f418872
+2026-07-17 01:04:16 - Active: True | Path: /Admin/Maintenance | isAdmin: True | isAuthPath: False | isMaintenancePage: False
+2026-07-17 01:04:16 - Path: /admin/notifications/api | Active: ?? | UserRole: 2 | SessionId: 5d7bdc5d-7e44-2a53-b5cf-2b6c0f418872
+2026-07-17 01:04:16 - Active: True | Path: /admin/notifications/api | isAdmin: True | isAuthPath: False | isMaintenancePage: False
+2026-07-17 01:04:18 - Path: /Maintenance/ToggleImmediate | Active: ?? | UserRole: 2 | SessionId: 5d7bdc5d-7e44-2a53-b5cf-2b6c0f418872
+2026-07-17 01:04:18 - Active: True | Path: /Maintenance/ToggleImmediate | isAdmin: True | isAuthPath: False | isMaintenancePage: False
+2026-07-17 01:04:18 - Path: /Admin/Maintenance | Active: ?? | UserRole: 2 | SessionId: 5d7bdc5d-7e44-2a53-b5cf-2b6c0f418872
+2026-07-17 01:04:18 - Path: /admin/notifications/api | Active: ?? | UserRole: 2 | SessionId: 5d7bdc5d-7e44-2a53-b5cf-2b6c0f418872
+2026-07-17 01:04:28 - Path: /logout | Active: ?? | UserRole: 2 | SessionId: 5d7bdc5d-7e44-2a53-b5cf-2b6c0f418872
+2026-07-17 01:04:28 - Path: /login | Active: ?? | UserRole: null | SessionId: 5d7bdc5d-7e44-2a53-b5cf-2b6c0f418872
+2026-07-17 01:04:29 - Path: /login/google | Active: ?? | UserRole: null | SessionId: 5d7bdc5d-7e44-2a53-b5cf-2b6c0f418872
+2026-07-17 01:04:34 - Path: /signin-google | Active: ?? | UserRole: null | SessionId: 5d7bdc5d-7e44-2a53-b5cf-2b6c0f418872
+2026-07-17 01:04:34 - Path: /login/google-callback | Active: ?? | UserRole: null | SessionId: 5d7bdc5d-7e44-2a53-b5cf-2b6c0f418872
+2026-07-17 01:04:35 - Path: /Teacher/Dashboard | Active: ?? | UserRole: 3 | SessionId: 5d7bdc5d-7e44-2a53-b5cf-2b6c0f418872
+2026-07-17 01:04:41 - Path: /login | Active: ?? | UserRole: 3 | SessionId: 5d7bdc5d-7e44-2a53-b5cf-2b6c0f418872
+2026-07-17 01:04:42 - Path: /login/google | Active: ?? | UserRole: 3 | SessionId: 5d7bdc5d-7e44-2a53-b5cf-2b6c0f418872
+2026-07-17 01:04:50 - Path: /signin-google | Active: ?? | UserRole: 3 | SessionId: 5d7bdc5d-7e44-2a53-b5cf-2b6c0f418872
+2026-07-17 01:04:51 - Path: /login/google-callback | Active: ?? | UserRole: 3 | SessionId: 5d7bdc5d-7e44-2a53-b5cf-2b6c0f418872
+2026-07-17 01:04:51 - Path: /student/onboarding | Active: ?? | UserRole: 1 | SessionId: 5d7bdc5d-7e44-2a53-b5cf-2b6c0f418872
+2026-07-17 01:04:53 - Path: /student/onboarding/complete | Active: ?? | UserRole: 1 | SessionId: 5d7bdc5d-7e44-2a53-b5cf-2b6c0f418872
+2026-07-17 01:04:53 - Path: /student/dashboard | Active: ?? | UserRole: 1 | SessionId: 5d7bdc5d-7e44-2a53-b5cf-2b6c0f418872
+2026-07-17 01:04:54 - Path: /student/notifications/api | Active: ?? | UserRole: 1 | SessionId: 5d7bdc5d-7e44-2a53-b5cf-2b6c0f418872
+2026-07-17 01:05:02 - Path: /logout | Active: ?? | UserRole: 1 | SessionId: 5d7bdc5d-7e44-2a53-b5cf-2b6c0f418872
+2026-07-17 01:05:02 - Path: /login | Active: ?? | UserRole: null | SessionId: 5d7bdc5d-7e44-2a53-b5cf-2b6c0f418872
+2026-07-17 01:05:03 - Path: /login/google | Active: ?? | UserRole: null | SessionId: 5d7bdc5d-7e44-2a53-b5cf-2b6c0f418872
+2026-07-17 01:05:08 - Path: /signin-google | Active: ?? | UserRole: null | SessionId: 5d7bdc5d-7e44-2a53-b5cf-2b6c0f418872
+2026-07-17 01:05:09 - Path: /login/google-callback | Active: ?? | UserRole: null | SessionId: 5d7bdc5d-7e44-2a53-b5cf-2b6c0f418872
+2026-07-17 01:05:09 - Path: /Admin/Dashboard | Active: ?? | UserRole: 2 | SessionId: 5d7bdc5d-7e44-2a53-b5cf-2b6c0f418872
+2026-07-17 01:05:09 - Path: /admin/notifications/api | Active: ?? | UserRole: 2 | SessionId: 5d7bdc5d-7e44-2a53-b5cf-2b6c0f418872
+2026-07-17 01:05:11 - Path: /Admin/UserManagement | Active: ?? | UserRole: 2 | SessionId: 5d7bdc5d-7e44-2a53-b5cf-2b6c0f418872
+2026-07-17 01:05:11 - Path: /admin/notifications/api | Active: ?? | UserRole: 2 | SessionId: 5d7bdc5d-7e44-2a53-b5cf-2b6c0f418872
+2026-07-17 01:05:13 - Path: /AuditLog | Active: ?? | UserRole: 2 | SessionId: 5d7bdc5d-7e44-2a53-b5cf-2b6c0f418872
+2026-07-17 01:05:13 - Path: /admin/notifications/api | Active: ?? | UserRole: 2 | SessionId: 5d7bdc5d-7e44-2a53-b5cf-2b6c0f418872
+2026-07-17 01:05:33 - Path: /logout | Active: ?? | UserRole: 2 | SessionId: 5d7bdc5d-7e44-2a53-b5cf-2b6c0f418872
+2026-07-17 01:05:33 - Path: /login | Active: ?? | UserRole: null | SessionId: 5d7bdc5d-7e44-2a53-b5cf-2b6c0f418872
+2026-07-17 01:05:34 - Path: /login/google | Active: ?? | UserRole: null | SessionId: 5d7bdc5d-7e44-2a53-b5cf-2b6c0f418872
+2026-07-17 01:05:40 - Path: /signin-google | Active: ?? | UserRole: null | SessionId: 5d7bdc5d-7e44-2a53-b5cf-2b6c0f418872
+2026-07-17 01:05:40 - Path: /login/google-callback | Active: ?? | UserRole: null | SessionId: 5d7bdc5d-7e44-2a53-b5cf-2b6c0f418872
+2026-07-17 01:05:40 - Path: /Teacher/Dashboard | Active: ?? | UserRole: 3 | SessionId: 5d7bdc5d-7e44-2a53-b5cf-2b6c0f418872
+2026-07-17 01:05:42 - Path: /Teacher/ClassDetail | Active: ?? | UserRole: 3 | SessionId: 5d7bdc5d-7e44-2a53-b5cf-2b6c0f418872
+2026-07-17 01:05:49 - Path: /Teacher/StudentDetail | Active: ?? | UserRole: 3 | SessionId: 5d7bdc5d-7e44-2a53-b5cf-2b6c0f418872
+2026-07-17 01:05:51 - Path: /Teacher/ProvideFeedback | Active: ?? | UserRole: 3 | SessionId: 5d7bdc5d-7e44-2a53-b5cf-2b6c0f418872
+2026-07-17 01:05:55 - Path: /Teacher/ProvideFeedback | Active: ?? | UserRole: 3 | SessionId: 5d7bdc5d-7e44-2a53-b5cf-2b6c0f418872
+2026-07-17 01:05:55 - Path: /Teacher/StudentDetail | Active: ?? | UserRole: 3 | SessionId: 5d7bdc5d-7e44-2a53-b5cf-2b6c0f418872
+2026-07-17 01:06:04 - Path: /login | Active: ?? | UserRole: 3 | SessionId: 5d7bdc5d-7e44-2a53-b5cf-2b6c0f418872
+2026-07-17 01:06:05 - Path: /login/google | Active: ?? | UserRole: 3 | SessionId: 5d7bdc5d-7e44-2a53-b5cf-2b6c0f418872
+2026-07-17 01:06:11 - Path: /signin-google | Active: ?? | UserRole: 3 | SessionId: 5d7bdc5d-7e44-2a53-b5cf-2b6c0f418872
+2026-07-17 01:06:11 - Path: /login/google-callback | Active: ?? | UserRole: 3 | SessionId: 5d7bdc5d-7e44-2a53-b5cf-2b6c0f418872
+2026-07-17 01:06:11 - Path: /Admin/Dashboard | Active: ?? | UserRole: 2 | SessionId: 5d7bdc5d-7e44-2a53-b5cf-2b6c0f418872
+2026-07-17 01:06:12 - Path: /admin/notifications/api | Active: ?? | UserRole: 2 | SessionId: 5d7bdc5d-7e44-2a53-b5cf-2b6c0f418872
+2026-07-17 01:06:13 - Path: /AuditLog | Active: ?? | UserRole: 2 | SessionId: 5d7bdc5d-7e44-2a53-b5cf-2b6c0f418872
+2026-07-17 01:06:13 - Path: /admin/notifications/api | Active: ?? | UserRole: 2 | SessionId: 5d7bdc5d-7e44-2a53-b5cf-2b6c0f418872
+2026-07-17 01:06:27 - Path: /Admin/Dashboard | Active: ?? | UserRole: 2 | SessionId: 5d7bdc5d-7e44-2a53-b5cf-2b6c0f418872
+2026-07-17 01:06:27 - Path: /admin/notifications/api | Active: ?? | UserRole: 2 | SessionId: 5d7bdc5d-7e44-2a53-b5cf-2b6c0f418872
+2026-07-17 01:06:28 - Path: /Admin/Dashboard | Active: ?? | UserRole: 2 | SessionId: 5d7bdc5d-7e44-2a53-b5cf-2b6c0f418872
+2026-07-17 01:06:28 - Path: /admin/notifications/api | Active: ?? | UserRole: 2 | SessionId: 5d7bdc5d-7e44-2a53-b5cf-2b6c0f418872
+2026-07-17 01:06:48 - Path: /AcademicYears/Edit/2 | Active: ?? | UserRole: 2 | SessionId: 5d7bdc5d-7e44-2a53-b5cf-2b6c0f418872
+2026-07-17 01:06:48 - Path: /admin/notifications/api | Active: ?? | UserRole: 2 | SessionId: 5d7bdc5d-7e44-2a53-b5cf-2b6c0f418872
+2026-07-17 01:06:53 - Path: /AcademicYears | Active: ?? | UserRole: 2 | SessionId: 5d7bdc5d-7e44-2a53-b5cf-2b6c0f418872
+2026-07-17 01:06:53 - Path: /admin/notifications/api | Active: ?? | UserRole: 2 | SessionId: 5d7bdc5d-7e44-2a53-b5cf-2b6c0f418872
+2026-07-17 01:06:54 - Path: /AcademicYears/Edit/2 | Active: ?? | UserRole: 2 | SessionId: 5d7bdc5d-7e44-2a53-b5cf-2b6c0f418872
+2026-07-17 01:06:54 - Path: /admin/notifications/api | Active: ?? | UserRole: 2 | SessionId: 5d7bdc5d-7e44-2a53-b5cf-2b6c0f418872
+2026-07-17 01:07:02 - Path: /AcademicYears/Edit/2 | Active: ?? | UserRole: 2 | SessionId: 5d7bdc5d-7e44-2a53-b5cf-2b6c0f418872
+2026-07-17 01:07:02 - Path: /admin/notifications/api | Active: ?? | UserRole: 2 | SessionId: 5d7bdc5d-7e44-2a53-b5cf-2b6c0f418872
+2026-07-17 01:07:04 - Path: /AcademicYears/Edit/2 | Active: ?? | UserRole: 2 | SessionId: 5d7bdc5d-7e44-2a53-b5cf-2b6c0f418872
+2026-07-17 01:07:04 - Path: /admin/notifications/api | Active: ?? | UserRole: 2 | SessionId: 5d7bdc5d-7e44-2a53-b5cf-2b6c0f418872
+2026-07-17 01:07:05 - Path: /AcademicYears/Edit/2 | Active: ?? | UserRole: 2 | SessionId: 5d7bdc5d-7e44-2a53-b5cf-2b6c0f418872
+2026-07-17 01:07:06 - Path: /admin/notifications/api | Active: ?? | UserRole: 2 | SessionId: 5d7bdc5d-7e44-2a53-b5cf-2b6c0f418872
+2026-07-17 01:07:06 - Path: /AcademicYears/Edit/2 | Active: ?? | UserRole: 2 | SessionId: 5d7bdc5d-7e44-2a53-b5cf-2b6c0f418872
+2026-07-17 01:07:06 - Path: /admin/notifications/api | Active: ?? | UserRole: 2 | SessionId: 5d7bdc5d-7e44-2a53-b5cf-2b6c0f418872
+2026-07-17 01:07:08 - Path: /AcademicYears | Active: ?? | UserRole: 2 | SessionId: 5d7bdc5d-7e44-2a53-b5cf-2b6c0f418872
+2026-07-17 01:07:08 - Path: /admin/notifications/api | Active: ?? | UserRole: 2 | SessionId: 5d7bdc5d-7e44-2a53-b5cf-2b6c0f418872
+2026-07-17 01:07:11 - Path: /logout | Active: ?? | UserRole: 2 | SessionId: 5d7bdc5d-7e44-2a53-b5cf-2b6c0f418872
+2026-07-17 01:07:11 - Path: /login | Active: ?? | UserRole: null | SessionId: 5d7bdc5d-7e44-2a53-b5cf-2b6c0f418872
+2026-07-17 01:07:12 - Path: /login/google | Active: ?? | UserRole: null | SessionId: 5d7bdc5d-7e44-2a53-b5cf-2b6c0f418872
+2026-07-17 01:07:19 - Path: /signin-google | Active: ?? | UserRole: null | SessionId: 5d7bdc5d-7e44-2a53-b5cf-2b6c0f418872
+2026-07-17 01:07:20 - Path: /login/google-callback | Active: ?? | UserRole: null | SessionId: 5d7bdc5d-7e44-2a53-b5cf-2b6c0f418872
+2026-07-17 01:07:20 - Path: /Teacher/Dashboard | Active: ?? | UserRole: 3 | SessionId: 5d7bdc5d-7e44-2a53-b5cf-2b6c0f418872
+2026-07-17 01:07:22 - Path: /Teacher/ClassDetail | Active: ?? | UserRole: 3 | SessionId: 5d7bdc5d-7e44-2a53-b5cf-2b6c0f418872
+2026-07-17 01:07:27 - Path: /Teacher/StudentDetail | Active: ?? | UserRole: 3 | SessionId: 5d7bdc5d-7e44-2a53-b5cf-2b6c0f418872
+2026-07-17 01:07:30 - Path: /Teacher/ProvideFeedback | Active: ?? | UserRole: 3 | SessionId: 5d7bdc5d-7e44-2a53-b5cf-2b6c0f418872
+2026-07-17 01:07:33 - Path: /Teacher/ProvideFeedback | Active: ?? | UserRole: 3 | SessionId: 5d7bdc5d-7e44-2a53-b5cf-2b6c0f418872
+2026-07-17 01:07:33 - Path: /Teacher/StudentDetail | Active: ?? | UserRole: 3 | SessionId: 5d7bdc5d-7e44-2a53-b5cf-2b6c0f418872
+2026-07-17 01:07:37 - Path: /login | Active: ?? | UserRole: 3 | SessionId: 5d7bdc5d-7e44-2a53-b5cf-2b6c0f418872
+2026-07-17 01:07:39 - Path: /login/google | Active: ?? | UserRole: 3 | SessionId: 5d7bdc5d-7e44-2a53-b5cf-2b6c0f418872
+2026-07-17 01:07:43 - Path: /signin-google | Active: ?? | UserRole: 3 | SessionId: 5d7bdc5d-7e44-2a53-b5cf-2b6c0f418872
+2026-07-17 01:07:44 - Path: /login/google-callback | Active: ?? | UserRole: 3 | SessionId: 5d7bdc5d-7e44-2a53-b5cf-2b6c0f418872
+2026-07-17 01:07:44 - Path: /Admin/Dashboard | Active: ?? | UserRole: 2 | SessionId: 5d7bdc5d-7e44-2a53-b5cf-2b6c0f418872
+2026-07-17 01:07:44 - Path: /admin/notifications/api | Active: ?? | UserRole: 2 | SessionId: 5d7bdc5d-7e44-2a53-b5cf-2b6c0f418872
+2026-07-17 01:07:47 - Path: /AcademicYears/Edit/2 | Active: ?? | UserRole: 2 | SessionId: 5d7bdc5d-7e44-2a53-b5cf-2b6c0f418872
+2026-07-17 01:07:47 - Path: /admin/notifications/api | Active: ?? | UserRole: 2 | SessionId: 5d7bdc5d-7e44-2a53-b5cf-2b6c0f418872
+2026-07-17 01:07:59 - Path: /AcademicYears/Edit/2 | Active: ?? | UserRole: 2 | SessionId: 5d7bdc5d-7e44-2a53-b5cf-2b6c0f418872
+2026-07-17 01:07:59 - Path: /admin/notifications/api | Active: ?? | UserRole: 2 | SessionId: 5d7bdc5d-7e44-2a53-b5cf-2b6c0f418872
+2026-07-17 01:08:01 - Path: /AcademicYears/RemoveClass/2 | Active: ?? | UserRole: 2 | SessionId: 5d7bdc5d-7e44-2a53-b5cf-2b6c0f418872
+2026-07-17 01:08:01 - Path: /AcademicYears/Edit/2 | Active: ?? | UserRole: 2 | SessionId: 5d7bdc5d-7e44-2a53-b5cf-2b6c0f418872
+2026-07-17 01:08:01 - Path: /admin/notifications/api | Active: ?? | UserRole: 2 | SessionId: 5d7bdc5d-7e44-2a53-b5cf-2b6c0f418872
+2026-07-17 01:08:06 - Path: /logout | Active: ?? | UserRole: 2 | SessionId: 5d7bdc5d-7e44-2a53-b5cf-2b6c0f418872
+2026-07-17 01:08:06 - Path: /login | Active: ?? | UserRole: null | SessionId: 5d7bdc5d-7e44-2a53-b5cf-2b6c0f418872
+2026-07-17 01:08:07 - Path: /login/google | Active: ?? | UserRole: null | SessionId: 5d7bdc5d-7e44-2a53-b5cf-2b6c0f418872
+2026-07-17 01:08:12 - Path: /signin-google | Active: ?? | UserRole: null | SessionId: 5d7bdc5d-7e44-2a53-b5cf-2b6c0f418872
+2026-07-17 01:08:12 - Path: /login/google-callback | Active: ?? | UserRole: null | SessionId: 5d7bdc5d-7e44-2a53-b5cf-2b6c0f418872
+2026-07-17 01:08:12 - Path: /Teacher/Dashboard | Active: ?? | UserRole: 3 | SessionId: 5d7bdc5d-7e44-2a53-b5cf-2b6c0f418872
+2026-07-17 01:10:29 - Path: /login | Active: ?? | UserRole: null | SessionId: 8be38d2d-57fe-1a3c-ebad-fafac87f04d3
+2026-07-17 01:10:35 - Path: / | Active: ?? | UserRole: null | SessionId: 2ddc1895-6b97-9eab-8a97-e1e11b158c16
+2026-07-17 01:10:46 - Path: /login | Active: ?? | UserRole: null | SessionId: 55f2f703-17e4-9240-38d9-50a3933d6907
+2026-07-17 01:10:48 - Path: /login/google | Active: ?? | UserRole: null | SessionId: d51aebef-bb44-2400-dee5-8ef51b29cef0
+2026-07-17 01:10:53 - Path: /signin-google | Active: ?? | UserRole: null | SessionId: 82ebbfc3-749e-b7b1-7032-2fd20cf86315
+2026-07-17 01:10:54 - Path: /login/google-callback | Active: ?? | UserRole: null | SessionId: 0c089622-feac-0b85-3191-0895cbb7a9b0
+2026-07-17 01:10:54 - Path: /Admin/Dashboard | Active: ?? | UserRole: 2 | SessionId: 0c089622-feac-0b85-3191-0895cbb7a9b0
+2026-07-17 01:10:57 - Path: /admin/notifications/api | Active: ?? | UserRole: 2 | SessionId: 0c089622-feac-0b85-3191-0895cbb7a9b0
+2026-07-17 01:10:59 - Path: /logout | Active: ?? | UserRole: 2 | SessionId: 0c089622-feac-0b85-3191-0895cbb7a9b0
+2026-07-17 01:10:59 - Path: /login | Active: ?? | UserRole: null | SessionId: 0c089622-feac-0b85-3191-0895cbb7a9b0
+2026-07-17 01:11:03 - Path: /login/google | Active: ?? | UserRole: null | SessionId: 0c089622-feac-0b85-3191-0895cbb7a9b0
+2026-07-17 01:11:12 - Path: /signin-google | Active: ?? | UserRole: null | SessionId: 0c089622-feac-0b85-3191-0895cbb7a9b0
+2026-07-17 01:11:12 - Path: /login/google-callback | Active: ?? | UserRole: null | SessionId: 0c089622-feac-0b85-3191-0895cbb7a9b0
+2026-07-17 01:11:12 - Path: /Teacher/Dashboard | Active: ?? | UserRole: 3 | SessionId: 0c089622-feac-0b85-3191-0895cbb7a9b0
+2026-07-17 01:11:21 - Path: /login | Active: ?? | UserRole: 3 | SessionId: 0c089622-feac-0b85-3191-0895cbb7a9b0
+2026-07-17 01:11:23 - Path: /login/google | Active: ?? | UserRole: 3 | SessionId: 0c089622-feac-0b85-3191-0895cbb7a9b0
+2026-07-17 01:11:28 - Path: /signin-google | Active: ?? | UserRole: 3 | SessionId: 0c089622-feac-0b85-3191-0895cbb7a9b0
+2026-07-17 01:11:28 - Path: /login/google-callback | Active: ?? | UserRole: 3 | SessionId: 0c089622-feac-0b85-3191-0895cbb7a9b0
+2026-07-17 01:11:28 - Path: /Admin/Dashboard | Active: ?? | UserRole: 2 | SessionId: 0c089622-feac-0b85-3191-0895cbb7a9b0
+2026-07-17 01:11:29 - Path: /admin/notifications/api | Active: ?? | UserRole: 2 | SessionId: 0c089622-feac-0b85-3191-0895cbb7a9b0
+2026-07-17 01:14:36 - Path: /Admin/Dashboard | Active: ?? | UserRole: null | SessionId: 69994229-6c65-b96e-2146-af51a8f02215
+2026-07-17 01:14:38 - Path: /admin/notifications/api | Active: ?? | UserRole: null | SessionId: 3d45af16-7119-811c-66d7-2714ca8c5e9d
+2026-07-17 01:14:59 - Path: /AuditLog | Active: ?? | UserRole: null | SessionId: 88fef722-9f48-868d-a37b-405c92c2982b
+2026-07-17 01:14:59 - Path: /login | Active: ?? | UserRole: null | SessionId: 15984c38-9c85-c2f1-492d-2e2e3340f525
+2026-07-17 01:15:01 - Path: /login/google | Active: ?? | UserRole: null | SessionId: abf87b07-fe13-8eb3-67a4-4dfa9934fee9
+2026-07-17 01:15:58 - Path: / | Active: ?? | UserRole: null | SessionId: 8c2b28ec-a62f-7493-3625-621b42ac6e46
+2026-07-17 01:16:03 - Path: /login/google | Active: ?? | UserRole: null | SessionId: c852ea5d-6d95-6a0c-0204-e5ebc47e6abd
+2026-07-17 01:16:07 - Path: /signin-google | Active: ?? | UserRole: null | SessionId: 34b915c3-85be-41e5-5cc6-5f82669b771c
+2026-07-17 01:16:08 - Path: /login/google-callback | Active: ?? | UserRole: null | SessionId: 9494962a-281d-4cab-ecc5-2a59445055d1
+2026-07-17 01:16:08 - Path: /Admin/Dashboard | Active: ?? | UserRole: 2 | SessionId: 9494962a-281d-4cab-ecc5-2a59445055d1
+2026-07-17 01:16:12 - Path: /admin/notifications/api | Active: ?? | UserRole: 2 | SessionId: 9494962a-281d-4cab-ecc5-2a59445055d1
+2026-07-17 01:18:09 - Path: /Admin/Dashboard | Active: ?? | UserRole: null | SessionId: 1e13bed6-19e1-cac7-6a8c-e94212355be2
+2026-07-17 01:18:11 - Path: /admin/notifications/api | Active: ?? | UserRole: null | SessionId: 0037ea24-3a64-7558-002d-76e6ef56144d

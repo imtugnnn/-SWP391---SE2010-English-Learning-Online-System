@@ -476,6 +476,15 @@ public class AdminController : Controller
         }
         ViewBag.ActiveTodayTrendPct = activeTodayTrendPct;
 
+        // Lấy 5 system audit log gần nhất
+        var latestAuditLogs = _context.AuditLogs != null
+            ? await _context.AuditLogs
+                .OrderByDescending(al => al.Timestamp)
+                .Take(5)
+                .ToListAsync()
+            : new List<AuditLog>();
+        ViewBag.LatestAuditLogs = latestAuditLogs;
+
         return View("AdminDashboard");
     }
     

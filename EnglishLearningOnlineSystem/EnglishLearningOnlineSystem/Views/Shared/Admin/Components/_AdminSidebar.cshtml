@@ -100,6 +100,16 @@
                 <span>Nhật ký hệ thống</span>
             </a>
         </li>
+
+        <li>
+            <a class="@(controller == "Maintenance" && action == "Index" ? "active" : "")"
+               asp-controller="Maintenance"
+               asp-action="Index"
+               title="Cấu hình bảo trì">
+                <i class="bi bi-gear-wide-connected"></i>
+                <span>Cấu hình bảo trì</span>
+            </a>
+        </li>
     </ul>
 
     <!-- Footer / Collapse & Logout -->
