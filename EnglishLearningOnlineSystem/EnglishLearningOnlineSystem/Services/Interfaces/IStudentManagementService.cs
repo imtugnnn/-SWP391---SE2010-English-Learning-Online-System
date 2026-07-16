@@ -12,6 +12,14 @@ public interface IStudentManagementService
         string? sortBy,
         int page);
 
+    Task<TeacherStudentsNeedSupportViewModel> GetStudentsNeedSupportAsync(
+        int teacherId,
+        string? classFilter,
+        string? reasonFilter,
+        string? sortBy);
+
+    Task<int> CountStudentsNeedSupportAsync(int teacherId);
+
     Task<TeacherStudentDetailViewModel?> GetStudentDetailAsync(
     int classId,
     int studentId,

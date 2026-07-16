@@ -397,5 +397,392 @@ public static class DbInitializer
             });
             await context.SaveChangesAsync();
         }
+
+        await SeedTeacherSupportDemoAsync(context);
+    }
+
+    private static async Task SeedTeacherSupportDemoAsync(AppDbContext context)
+    {
+        var teacher = await context.Users.FirstOrDefaultAsync(u => u.Email == "teacher@english.com");
+        if (teacher == null)
+        {
+            teacher = new User
+            {
+                Username = "teacher01",
+                Email = "teacher@english.com",
+                Password = BCrypt.Net.BCrypt.HashPassword("123456"),
+                IsActive = true,
+                RoleId = 3
+            };
+            context.Users.Add(teacher);
+            await context.SaveChangesAsync();
+        }
+
+        var academicYear = await context.AcademicYears!
+            .FirstOrDefaultAsync(y => y.YearLabel == "2026-2027");
+
+        if (academicYear == null)
+        {
+            academicYear = new AcademicYear
+            {
+                YearLabel = "2026-2027",
+                StartDate = new DateTime(2026, 6, 1),
+                EndDate = new DateTime(2027, 5, 31),
+                IsActive = true
+            };
+            context.AcademicYears!.Add(academicYear);
+            await context.SaveChangesAsync();
+        }
+
+        var course = await context.Courses!
+            .FirstOrDefaultAsync(c => c.CourseName == "English Grade 3");
+
+        if (course == null)
+        {
+            course = new Course
+            {
+                CourseName = "English Grade 3",
+                GradeLevel = "3",
+                IsPublished = true,
+                CreatorId = teacher.Id
+            };
+            context.Courses!.Add(course);
+            await context.SaveChangesAsync();
+        }
+
+        var lesson1 = await EnsureLessonAsync(context, course.CourseId, "Animals", "Vocabulary", 1, 15, 50);
+        var lesson2 = await EnsureLessonAsync(context, course.CourseId, "Colors & Shapes", "Vocabulary", 2, 20, 50);
+        var lesson3 = await EnsureLessonAsync(context, course.CourseId, "Numbers 1-20", "Numbers", 3, 10, 40);
+
+        await EnsureQuizAsync(context, lesson1.LessonId, "What is 'Con mèo' in English?", "Cat");
+        await EnsureQuizAsync(context, lesson2.LessonId, "What color is 'Màu đỏ'?", "Red");
+        await EnsureQuizAsync(context, lesson3.LessonId, "How do you say 'Số ba' in English?", "Three");
+
+        var demoClass = await context.Classes!
+            .FirstOrDefaultAsync(c => c.ClassName == "TST-Support Demo" && c.TeacherId == teacher.Id);
+
+        if (demoClass == null)
+        {
+            demoClass = new Class
+            {
+                ClassName = "TST-Support Demo",
+                GradeLevel = "3",
+                AcademicYearId = academicYear.AcademicYearId,
+                TeacherId = teacher.Id,
+                CourseId = course.CourseId,
+                IsDeleted = false
+            };
+            context.Classes!.Add(demoClass);
+            await context.SaveChangesAsync();
+        }
+        else if (demoClass.CourseId != course.CourseId || demoClass.AcademicYearId != academicYear.AcademicYearId)
+        {
+            demoClass.CourseId = course.CourseId;
+            demoClass.AcademicYearId = academicYear.AcademicYearId;
+            demoClass.IsDeleted = false;
+            await context.SaveChangesAsync();
+        }
+
+        var today = DateTime.Today;
+        await EnsureWeeklyAssignmentAsync(context, course.CourseId, lesson1.LessonId, today.AddDays(-14), today.AddDays(-7));
+        await EnsureWeeklyAssignmentAsync(context, course.CourseId, lesson2.LessonId, today, today.AddDays(5));
+        await EnsureWeeklyAssignmentAsync(context, course.CourseId, lesson3.LessonId, today.AddDays(-5), today.AddDays(-1));
+
+        var lowScoreStudent = await EnsureStudentAsync(
+            context,
+            "support.low",
+            "support.low@english.com",
+            true,
+            DateTime.UtcNow.AddDays(-1),
+            "Low Score Student");
+
+        var overdueStudent = await EnsureStudentAsync(
+            context,
+            "support.overdue",
+            "support.overdue@english.com",
+            true,
+            DateTime.UtcNow.AddDays(-2),
+            "Overdue Student");
+
+        var inactiveStudent = await EnsureStudentAsync(
+            context,
+            "support.inactive",
+            "support.inactive@english.com",
+            true,
+            DateTime.UtcNow.AddDays(-15),
+            "Inactive Student");
+
+        var notStartedStudent = await EnsureStudentAsync(
+            context,
+            "support.notstarted",
+            "support.notstarted@english.com",
+            true,
+            DateTime.UtcNow.AddDays(-1),
+            "Not Started Student");
+
+        var goodStudent = await EnsureStudentAsync(
+            context,
+            "support.good",
+            "support.good@english.com",
+            true,
+            DateTime.UtcNow,
+            "Good Progress Student");
+
+        foreach (var student in new[] { lowScoreStudent, overdueStudent, inactiveStudent, notStartedStudent, goodStudent })
+        {
+            await EnsureEnrollmentAsync(context, demoClass.ClassId, student.Id);
+        }
+
+        await EnsureProgressAsync(context, lowScoreStudent.Id, lesson1.LessonId, "Completed", 45, today.AddDays(-8), 20);
+        await EnsureProgressAsync(context, lowScoreStudent.Id, lesson2.LessonId, "Completed", 50, today.AddDays(-1), 20);
+
+        await EnsureProgressAsync(context, overdueStudent.Id, lesson2.LessonId, "Completed", 85, today.AddDays(-1), 30);
+
+        await EnsureProgressAsync(context, inactiveStudent.Id, lesson1.LessonId, "Completed", 88, today.AddDays(-10), 40);
+        await EnsureProgressAsync(context, inactiveStudent.Id, lesson2.LessonId, "Completed", 90, today.AddDays(-9), 40);
+        await EnsureProgressAsync(context, inactiveStudent.Id, lesson3.LessonId, "Completed", 92, today.AddDays(-8), 40);
+
+        await EnsureProgressAsync(context, goodStudent.Id, lesson1.LessonId, "Completed", 95, today.AddDays(-6), 50);
+        await EnsureProgressAsync(context, goodStudent.Id, lesson2.LessonId, "In Progress", 90, null, 0);
+        await EnsureProgressAsync(context, goodStudent.Id, lesson3.LessonId, "Completed", 88, today.AddDays(-1), 40);
+
+        await EnsureQuizAttemptAsync(context, lowScoreStudent.Id, lesson1.LessonId, 45, 1, 3, today.AddDays(-8));
+        await EnsureQuizAttemptAsync(context, overdueStudent.Id, lesson2.LessonId, 85, 3, 3, today.AddDays(-1));
+        await EnsureQuizAttemptAsync(context, inactiveStudent.Id, lesson3.LessonId, 92, 3, 3, today.AddDays(-8));
+        await EnsureQuizAttemptAsync(context, goodStudent.Id, lesson1.LessonId, 95, 3, 3, today.AddDays(-6));
+    }
+
+    private static async Task<Lesson> EnsureLessonAsync(
+        AppDbContext context,
+        int courseId,
+        string title,
+        string topic,
+        int orderIndex,
+        int estimatedMinutes,
+        int xpReward)
+    {
+        var lesson = await context.Lessons!
+            .FirstOrDefaultAsync(l => l.CourseId == courseId && l.Title == title);
+
+        if (lesson != null)
+        {
+            return lesson;
+        }
+
+        lesson = new Lesson
+        {
+            CourseId = courseId,
+            Title = title,
+            Topic = topic,
+            OrderIndex = orderIndex,
+            EstimatedMinutes = estimatedMinutes,
+            XPReward = xpReward,
+            IsPublished = true
+        };
+        context.Lessons!.Add(lesson);
+        await context.SaveChangesAsync();
+        return lesson;
+    }
+
+    private static async Task EnsureQuizAsync(AppDbContext context, int lessonId, string question, string correctAnswer)
+    {
+        var exists = await context.Quizzes!
+            .AnyAsync(q => q.LessonId == lessonId && q.Question == question);
+
+        if (exists)
+        {
+            return;
+        }
+
+        context.Quizzes!.Add(new Quiz
+        {
+            LessonId = lessonId,
+            Question = question,
+            QuizType = "MultipleChoice",
+            Options = "[\"Cat\",\"Dog\",\"Red\",\"Three\"]",
+            CorrectAnswer = correctAnswer
+        });
+        await context.SaveChangesAsync();
+    }
+
+    private static async Task EnsureWeeklyAssignmentAsync(
+        AppDbContext context,
+        int courseId,
+        int lessonId,
+        DateTime weekStartDate,
+        DateTime dueDate)
+    {
+        var assignment = await context.WeeklyAssignments!
+            .FirstOrDefaultAsync(a => a.CourseId == courseId && a.LessonId == lessonId);
+
+        if (assignment == null)
+        {
+            context.WeeklyAssignments!.Add(new WeeklyAssignment
+            {
+                CourseId = courseId,
+                LessonId = lessonId,
+                WeekStartDate = weekStartDate,
+                DueDate = dueDate,
+                IsVisible = true
+            });
+        }
+        else
+        {
+            assignment.WeekStartDate = weekStartDate;
+            assignment.DueDate = dueDate;
+            assignment.IsVisible = true;
+        }
+
+        await context.SaveChangesAsync();
+    }
+
+    private static async Task<User> EnsureStudentAsync(
+        AppDbContext context,
+        string username,
+        string email,
+        bool isActive,
+        DateTime? lastActiveDate,
+        string nickname)
+    {
+        var user = await context.Users.FirstOrDefaultAsync(u => u.Email == email);
+
+        if (user == null)
+        {
+            user = new User
+            {
+                Username = username,
+                Email = email,
+                Password = BCrypt.Net.BCrypt.HashPassword("123456"),
+                IsActive = isActive,
+                RoleId = 1,
+                LastLoginAt = lastActiveDate
+            };
+            context.Users.Add(user);
+            await context.SaveChangesAsync();
+        }
+        else
+        {
+            user.Username = username;
+            user.IsActive = isActive;
+            user.RoleId = 1;
+            user.LastLoginAt = lastActiveDate;
+            await context.SaveChangesAsync();
+        }
+
+        var profile = await context.StudentProfiles!
+            .FirstOrDefaultAsync(p => p.StudentId == user.Id);
+
+        if (profile == null)
+        {
+            context.StudentProfiles!.Add(new StudentProfile
+            {
+                StudentId = user.Id,
+                Nickname = nickname,
+                AvatarUrl = "/images/default-avatar.png",
+                Level = 1,
+                XP = 100,
+                CurrentStreakDays = 0,
+                LastActiveDate = lastActiveDate
+            });
+        }
+        else
+        {
+            profile.Nickname = nickname;
+            profile.AvatarUrl = string.IsNullOrWhiteSpace(profile.AvatarUrl)
+                ? "/images/default-avatar.png"
+                : profile.AvatarUrl;
+            profile.LastActiveDate = lastActiveDate;
+        }
+
+        await context.SaveChangesAsync();
+        return user;
+    }
+
+    private static async Task EnsureEnrollmentAsync(AppDbContext context, int classId, int studentId)
+    {
+        var exists = await context.ClassEnrollments!
+            .AnyAsync(e => e.ClassId == classId && e.StudentId == studentId);
+
+        if (exists)
+        {
+            return;
+        }
+
+        context.ClassEnrollments!.Add(new ClassEnrollment
+        {
+            ClassId = classId,
+            StudentId = studentId,
+            EnrolledAt = DateTime.UtcNow.AddDays(-20)
+        });
+        await context.SaveChangesAsync();
+    }
+
+    private static async Task EnsureProgressAsync(
+        AppDbContext context,
+        int studentId,
+        int lessonId,
+        string status,
+        int quizScore,
+        DateTime? completedAt,
+        int xpEarned)
+    {
+        var progress = await context.Progresses!
+            .FirstOrDefaultAsync(p => p.StudentId == studentId && p.LessonId == lessonId);
+
+        if (progress == null)
+        {
+            context.Progresses!.Add(new Progress
+            {
+                StudentId = studentId,
+                LessonId = lessonId,
+                CompletionStatus = status,
+                QuizScore = quizScore,
+                XPEarned = xpEarned,
+                CompletedAt = completedAt,
+                IsBestAttempt = true
+            });
+        }
+        else
+        {
+            progress.CompletionStatus = status;
+            progress.QuizScore = quizScore;
+            progress.XPEarned = xpEarned;
+            progress.CompletedAt = completedAt;
+            progress.IsBestAttempt = true;
+        }
+
+        await context.SaveChangesAsync();
+    }
+
+    private static async Task EnsureQuizAttemptAsync(
+        AppDbContext context,
+        int studentId,
+        int lessonId,
+        int score,
+        int correctCount,
+        int totalQuestions,
+        DateTime submittedAt)
+    {
+        var exists = await context.QuizAttempts!
+            .AnyAsync(a => a.StudentId == studentId && a.LessonId == lessonId && a.SubmittedAt.Date == submittedAt.Date);
+
+        if (exists)
+        {
+            return;
+        }
+
+        context.QuizAttempts!.Add(new QuizAttempt
+        {
+            StudentId = studentId,
+            LessonId = lessonId,
+            StartedAt = submittedAt.AddMinutes(-8),
+            SubmittedAt = submittedAt,
+            TimeSpentSec = 480,
+            TotalQuestions = totalQuestions,
+            CorrectCount = correctCount,
+            Score = score,
+            XpAwarded = score >= 50
+        });
+        await context.SaveChangesAsync();
     }
 }

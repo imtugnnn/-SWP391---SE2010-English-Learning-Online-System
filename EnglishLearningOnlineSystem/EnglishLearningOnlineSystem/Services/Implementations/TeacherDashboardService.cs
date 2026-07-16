@@ -8,13 +8,16 @@ public class TeacherDashboardService : ITeacherDashboardService
 {
     private readonly IClassRepository _classRepository;
     private readonly IAssignmentRepository _assignmentRepository;
+    private readonly IStudentManagementService _studentManagementService;
 
     public TeacherDashboardService(
         IClassRepository classRepository,
-        IAssignmentRepository assignmentRepository)
+        IAssignmentRepository assignmentRepository,
+        IStudentManagementService studentManagementService)
     {
         _classRepository = classRepository;
         _assignmentRepository = assignmentRepository;
+        _studentManagementService = studentManagementService;
     }
 
     public async Task<TeacherDashboardViewModel> GetTeacherDashboardAsync(int teacherId)
@@ -30,8 +33,6 @@ public class TeacherDashboardService : ITeacherDashboardService
         var assignments = await _assignmentRepository.GetAssignmentsByCourseIdsAsync(courseIds);
 
         var totalStudents = 0;
-        var studentsNeedAttention = 0;
-
         var classItems = new List<TeacherDashboardClassViewModel>();
 
         foreach (var classEntity in classes)
@@ -45,10 +46,6 @@ public class TeacherDashboardService : ITeacherDashboardService
             totalStudents += enrollments.Count;
 
             var expiredAssignmentCount = classAssignments.Count(a => a.DueDate < DateTime.UtcNow);
-
-            studentsNeedAttention += expiredAssignmentCount > 0
-                ? enrollments.Count(e => e.Student.IsActive)
-                : 0;
 
             classItems.Add(new TeacherDashboardClassViewModel
             {
@@ -71,7 +68,7 @@ public class TeacherDashboardService : ITeacherDashboardService
             TotalAssignments = assignments.Count,
             ActiveAssignments = assignments.Count(a => a.DueDate >= DateTime.UtcNow),
             ExpiredAssignments = assignments.Count(a => a.DueDate < DateTime.UtcNow),
-            StudentsNeedAttention = studentsNeedAttention,
+            StudentsNeedAttention = await _studentManagementService.CountStudentsNeedSupportAsync(teacherId),
 
             Classes = classItems
         };

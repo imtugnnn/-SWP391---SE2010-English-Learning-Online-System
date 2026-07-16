@@ -94,6 +94,22 @@
         height: 100%;
     }
 
+    .summary-link {
+        display: block;
+        height: 100%;
+        text-decoration: none;
+    }
+
+    .summary-link .summary-card {
+        transition: border-color .2s, box-shadow .2s, transform .15s;
+    }
+
+    .summary-link:hover .summary-card {
+        border-color: #38bdf8;
+        box-shadow: 0 4px 16px rgba(14,165,233,.13);
+        transform: translateY(-2px);
+    }
+
     .summary-label {
         font-size: .78rem;
         font-weight: 900;
@@ -231,7 +247,6 @@
                         </p>
                     </div>
 
-                    <
                 </div>
 
                 <div class="row g-3">
@@ -250,31 +265,39 @@
                     </div>
 
                     <div class="col-md-2">
-                        <div class="summary-card">
-                            <div class="summary-label">Bài giao</div>
-                            <p class="summary-value">@Model.TotalAssignments</p>
-                        </div>
+                        <a asp-controller="Teacher" asp-action="AssignmentOverview" class="summary-link">
+                            <div class="summary-card">
+                                <div class="summary-label">Bài giao</div>
+                                <p class="summary-value">@Model.TotalAssignments</p>
+                            </div>
+                        </a>
                     </div>
 
                     <div class="col-md-2">
-                        <div class="summary-card">
-                            <div class="summary-label">Đang hoạt động</div>
-                            <p class="summary-value">@Model.ActiveAssignments</p>
-                        </div>
+                        <a asp-controller="Teacher" asp-action="AssignmentOverview" asp-route-status="active" class="summary-link">
+                            <div class="summary-card">
+                                <div class="summary-label">Đang hoạt động</div>
+                                <p class="summary-value">@Model.ActiveAssignments</p>
+                            </div>
+                        </a>
                     </div>
 
                     <div class="col-md-2">
-                        <div class="summary-card">
-                            <div class="summary-label">Quá hạn</div>
-                            <p class="summary-value">@Model.ExpiredAssignments</p>
-                        </div>
+                        <a asp-controller="Teacher" asp-action="AssignmentOverview" asp-route-status="expired" class="summary-link">
+                            <div class="summary-card">
+                                <div class="summary-label">Quá hạn</div>
+                                <p class="summary-value">@Model.ExpiredAssignments</p>
+                            </div>
+                        </a>
                     </div>
 
                     <div class="col-md-2">
-                        <div class="summary-card">
-                            <div class="summary-label">Cần chú ý</div>
-                            <p class="summary-value">@Model.StudentsNeedAttention</p>
-                        </div>
+                        <a asp-controller="Teacher" asp-action="StudentsNeedSupport" class="summary-link">
+                            <div class="summary-card">
+                                <div class="summary-label">Cần chú ý</div>
+                                <p class="summary-value">@Model.StudentsNeedAttention</p>
+                            </div>
+                        </a>
                     </div>
                 </div>
             </div>

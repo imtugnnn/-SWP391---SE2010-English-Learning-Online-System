@@ -96,6 +96,28 @@ public class TeacherController : Controller
 
         return View(viewModel);
     }
+
+    public async Task<IActionResult> StudentsNeedSupport(
+        string? classFilter,
+        string? reason,
+        string? sortBy)
+    {
+        var teacherId = GetCurrentUserId();
+
+        if (teacherId == null)
+        {
+            return RedirectToAction("Login", "Auth");
+        }
+
+        var viewModel = await _studentManagementService.GetStudentsNeedSupportAsync(
+            teacherId.Value,
+            classFilter,
+            reason,
+            sortBy);
+
+        return View(viewModel);
+    }
+
     public async Task<IActionResult> StudentDetail(int classId, int studentId)
     {
         var teacherId = GetCurrentUserId();
