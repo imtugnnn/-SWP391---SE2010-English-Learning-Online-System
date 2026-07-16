@@ -1,25 +1,6 @@
-@using Microsoft.AspNetCore.Http
-@inject IHttpContextAccessor HttpContextAccessor
+@model EnglishLearningOnlineSystem.ViewModels.ErrorViewModel
 @{
     ViewData["Title"] = "Page Not Found - 404";
-    
-    // Resolve dashboard URL dynamically based on user role
-    var roleIdStr = HttpContextAccessor.HttpContext?.Session.GetString("UserRole");
-    var userIdStr = HttpContextAccessor.HttpContext?.Session.GetString("UserId");
-    bool isAuthenticated = !string.IsNullOrEmpty(userIdStr);
-    
-    string dashboardUrl = "/homepage";
-    if (isAuthenticated && !string.IsNullOrEmpty(roleIdStr))
-    {
-        dashboardUrl = roleIdStr switch
-        {
-            "1" => "/student/dashboard",
-            "2" => "/Admin/Dashboard",
-            "3" => "/Teacher/Dashboard",
-            "5" => "/contentmanager/dashboard",
-            _ => "/homepage"
-        };
-    }
 }
 
 <style>
@@ -126,7 +107,7 @@
         margin-bottom: 2.5rem;
     }
 
-    .btn-dashboard {
+    .btn-login {
         background: linear-gradient(135deg, #4f46e5 0%, #3730a3 100%);
         color: white;
         border: none;
@@ -141,7 +122,7 @@
         text-decoration: none;
     }
 
-    .btn-dashboard:hover {
+    .btn-login:hover {
         transform: translateY(-2px);
         box-shadow: 0 6px 20px rgba(79, 70, 229, 0.6);
         color: white;
@@ -173,6 +154,28 @@
         border-radius: 6px;
         font-size: 0.85rem;
         word-break: break-all;
+    }
+
+    /* Auto-redirect progress bar styling */
+    .redirect-progress-container {
+        margin-top: 1.5rem;
+        width: 100%;
+        background-color: #e2e8f0;
+        border-radius: 9999px;
+        height: 4px;
+        overflow: hidden;
+    }
+
+    .redirect-progress-bar {
+        height: 100%;
+        background: linear-gradient(90deg, #4f46e5, #6366f1);
+        width: 100%;
+        animation: countdownProgress 8s linear forwards;
+    }
+
+    @@keyframes countdownProgress {
+        from { width: 100%; }
+        to { width: 0%; }
     }
 </style>
 
@@ -220,25 +223,36 @@
 
         <!-- Safe Navigation Options -->
         <div class="d-flex justify-content-center align-items-center">
-            @if (isAuthenticated)
-            {
-                <a href="@dashboardUrl" class="btn-dashboard">
-                    <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"></path>
-                    </svg>
-                    Quay lại Bảng điều khiển
-                </a>
-            }
-            else
-            {
-                <a href="/" class="btn-dashboard">
-                    <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"></path>
-                    </svg>
-                    Về Trang Chủ
-                </a>
-            }
+            <a href="/login" class="btn-login">
+                <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1"></path>
+                </svg>
+                <span>Đăng Nhập Tài Khoản</span>
+            </a>
             <a href="javascript:history.back()" class="btn-secondary-custom">Quay lại trang trước</a>
+        </div>
+
+        <!-- Auto-redirect message -->
+        <div class="mt-4 text-muted" style="font-size: 0.9rem;">
+            Hệ thống tự động chuyển hướng đến trang đăng nhập sau <span id="countdown" class="fw-bold text-primary">8</span> giây...
+            <div class="redirect-progress-container mx-auto" style="max-width: 250px;">
+                <div class="redirect-progress-bar"></div>
+            </div>
         </div>
     </div>
 </div>
+
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+        let seconds = 8;
+        const countdownEl = document.getElementById('countdown');
+        const interval = setInterval(() => {
+            seconds--;
+            if (countdownEl) countdownEl.textContent = seconds;
+            if (seconds <= 0) {
+                clearInterval(interval);
+                window.location.href = '/login';
+            }
+        }, 1000);
+    });
+</script>
