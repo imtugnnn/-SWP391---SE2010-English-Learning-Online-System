@@ -1,0 +1,244 @@
+@using Microsoft.AspNetCore.Http
+@inject IHttpContextAccessor HttpContextAccessor
+@{
+    ViewData["Title"] = "Page Not Found - 404";
+    
+    // Resolve dashboard URL dynamically based on user role
+    var roleIdStr = HttpContextAccessor.HttpContext?.Session.GetString("UserRole");
+    var userIdStr = HttpContextAccessor.HttpContext?.Session.GetString("UserId");
+    bool isAuthenticated = !string.IsNullOrEmpty(userIdStr);
+    
+    string dashboardUrl = "/homepage";
+    if (isAuthenticated && !string.IsNullOrEmpty(roleIdStr))
+    {
+        dashboardUrl = roleIdStr switch
+        {
+            "1" => "/student/dashboard",
+            "2" => "/Admin/Dashboard",
+            "3" => "/Teacher/Dashboard",
+            "5" => "/contentmanager/dashboard",
+            _ => "/homepage"
+        };
+    }
+}
+
+<style>
+    @@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap');
+
+    .error-container {
+        font-family: 'Plus Jakarta Sans', sans-serif;
+        min-height: 75vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 2rem 0;
+    }
+
+    .error-card {
+        background: rgba(255, 255, 255, 0.9);
+        backdrop-filter: blur(16px);
+        border: 1px solid rgba(79, 70, 229, 0.15);
+        border-radius: 24px;
+        box-shadow: 0 20px 40px rgba(0, 0, 0, 0.05), 0 1px 3px rgba(0, 0, 0, 0.02);
+        padding: 3.5rem;
+        text-align: center;
+        max-width: 600px;
+        width: 100%;
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+        animation: slideUp 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    .error-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 30px 60px rgba(79, 70, 229, 0.08), 0 2px 10px rgba(0, 0, 0, 0.02);
+    }
+
+    @@keyframes slideUp {
+        from {
+            opacity: 0;
+            transform: translateY(40px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    .icon-wrapper {
+        position: relative;
+        display: inline-flex;
+        margin-bottom: 2rem;
+    }
+
+    .compass-svg {
+        width: 140px;
+        height: 140px;
+        fill: none;
+        animation: floatCompass 4s ease-in-out infinite;
+    }
+
+    .needle {
+        animation: spinNeedle 8s ease-in-out infinite;
+        transform-origin: 70px 70px;
+    }
+
+    @@keyframes floatCompass {
+        0%, 100% {
+            transform: translateY(0) rotate(0deg);
+        }
+        50% {
+            transform: translateY(-10px) rotate(3deg);
+        }
+    }
+
+    @@keyframes spinNeedle {
+        0% { transform: rotate(45deg); }
+        20% { transform: rotate(190deg); }
+        40% { transform: rotate(120deg); }
+        60% { transform: rotate(340deg); }
+        80% { transform: rotate(270deg); }
+        100% { transform: rotate(45deg); }
+    }
+
+    .error-code {
+        font-size: 6.5rem;
+        font-weight: 900;
+        line-height: 1;
+        margin-bottom: 0.5rem;
+        background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        letter-spacing: -0.05em;
+    }
+
+    .error-title {
+        font-weight: 800;
+        color: #1e293b;
+        font-size: 1.8rem;
+        margin-bottom: 0.75rem;
+        letter-spacing: -0.02em;
+    }
+
+    .error-description {
+        color: #64748b;
+        font-size: 1.05rem;
+        line-height: 1.6;
+        margin-bottom: 2.5rem;
+    }
+
+    .btn-dashboard {
+        background: linear-gradient(135deg, #4f46e5 0%, #3730a3 100%);
+        color: white;
+        border: none;
+        border-radius: 12px;
+        padding: 0.8rem 2rem;
+        font-weight: 600;
+        box-shadow: 0 4px 14px rgba(79, 70, 229, 0.4);
+        transition: all 0.3s ease;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        text-decoration: none;
+    }
+
+    .btn-dashboard:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 20px rgba(79, 70, 229, 0.6);
+        color: white;
+    }
+
+    .btn-secondary-custom {
+        background: transparent;
+        color: #4f46e5;
+        border: 1px solid #cbd5e1;
+        border-radius: 12px;
+        padding: 0.8rem 1.5rem;
+        font-weight: 600;
+        transition: all 0.3s ease;
+        text-decoration: none;
+        margin-left: 10px;
+    }
+
+    .btn-secondary-custom:hover {
+        background: #f5f3ff;
+        border-color: #6366f1;
+        color: #3730a3;
+    }
+    
+    .original-path-badge {
+        font-family: monospace;
+        background: #f1f5f9;
+        color: #475569;
+        padding: 0.3rem 0.6rem;
+        border-radius: 6px;
+        font-size: 0.85rem;
+        word-break: break-all;
+    }
+</style>
+
+<div class="error-container">
+    <div class="error-card">
+        <!-- Floating Compass Icon -->
+        <div class="icon-wrapper">
+            <svg class="compass-svg" viewBox="0 0 140 140">
+                <!-- Outer dial -->
+                <circle cx="70" cy="70" r="55" stroke="#e2e8f0" stroke-width="6" />
+                <circle cx="70" cy="70" r="55" stroke="#4f46e5" stroke-width="2" stroke-dasharray="10 5" />
+                
+                <!-- Compass Rose markings -->
+                <line x1="70" y1="20" x2="70" y2="28" stroke="#4f46e5" stroke-width="3" />
+                <line x1="70" y1="120" x2="70" y2="112" stroke="#4f46e5" stroke-width="3" />
+                <line x1="20" y1="70" x2="28" y2="70" stroke="#4f46e5" stroke-width="3" />
+                <line x1="120" y1="70" x2="112" y2="70" stroke="#4f46e5" stroke-width="3" />
+                
+                <!-- Compass center pin -->
+                <circle cx="70" cy="70" r="8" fill="#e2e8f0" stroke="#4f46e5" stroke-width="2" />
+                
+                <!-- Rotating Needle -->
+                <g class="needle">
+                    <!-- North (Red) -->
+                    <polygon points="70,70 65,70 70,30" fill="#dc3545" />
+                    <!-- South (Blue/Purple) -->
+                    <polygon points="70,70 75,70 70,110" fill="#4f46e5" />
+                    <!-- North Point Details -->
+                    <polygon points="70,70 70,30 65,70" fill="#ffe4e6" opacity="0.5" />
+                </g>
+            </svg>
+        </div>
+
+        <div class="error-code">404</div>
+        <div class="error-title">Không Tìm Thấy Trang</div>
+        
+        <p class="error-description">
+            Đường dẫn bạn yêu cầu không tồn tại hoặc đã bị xóa bỏ khỏi hệ thống.
+            @if (Model != null && !string.IsNullOrEmpty(Model.OriginalPath))
+            {
+                <br />
+                <span class="mt-2 d-inline-block">Đường dẫn bị lỗi: <span class="original-path-badge">@Model.OriginalPath</span></span>
+            }
+        </p>
+
+        <!-- Safe Navigation Options -->
+        <div class="d-flex justify-content-center align-items-center">
+            @if (isAuthenticated)
+            {
+                <a href="@dashboardUrl" class="btn-dashboard">
+                    <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"></path>
+                    </svg>
+                    Quay lại Bảng điều khiển
+                </a>
+            }
+            else
+            {
+                <a href="/" class="btn-dashboard">
+                    <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"></path>
+                    </svg>
+                    Về Trang Chủ
+                </a>
+            }
+            <a href="javascript:history.back()" class="btn-secondary-custom">Quay lại trang trước</a>
+        </div>
+    </div>
+</div>
