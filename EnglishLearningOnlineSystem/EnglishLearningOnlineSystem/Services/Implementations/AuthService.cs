@@ -32,11 +32,40 @@ public class AuthService : IAuthService
             return AuthServiceResult.Failure((string.Empty, "Tài khoản của bạn đã bị vô hiệu hóa. Vui lòng liên hệ quản trị viên."));
         }
 
-        if (!BCrypt.Net.BCrypt.Verify(model.Password, user.Password))
+        if (user.LockoutEnd.HasValue && user.LockoutEnd.Value > DateTime.UtcNow)
         {
-            return AuthServiceResult.Failure((nameof(model.Password), "Mật khẩu không chính xác."));
+            var remainingMinutes = (int)Math.Ceiling((user.LockoutEnd.Value - DateTime.UtcNow).TotalMinutes);
+            return AuthServiceResult.Failure((string.Empty, $"Tài khoản của bạn đang tạm thời bị khóa do đăng nhập sai nhiều lần. Vui lòng thử lại sau {remainingMinutes} phút."));
         }
 
+        bool isPasswordValid = false;
+        try
+        {
+            isPasswordValid = BCrypt.Net.BCrypt.Verify(model.Password, user.Password);
+        }
+        catch
+        {
+            isPasswordValid = false;
+        }
+
+        if (!isPasswordValid)
+        {
+            user.AccessFailedCount++;
+            if (user.AccessFailedCount >= 5)
+            {
+                user.LockoutEnd = DateTime.UtcNow.AddMinutes(30);
+                await _userRepository.UpdateAsync(user);
+                return AuthServiceResult.Failure((nameof(model.Password), "Mật khẩu không chính xác. Tài khoản đã bị khóa 30 phút vì đăng nhập sai 5 lần."));
+            }
+            else
+            {
+                await _userRepository.UpdateAsync(user);
+                return AuthServiceResult.Failure((nameof(model.Password), $"Mật khẩu không chính xác. Bạn còn {5 - user.AccessFailedCount} lần thử."));
+            }
+        }
+
+        user.AccessFailedCount = 0;
+        user.LockoutEnd = null;
         user.LastLoginAt = DateTime.UtcNow;
         await _userRepository.UpdateAsync(user);
 
