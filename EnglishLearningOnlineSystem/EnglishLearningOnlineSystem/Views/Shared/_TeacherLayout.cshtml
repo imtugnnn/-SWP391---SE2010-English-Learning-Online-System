@@ -6,19 +6,36 @@
     <title>@ViewData["Title"] - EnglishLearningOnlineSystem</title>
     <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
     <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/css/teacher/teacher-common.css" asp-append-version="true" />
     <link rel="stylesheet" href="~/EnglishLearningOnlineSystem.styles.css" asp-append-version="true" />
 </head>
 <body>
-   
-    <div class="container">
-        <main role="main" class="pb-3">
-            @RenderBody()
-        </main>
-    </div>
+    <header class="teacher-navbar">
+        <nav class="teacher-navbar__inner" aria-label="Điều hướng giáo viên">
+            <a class="teacher-brand" asp-controller="Teacher" asp-action="Dashboard">
+                English Learning
+                <span>Teacher</span>
+            </a>
 
-    <footer class="border-top footer text-muted">
-        <div class="container">
-            &copy; 2026 - EnglishLearningOnlineSystem - <a asp-controller="Home" asp-action="Privacy">Privacy</a>
+            <div class="teacher-nav-links">
+                <a asp-controller="Teacher" asp-action="Dashboard">Tổng quan</a>
+                <a asp-controller="Teacher" asp-action="AssignmentOverview">Bài đã giao</a>
+                <a asp-controller="Teacher" asp-action="StudentsNeedSupport">Học sinh cần hỗ trợ</a>
+                <form asp-controller="Auth" asp-action="Logout" method="post" class="teacher-logout-form">
+                    @Html.AntiForgeryToken()
+                    <button type="submit" class="teacher-logout">Đăng xuất</button>
+                </form>
+            </div>
+        </nav>
+    </header>
+
+    <main role="main" class="teacher-main">
+        @RenderBody()
+    </main>
+
+    <footer class="teacher-footer">
+        <div class="teacher-footer__inner">
+            &copy; 2026 English Learning Online System
         </div>
     </footer>
 

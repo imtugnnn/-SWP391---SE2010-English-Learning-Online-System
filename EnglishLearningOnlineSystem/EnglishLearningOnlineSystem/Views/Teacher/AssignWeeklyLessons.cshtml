@@ -2,7 +2,6 @@
 
 @{
     ViewData["Title"] = "Giao bài học theo tuần";
-    Layout = "_TeacherLayout";
 }
 
 <style>
@@ -448,11 +447,12 @@
                         return;
                     }
 
-                    window.location.href =
-                        "/Teacher/AssignWeeklyLessons" +
-                        "?classId=@Model.ClassId" +
-                        "&selectedCourseId=" +
-                        this.value;
+                    const targetUrl = new URL(
+                        '@Url.Action("AssignWeeklyLessons", "Teacher")',
+                        window.location.origin);
+                    targetUrl.searchParams.set("classId", "@Model.ClassId");
+                    targetUrl.searchParams.set("selectedCourseId", this.value);
+                    window.location.assign(targetUrl.toString());
                 });
             });
         </script>

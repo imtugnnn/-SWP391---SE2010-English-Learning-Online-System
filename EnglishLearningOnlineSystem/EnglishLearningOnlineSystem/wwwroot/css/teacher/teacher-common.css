@@ -1,0 +1,126 @@
+:root {
+    --teacher-primary: #0284c7;
+    --teacher-primary-dark: #075985;
+    --teacher-border: #bae6fd;
+    --teacher-surface: #ffffff;
+    --teacher-background: #f0f9ff;
+    --teacher-text: #1e3a5f;
+}
+
+html {
+    min-height: 100%;
+}
+
+body {
+    min-height: 100vh;
+    margin: 0;
+    background: var(--teacher-background);
+}
+
+.teacher-navbar {
+    position: sticky;
+    top: 0;
+    z-index: 1030;
+    background: rgba(255, 255, 255, .96);
+    border-bottom: 1px solid var(--teacher-border);
+    box-shadow: 0 4px 18px rgba(14, 165, 233, .08);
+    backdrop-filter: blur(10px);
+}
+
+.teacher-navbar__inner,
+.teacher-footer__inner {
+    width: min(1180px, calc(100% - 32px));
+    margin: 0 auto;
+}
+
+.teacher-navbar__inner {
+    min-height: 68px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 24px;
+}
+
+.teacher-brand {
+    color: var(--teacher-text);
+    font-size: 1.05rem;
+    font-weight: 900;
+    text-decoration: none;
+    white-space: nowrap;
+}
+
+.teacher-brand span {
+    color: var(--teacher-primary);
+}
+
+.teacher-nav-links {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+
+.teacher-nav-links > a,
+.teacher-logout {
+    border: 0;
+    border-radius: 10px;
+    padding: 9px 12px;
+    background: transparent;
+    color: #475569;
+    font: inherit;
+    font-size: .9rem;
+    font-weight: 700;
+    text-decoration: none;
+    cursor: pointer;
+}
+
+.teacher-nav-links > a:hover,
+.teacher-nav-links > a:focus-visible,
+.teacher-logout:hover,
+.teacher-logout:focus-visible {
+    color: var(--teacher-primary-dark);
+    background: #e0f2fe;
+    outline: 2px solid transparent;
+}
+
+.teacher-logout-form {
+    margin: 0;
+}
+
+.teacher-main {
+    min-height: calc(100vh - 132px);
+}
+
+.teacher-footer {
+    padding: 20px 0;
+    color: #64748b;
+    background: var(--teacher-surface);
+    border-top: 1px solid var(--teacher-border);
+    font-size: .875rem;
+}
+
+.btn-teacher:focus-visible,
+.btn-teacher-outline:focus-visible,
+.summary-link:focus-visible {
+    outline: 3px solid rgba(2, 132, 199, .35);
+    outline-offset: 3px;
+}
+
+@media (max-width: 767.98px) {
+    .teacher-navbar {
+        position: static;
+    }
+
+    .teacher-navbar__inner {
+        padding: 12px 0;
+        align-items: flex-start;
+        flex-direction: column;
+        gap: 8px;
+    }
+
+    .teacher-nav-links {
+        width: 100%;
+        justify-content: flex-start;
+    }
+}

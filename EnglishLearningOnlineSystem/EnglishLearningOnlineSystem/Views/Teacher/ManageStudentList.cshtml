@@ -2,7 +2,6 @@
 
 @{
     ViewData["Title"] = "Quản lý học sinh";
-    Layout = "_TeacherLayout";
 }
 
 <style>
@@ -295,8 +294,9 @@
 
                     <div class="row g-3 align-items-end">
                         <div class="col-md-4">
-                            <label class="form-label">Tìm kiếm</label>
+                            <label class="form-label" for="teacher-student-keyword">Tìm kiếm</label>
                             <input type="text"
+                                   id="teacher-student-keyword"
                                    name="keyword"
                                    value="@Model.Keyword"
                                    class="form-control"
@@ -304,8 +304,8 @@
                         </div>
 
                         <div class="col-md-3">
-                            <label class="form-label">Trạng thái</label>
-                            <select name="status" class="form-select">
+                            <label class="form-label" for="teacher-student-status">Trạng thái</label>
+                            <select name="status" id="teacher-student-status" class="form-select">
                                 <option value="all" selected="@(Model.Status == "all")">Tất cả</option>
                                 <option value="active" selected="@(Model.Status == "active")">Đang hoạt động</option>
                                 <option value="inactive" selected="@(Model.Status == "inactive")">Không hoạt động</option>
@@ -313,8 +313,8 @@
                         </div>
 
                         <div class="col-md-3">
-                            <label class="form-label">Sắp xếp</label>
-                            <select name="sortBy" class="form-select">
+                            <label class="form-label" for="teacher-student-sort">Sắp xếp</label>
+                            <select name="sortBy" id="teacher-student-sort" class="form-select">
                                 <option value="name" selected="@(Model.SortBy == "name")">Tên học sinh</option>
                                 <option value="email" selected="@(Model.SortBy == "email")">Email</option>
                                 <option value="date" selected="@(Model.SortBy == "date")">Ngày tham gia</option>

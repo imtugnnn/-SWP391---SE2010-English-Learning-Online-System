@@ -64,6 +64,12 @@ public class TeacherController : Controller
 
     private int? GetCurrentUserId()
     {
+        var role = HttpContext.Session.GetString("UserRole");
+        if (role != "3")
+        {
+            return null;
+        }
+
         var raw = HttpContext.Session.GetString("UserId");
         return int.TryParse(raw, out var id) ? id : null;
     }
@@ -238,6 +244,11 @@ public class TeacherController : Controller
             ModelState.AddModelError(string.Empty, "Vui lòng chọn ít nhất một bài học.");
         }
 
+        if (!model.SelectedCourseId.HasValue)
+        {
+            ModelState.AddModelError(nameof(model.SelectedCourseId), "Vui lòng chọn chương trình học trước khi giao bài.");
+        }
+
         if (model.DueDate < model.WeekStartDate)
         {
             ModelState.AddModelError(string.Empty, "Hạn hoàn thành không được nhỏ hơn ngày bắt đầu.");
@@ -285,11 +296,6 @@ public class TeacherController : Controller
             reloadModel.SelectedLessonIds = model.SelectedLessonIds ?? new List<int>();
 
             return View(reloadModel);
-        }
-
-        if (!model.SelectedCourseId.HasValue)
-        {
-            ModelState.AddModelError(string.Empty, "Vui lòng chọn chương trình học trước khi giao bài.");
         }
 
         await LogActivityAsync(teacherId.Value, $"Giao bài học theo tuần cho lớp (ID: {model.ClassId}), các bài học ID: [{string.Join(", ", model.SelectedLessonIds ?? new List<int>())}] từ ngày {model.WeekStartDate:dd/MM/yyyy} đến ngày {model.DueDate:dd/MM/yyyy}");

@@ -2,7 +2,6 @@
 
 @{
     ViewData["Title"] = "Học sinh cần hỗ trợ";
-    Layout = "_TeacherLayout";
 }
 
 <style>
@@ -312,8 +311,8 @@
                 <form method="get" asp-controller="Teacher" asp-action="StudentsNeedSupport">
                     <div class="row g-3 align-items-end">
                         <div class="col-md-4">
-                            <label class="form-label">Lớp</label>
-                            <select name="classFilter" class="form-select">
+                            <label class="form-label" for="teacher-support-class">Lớp</label>
+                            <select name="classFilter" id="teacher-support-class" class="form-select">
                                 <option value="all" selected="@(Model.ClassFilter == "all")">Tất cả lớp</option>
                                 @foreach (var classItem in Model.Classes)
                                 {
@@ -325,8 +324,8 @@
                         </div>
 
                         <div class="col-md-3">
-                            <label class="form-label">Lý do</label>
-                            <select name="reason" class="form-select">
+                            <label class="form-label" for="teacher-support-reason">Lý do</label>
+                            <select name="reason" id="teacher-support-reason" class="form-select">
                                 <option value="all" selected="@(Model.ReasonFilter == "all")">Tất cả</option>
                                 <option value="low-score" selected="@(Model.ReasonFilter == "low-score")">Điểm quiz thấp</option>
                                 <option value="overdue" selected="@(Model.ReasonFilter == "overdue")">Bài quá hạn</option>
@@ -336,8 +335,8 @@
                         </div>
 
                         <div class="col-md-3">
-                            <label class="form-label">Sắp xếp</label>
-                            <select name="sortBy" class="form-select">
+                            <label class="form-label" for="teacher-support-sort">Sắp xếp</label>
+                            <select name="sortBy" id="teacher-support-sort" class="form-select">
                                 <option value="risk" selected="@(Model.SortBy == "risk")">Mức độ rủi ro</option>
                                 <option value="score" selected="@(Model.SortBy == "score")">Điểm thấp nhất</option>
                                 <option value="overdue" selected="@(Model.SortBy == "overdue")">Quá hạn nhiều nhất</option>

@@ -2,7 +2,6 @@
 
 @{
     ViewData["Title"] = "Tổng quan bài giao";
-    Layout = "_TeacherLayout";
 }
 
 <style>
@@ -313,8 +312,8 @@
                                name="classId"
                                value="@Model.ClassId" />
                         <div class="col-md-5">
-                            <label class="form-label">Trạng thái</label>
-                            <select name="status" class="form-select">
+                            <label class="form-label" for="teacher-assignment-status">Trạng thái</label>
+                            <select name="status" id="teacher-assignment-status" class="form-select">
                                 <option value="all" selected="@(Model.Status == "all")">Tất cả</option>
                                 <option value="active" selected="@(Model.Status == "active")">Đang hoạt động</option>
                                 <option value="expired" selected="@(Model.Status == "expired")">Quá hạn</option>
@@ -322,8 +321,8 @@
                         </div>
 
                         <div class="col-md-5">
-                            <label class="form-label">Sắp xếp</label>
-                            <select name="sortBy" class="form-select">
+                            <label class="form-label" for="teacher-assignment-sort">Sắp xếp</label>
+                            <select name="sortBy" id="teacher-assignment-sort" class="form-select">
                                 <option value="dueDate" selected="@(Model.SortBy == "dueDate")">Hạn hoàn thành</option>
                                 <option value="startDate" selected="@(Model.SortBy == "startDate")">Ngày bắt đầu</option>
                                 <option value="lesson" selected="@(Model.SortBy == "lesson")">Tên bài học</option>
