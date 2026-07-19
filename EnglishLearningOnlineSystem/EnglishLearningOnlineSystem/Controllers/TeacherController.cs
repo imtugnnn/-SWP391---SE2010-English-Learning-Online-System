@@ -41,6 +41,27 @@ public class TeacherController : Controller
 
         var viewModel = await _teacherDashboardService.GetTeacherDashboardAsync(teacherId.Value);
 
+        // Lấy thông báo hệ thống dành cho Giáo viên hoặc Tất cả người dùng
+        var systemNotifications = _context.SystemNotifications != null
+            ? await _context.SystemNotifications
+                .Where(n => n.Status == "Đã phát hành" &&
+                            (n.UserType == "Tất cả" || n.UserType == "Giáo viên" || n.Recipient == "Tất cả người dùng" || n.Recipient == "Giáo viên"))
+                .OrderByDescending(n => n.PublishTime ?? n.CreatedAt)
+                .ToListAsync()
+            : new List<SystemNotification>();
+
+        // Lấy thông báo cá nhân của Giáo viên
+        var personalNotifications = _context.Notifications != null
+            ? await _context.Notifications
+                .Where(n => n.UserId == teacherId.Value)
+                .OrderByDescending(n => n.CreateAt)
+                .ToListAsync()
+            : new List<Notification>();
+
+        ViewBag.SystemNotifications = systemNotifications;
+        ViewBag.PersonalNotifications = personalNotifications;
+        ViewBag.NotificationCount = systemNotifications.Count + personalNotifications.Count(n => !n.IsRead);
+
         return View(viewModel);
     }
     public async Task<IActionResult> ClassDetail(int classId)
