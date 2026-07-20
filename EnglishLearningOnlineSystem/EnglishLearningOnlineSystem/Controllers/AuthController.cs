@@ -104,7 +104,7 @@ public class AuthController : Controller
 
         if (!result.Succeeded || user == null)
         {
-            return ViewWithErrors(new LoginViewModel
+            return ViewWithErrors(nameof(Login), new LoginViewModel
             {
                 Email = email
             }, result);

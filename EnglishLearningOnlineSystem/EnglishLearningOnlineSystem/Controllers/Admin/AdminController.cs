@@ -483,7 +483,19 @@ public class AdminController : Controller
                 .Take(5)
                 .ToListAsync()
             : new List<AuditLog>();
-        ViewBag.LatestAuditLogs = latestAuditLogs;
+        // Lấy danh sách lớp học theo năm học đang hoạt động
+        var activeClassesList = new List<Class>();
+        if (activeAcademicYear != null)
+        {
+            activeClassesList = await _context.Classes!
+                .Include(c => c.Course)
+                .Include(c => c.Teacher)
+                .Include(c => c.Enrollments)
+                .Where(c => !c.IsDeleted && c.AcademicYearId == activeAcademicYear.AcademicYearId)
+                .OrderBy(c => c.ClassName)
+                .ToListAsync();
+        }
+        ViewBag.ActiveClassesList = activeClassesList;
 
         return View("AdminDashboard");
     }
