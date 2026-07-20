@@ -16,6 +16,8 @@ public class User
     public DateTime CreateAt { get; set; }
     public DateTime UpdateAt { get; set; }
     public DateTime? LastLoginAt { get; set; }
+    public int AccessFailedCount { get; set; } = 0;
+    public DateTime? LockoutEnd { get; set; }
 
     public ICollection<Class> TaughtClasses { get; set; } = new List<Class>();
     public ICollection<ClassEnrollment> ClassEnrollments { get; set; } = new List<ClassEnrollment>();
