@@ -1,3 +1,5 @@
+//Create by TungDPL
+//Last update: 7/21/2026
 using System.ComponentModel.DataAnnotations;
 using Microsoft.AspNetCore.Mvc.Rendering;
 
@@ -13,6 +15,7 @@ public class GoogleLoginCompletionViewModel
     [StringLength(50)]
     public string Username { get; set; } = string.Empty;
 
+    //BR15: Password must contain at least 6 characters.
     [Required(ErrorMessage = "Please enter your password.")]
     [DataType(DataType.Password)]
     [StringLength(100, MinimumLength = 6, ErrorMessage = "Password must be at least 6 characters.")]
