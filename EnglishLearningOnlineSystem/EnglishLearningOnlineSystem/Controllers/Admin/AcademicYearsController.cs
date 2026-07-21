@@ -56,12 +56,14 @@ public class AcademicYearsController : Controller
             return View("~/Views/Admin/AcademicYears/Create.cshtml", vm);
         }
 
+        //BR-AY-02: If both StartDate and EndDate are specified, the StartDate must be earlier than the EndDate.
         if (vm.StartDate.HasValue && vm.EndDate.HasValue && vm.StartDate.Value >= vm.EndDate.Value)
         {
             ModelState.AddModelError(nameof(vm.EndDate), "Ngày kết thúc phải sau ngày bắt đầu.");
             return View("~/Views/Admin/AcademicYears/Create.cshtml", vm);
         }
 
+        //BR-AY-01: Each Academic Year must have a unique YearLabel after trimming leading and trailing whitespaces.
         var exists = await _context.AcademicYears!.AnyAsync(y => y.YearLabel == vm.YearLabel.Trim());
         if (exists)
         {
