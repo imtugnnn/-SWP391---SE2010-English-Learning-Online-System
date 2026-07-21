@@ -27,6 +27,7 @@ public class AuthService : IAuthService
             return AuthServiceResult.Failure((nameof(model.Email), "Email chưa được đăng ký."));
         }
 
+        // BR-19: Inactive accounts cannot log in.
         if (!user.IsActive)
         {
             return AuthServiceResult.Failure((string.Empty, "Tài khoản của bạn đã bị vô hiệu hóa. Vui lòng liên hệ quản trị viên."));
@@ -79,6 +80,7 @@ public class AuthService : IAuthService
 
         if (user != null)
         {
+            // BR-19: Inactive accounts cannot log in.
             if (!user.IsActive)
             {
                 return (AuthServiceResult.Failure((string.Empty, "Tài khoản của bạn đã bị vô hiệu hóa. Vui lòng liên hệ quản trị viên.")), null);
@@ -110,6 +112,7 @@ public class AuthService : IAuthService
             errors.Add((nameof(model.Username), "Tên đăng nhập đã tồn tại."));
         }
 
+        // BR-20: Email addresses must be unique.
         if (await _userRepository.EmailExistsAsync(email))
         {
             errors.Add((nameof(model.Email), "Email đã được đăng ký. Vui lòng sử dụng chức năng Đăng nhập bằng Google."));

@@ -1,3 +1,5 @@
+//Create by TungDPL
+//Last update: 7/21/2026
 using Microsoft.AspNetCore.Mvc;
 using EnglishLearningOnlineSystem.Services.Interfaces;
 using EnglishLearningOnlineSystem.ViewModels;
@@ -542,6 +544,8 @@ public class AdminController : Controller
         return Json(new { success = true });
     }
 
+    // BR-17: Only Administrators can assign or change user roles. (TODO: Implement controller-level role checking)
+    // BR-18: Only Administrators can activate or deactivate user accounts. (TODO: Implement controller-level role checking)
     [HttpPost]
     public async Task<IActionResult> EditUser([FromBody] UserEditViewModel vm)
     {
@@ -565,6 +569,7 @@ public class AdminController : Controller
         return Json(new { success = true });
     }
 
+    // BR-18: Only Administrators can activate or deactivate user accounts. (TODO: Implement controller-level role checking)
     [HttpPost]
     public async Task<IActionResult> ToggleUserStatus(int id)
     {

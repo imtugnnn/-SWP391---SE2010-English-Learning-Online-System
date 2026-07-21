@@ -67,6 +67,7 @@ public class AuthController : Controller
         var user = await _userRepository.FindByEmailAsync(model.Email.Trim());
         if (user != null)
         {
+            // BR-21: Successful login grants permissions according to the assigned role.
             HttpContext.Session.SetString("UserId", user.Id.ToString());
             HttpContext.Session.SetString("UserRole", user.RoleId.ToString());
         }
@@ -110,6 +111,7 @@ public class AuthController : Controller
             }, result);
         }
 
+        // BR-21: Successful login grants permissions according to the assigned role.
         HttpContext.Session.SetString("UserId", user.Id.ToString());
         HttpContext.Session.SetString("UserRole", user.RoleId.ToString());
 
@@ -162,6 +164,7 @@ public class AuthController : Controller
         HttpContext.Session.Remove("PendingGoogleEmail");
         HttpContext.Session.Remove("PendingGoogleName");
         HttpContext.Session.Remove("PendingGoogleAvatar");
+        // BR-21: Successful login grants permissions according to the assigned role.
         HttpContext.Session.SetString("UserId", user.Id.ToString());
         HttpContext.Session.SetString("UserRole", user.RoleId.ToString());
 

@@ -12,6 +12,7 @@ using System.Data;
 
 namespace EnglishLearningOnlineSystem.Controllers.Admin;
 
+// BR-AY-08: Only users with the Administrator role are authorized to create, update, activate, or delete Academic Years. (TODO: Implement authorization checks)
 public class AcademicYearsController : Controller
 {
     private readonly AppDbContext _context;
@@ -51,17 +52,20 @@ public class AcademicYearsController : Controller
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> Create(AcademicYearCreateViewModel vm)
     {
+        // BR-AY-07: Academic Year creation and update operations shall satisfy all validation rules before being saved.
         if (!ModelState.IsValid)
         {
             return View("~/Views/Admin/AcademicYears/Create.cshtml", vm);
         }
 
+        //BR-AY-02: If both StartDate and EndDate are specified, the StartDate must be earlier than the EndDate.
         if (vm.StartDate.HasValue && vm.EndDate.HasValue && vm.StartDate.Value >= vm.EndDate.Value)
         {
             ModelState.AddModelError(nameof(vm.EndDate), "Ngày kết thúc phải sau ngày bắt đầu.");
             return View("~/Views/Admin/AcademicYears/Create.cshtml", vm);
         }
 
+        //BR-AY-01: Each Academic Year must have a unique YearLabel after trimming leading and trailing whitespaces.
         var exists = await _context.AcademicYears!.AnyAsync(y => y.YearLabel == vm.YearLabel.Trim());
         if (exists)
         {
@@ -69,6 +73,8 @@ public class AcademicYearsController : Controller
             return View("~/Views/Admin/AcademicYears/Create.cshtml", vm);
         }
 
+        // BR-AY-04: Only one Academic Year can be in the Active status at any given time.
+        // BR-AY-06: If no Academic Year exists, the first Academic Year created shall automatically be marked as Active.
         var hasActiveYear = await _context.AcademicYears!.AnyAsync(y => y.IsActive);
         var isActive = vm.IsActive || !hasActiveYear;
 
@@ -112,6 +118,7 @@ public class AcademicYearsController : Controller
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> AddClass(int id, AcademicYearEditViewModel vm)
     {
+        // BR-AY-09: A Class can only be created after an Academic Year has been created. Every Class must be associated with exactly one existing Academic Year.
         var academicYear = await _context.AcademicYears!.FirstOrDefaultAsync(y => y.AcademicYearId == id);
         if (academicYear == null)
         {
@@ -448,6 +455,7 @@ public class AcademicYearsController : Controller
             return NotFound();
         }
 
+        // BR-AY-04: Only one Academic Year can be in the Active status at any given time.
         await DeactivateAllAcademicYearsAsync();
         academicYear.IsActive = true;
         await _context.SaveChangesAsync();
@@ -673,6 +681,8 @@ public class AcademicYearsController : Controller
     }
 
 
+    // BR-AY-04: Only one Academic Year can be in the Active status at any given time.
+    // BR-AY-05: When an Academic Year is activated, the system shall automatically deactivate all other active Academic Years.
     private async Task DeactivateAllAcademicYearsAsync()
     {
         var activeYears = await _context.AcademicYears!

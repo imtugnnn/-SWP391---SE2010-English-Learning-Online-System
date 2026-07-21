@@ -12,6 +12,7 @@ using System.Threading.Tasks;
 
 namespace EnglishLearningOnlineSystem.Controllers.Admin
 {
+    // BR-NOTI-02: Only users with the Admin role are authorized to create, edit, publish, archive, or deactivate system notifications. (TODO: Implement controller-level authorization checks)
     public class SystemNotificationsController : Controller
     {
         private readonly AppDbContext _context;
@@ -50,7 +51,9 @@ namespace EnglishLearningOnlineSystem.Controllers.Admin
                 Recipient = vm.Recipient,
                 UserType = vm.UserType,
                 Status = vm.Status,
+                // BR-NOTI-05: A notification cannot be published if PublishTime is earlier than the current system time. (TODO: Implement validation block for past PublishTime)
                 PublishTime = vm.Status == "Bản nháp" ? null : (vm.PublishTime ?? DateTime.Now),
+                // BR-NOTI-10: The system automatically records the creator (UserId) and creation timestamp (CreatedAt) when a notification is created.
                 UserId = adminId,
                 CreatedAt = DateTime.Now
             };
@@ -78,7 +81,7 @@ namespace EnglishLearningOnlineSystem.Controllers.Admin
                 return Json(new { success = false, message = "Không tìm thấy thông báo." });
             }
 
-            // Refuse edits for already published notifications
+            // BR-NOTI-08: Once a notification has been published, only its title, content, or publish time may be updated. Changes are reflected immediately to all recipients. (Note: Currently, editing is fully blocked once published)
             if (notification.Status == "Đã phát hành")
             {
                 return Json(new { success = false, message = "Thông báo đã phát hành không thể chỉnh sửa." });
@@ -89,7 +92,9 @@ namespace EnglishLearningOnlineSystem.Controllers.Admin
             notification.Recipient = vm.Recipient;
             notification.UserType = vm.UserType;
             notification.Status = vm.Status;
+            // BR-NOTI-05: A notification cannot be published if PublishTime is earlier than the current system time. (TODO: Implement validation block for past PublishTime)
             notification.PublishTime = vm.Status == "Bản nháp" ? null : (vm.PublishTime ?? DateTime.Now);
+            // BR-NOTI-11: The system automatically updates UpdatedAt whenever a notification is modified.
             notification.UpdatedAt = DateTime.Now;
 
             _context.SystemNotifications.Update(notification);
@@ -113,8 +118,9 @@ namespace EnglishLearningOnlineSystem.Controllers.Admin
                 return Json(new { success = false, message = "Không tìm thấy thông báo." });
             }
 
-            // Soft delete by updating status to "Đã hủy"
+            // BR-NOTI-09: Published notifications cannot be permanently deleted. They can only be archived or deactivated to preserve the system audit history. (Soft delete by updating status to "Đã hủy")
             notification.Status = "Đã hủy";
+            // BR-NOTI-11: The system automatically updates UpdatedAt whenever a notification is modified.
             notification.UpdatedAt = DateTime.Now;
 
             _context.SystemNotifications.Update(notification);
@@ -133,12 +139,16 @@ namespace EnglishLearningOnlineSystem.Controllers.Admin
         public async Task<IActionResult> GetNotificationsApi()
         {
             var now = DateTime.Now;
+            // BR-NOTI-03: A notification with the status Draft is visible only to its creator and cannot be viewed by recipients. (Only "Đã phát hành" status is retrieved for recipients here)
+            // BR-NOTI-04: A notification becomes visible to recipients only when its status is Published and the current system time is equal to or later than PublishTime.
             var notifications = await _context.SystemNotifications!
                 .AsNoTracking()
                 .Where(n => n.Status == "Đã phát hành" && (n.PublishTime == null || n.PublishTime <= now))
                 .OrderByDescending(n => n.PublishTime ?? n.CreatedAt)
                 .ToListAsync();
 
+            // BR-NOTI-06: When Recipient is set to All Users, the notification is delivered to every active user in the system.
+            // BR-NOTI-07: When Recipient is set to a specific user group, only users whose role matches the selected UserType receive the notification. (Currently filtering for Admin role recipients here)
             var adminNotifications = notifications
                 .Where(n => n.Recipient != null && (
                     n.Recipient.Equals("Tất cả người dùng", StringComparison.OrdinalIgnoreCase) ||

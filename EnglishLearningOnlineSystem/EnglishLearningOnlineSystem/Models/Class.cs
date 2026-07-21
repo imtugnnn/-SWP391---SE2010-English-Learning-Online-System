@@ -14,6 +14,7 @@ namespace EnglishLearningOnlineSystem.Models
         [MaxLength(50)]
         public string GradeLevel { get; set; }
 
+        // BR-AY-09: A Class can only be created after an Academic Year has been created. Every Class must be associated with exactly one existing Academic Year.
         public int AcademicYearId { get; set; }
         [ForeignKey("AcademicYearId")]
         public AcademicYear AcademicYear { get; set; }

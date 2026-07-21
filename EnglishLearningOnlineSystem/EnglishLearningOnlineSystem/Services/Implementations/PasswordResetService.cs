@@ -1,3 +1,5 @@
+//Create by TungDPL
+//Last update: 7/21/2026
 using EnglishLearningOnlineSystem.Data;
 using EnglishLearningOnlineSystem.Models;
 using EnglishLearningOnlineSystem.Services.Interfaces;
@@ -11,6 +13,7 @@ namespace EnglishLearningOnlineSystem.Services.Implementations;
 
 public class PasswordResetService : IPasswordResetService
 {
+    //BR16: Password token is only valid for 15 minutes
     private static readonly TimeSpan TokenLifetime = TimeSpan.FromMinutes(15);
 
     private readonly AppDbContext _db;
@@ -57,7 +60,8 @@ public class PasswordResetService : IPasswordResetService
 
         await _emailSender.SendEmailAsync(user.Email, "Reset your password", htmlMessage);
     }
-
+    
+    //BR16: Password token is only valid for 15 minutes
     public async Task<AuthServiceResult> ResetPasswordAsync(ResetPasswordViewModel model)
     {
         var token = await _db.PasswordResetTokens
@@ -69,6 +73,7 @@ public class PasswordResetService : IPasswordResetService
             return AuthServiceResult.Failure((string.Empty, "Password reset link is invalid."));
         }
 
+        //BR16: Password token is only valid for 15 minutes
         if (DateTime.UtcNow - token.CreatedAt > TokenLifetime)
         {
             _db.PasswordResetTokens.Remove(token);
