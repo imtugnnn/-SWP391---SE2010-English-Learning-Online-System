@@ -1,3 +1,5 @@
+//Create by TungDPL
+//Last update: 7/21/2026
 using EnglishLearningOnlineSystem.Data;
 using EnglishLearningOnlineSystem.Models;
 using EnglishLearningOnlineSystem.Repositories.Interfaces;
@@ -15,6 +17,7 @@ public class UserRepository : IUserRepository
         _context = context;
     }
 
+    //Hàm kiểm tra email đăng nhập 
     public Task<User?> FindByEmailAsync(string email)
     {
         var normalizedEmail = email.Trim().ToLower();

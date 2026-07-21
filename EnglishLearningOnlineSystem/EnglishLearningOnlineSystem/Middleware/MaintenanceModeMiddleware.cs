@@ -1,3 +1,6 @@
+//Create by TungDPL
+//Create: 7/17/2026
+//Last update: 7/21/2026
 using Microsoft.AspNetCore.Http;
 using System.Threading.Tasks;
 using EnglishLearningOnlineSystem.Data;
@@ -20,13 +23,6 @@ public class MaintenanceModeMiddleware
         var path = context.Request.Path.Value ?? string.Empty;
         var userRole = context.Session.GetString("UserRole");
 
-        // Ghi log debug ra file
-        try
-        {
-            var logMessage = $"{DateTime.Now:yyyy-MM-dd HH:mm:ss} - Path: {path} | Active: ?? | UserRole: {userRole ?? "null"} | SessionId: {context.Session.Id}\n";
-            System.IO.File.AppendAllText("maintenance_debug.log", logMessage);
-        }
-        catch {}
 
         // 1. Cho phép truy cập tài nguyên tĩnh (static files)
         if (path.StartsWith("/css/", StringComparison.OrdinalIgnoreCase) ||
@@ -89,23 +85,13 @@ public class MaintenanceModeMiddleware
             // Kiểm tra xem người dùng hiện tại có phải là Admin hay không (Role 2)
             var isAdmin = string.Equals(userRole, "2");
 
-            try
-            {
-                var decisionLog = $"{DateTime.Now:yyyy-MM-dd HH:mm:ss} - Active: True | Path: {path} | isAdmin: {isAdmin} | isAuthPath: {isAuthPath} | isMaintenancePage: {isMaintenancePage}\n";
-                System.IO.File.AppendAllText("maintenance_debug.log", decisionLog);
-            }
-            catch {}
 
             if (!isAdmin)
             {
                 // Nếu không phải Admin và không phải trang đăng nhập hoặc trang thông báo bảo trì, redirect sang /maintenance
                 if (!isAuthPath && !isMaintenancePage)
                 {
-                    try
-                    {
-                        System.IO.File.AppendAllText("maintenance_debug.log", $"{DateTime.Now:yyyy-MM-dd HH:mm:ss} - REDIRECT TO /maintenance for path: {path}\n");
-                    }
-                    catch {}
+
                     context.Response.Redirect("/maintenance");
                     return;
                 }

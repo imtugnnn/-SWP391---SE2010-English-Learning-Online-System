@@ -1,3 +1,5 @@
+@* Create by TungDPL *@
+@* Last Update: 7/21/2026 *@
 @model LoginViewModel
 
 @{
@@ -38,6 +40,7 @@
             <span asp-validation-for="Password" class="text-danger"></span>
         </div>
 
+        <!-- Post /login -> -->
         <button type="submit" class="btn-login">Đăng nhập</button>
         <a class="btn-google" asp-action="GoogleLogin">Đăng nhập với Google</a>
         <a class="register-link" asp-action="ForgotPassword">Forgot password?</a>

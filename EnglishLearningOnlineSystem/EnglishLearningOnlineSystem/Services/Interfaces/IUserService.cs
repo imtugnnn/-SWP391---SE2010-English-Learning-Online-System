@@ -1,3 +1,6 @@
+//Create by TruongNTA
+//Last update: 7/21/2026
+//Update by TungDPL
 using EnglishLearningOnlineSystem.Models;
 using EnglishLearningOnlineSystem.Services.Models;
 using EnglishLearningOnlineSystem.ViewModels;
@@ -14,4 +17,4 @@ public interface IUserService
     Task<UserServiceResult<object>> UpdateAsync(UserEditViewModel vm);
     Task<UserServiceResult<object>> DeleteAsync(int id);
     Task<UserServiceResult<UserManagementViewModel>> GetUserManagementDataAsync();
-}
+}

@@ -30,6 +30,7 @@ public class UserService : IUserService
     public async Task<UserServiceResult<int>> CreateAsync(UserCreateViewModel vm)
     {
         if (vm.RoleId <= 0) return UserServiceResult<int>.Fail("Role is required.");
+        if (vm.RoleId == 2) return UserServiceResult<int>.Fail("Không được phép tạo tài khoản có vai trò Admin.");
 
         if (await _userRepo.UsernameExistsAsync(vm.Username))
             return UserServiceResult<int>.Fail("Username already exists.");
@@ -56,6 +57,9 @@ public class UserService : IUserService
     {
         var existing = await _userRepo.GetByIdAsync(vm.Id);
         if (existing == null) return UserServiceResult<object>.Fail("User not found.");
+
+        if (existing.RoleId == 2 || vm.RoleId == 2)
+            return UserServiceResult<object>.Fail("Không được phép chỉnh sửa hoặc gán vai trò Admin.");
 
         // cách B: chỉ check trùng nếu có thay đổi
         if (!string.Equals(existing.Username, vm.Username, StringComparison.Ordinal)
@@ -87,6 +91,9 @@ public class UserService : IUserService
     {
         var existing = await _userRepo.GetByIdAsync(id);
         if (existing == null) return UserServiceResult<object>.Fail("User not found.");
+
+        if (existing.RoleId == 2)
+            return UserServiceResult<object>.Fail("Không được phép xóa tài khoản Admin.");
 
         await _userRepo.DeleteAsync(existing);
         return UserServiceResult<object>.Ok(null);

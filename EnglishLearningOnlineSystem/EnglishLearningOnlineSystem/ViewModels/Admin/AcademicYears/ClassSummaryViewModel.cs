@@ -1,3 +1,6 @@
+//Create by TungDPL
+//Create at 6/24/2026
+//Last update: 7/21/2026
 namespace EnglishLearningOnlineSystem.ViewModels.Admin.AcademicYears;
 
 public class ClassSummaryViewModel
