@@ -15,12 +15,14 @@ public class AdminController : Controller
     private readonly IUserService _userService;
     private readonly IRoleService _roleService;
     private readonly AppDbContext _context;
+    private readonly IAuditLogService _auditLogService;
 
-    public AdminController(IUserService userService, IRoleService roleService, AppDbContext context)
+    public AdminController(IUserService userService, IRoleService roleService, AppDbContext context, IAuditLogService auditLogService)
     {
         _userService = userService;
         _roleService = roleService;
         _context = context;
+        _auditLogService = auditLogService;
     }
 
     public async Task<IActionResult> Dashboard()
@@ -483,6 +485,8 @@ public class AdminController : Controller
                 .Take(5)
                 .ToListAsync()
             : new List<AuditLog>();
+        ViewBag.LatestAuditLogs = latestAuditLogs;
+
         // Lấy danh sách lớp học theo năm học đang hoạt động
         var activeClassesList = new List<Class>();
         if (activeAcademicYear != null)
@@ -502,7 +506,7 @@ public class AdminController : Controller
     
     public async Task<IActionResult> UserManagement()
     {
-        var usersResult = await _userService.GetAllAsync();
+        var result = await _userService.GetUserManagementDataAsync();
         var roles = await _roleService.GetAllAsync();
 
         var activeYear = await _context.AcademicYears!
@@ -511,8 +515,8 @@ public class AdminController : Controller
 
         ViewBag.Roles = roles;
         ViewBag.ActiveAcademicYearId = activeYear?.AcademicYearId;
-        var users = usersResult.Succeeded ? usersResult.Data : new List<User>();
-        return View("~/Views/Admin/UserManagement/Index.cshtml", users);
+        var vm = result.Succeeded ? result.Data : new UserManagementViewModel();
+        return View("~/Views/Admin/UserManagement/Index.cshtml", vm);
     }
 
     [HttpPost]
@@ -532,7 +536,7 @@ public class AdminController : Controller
         var adminId = GetCurrentUserId();
         if (adminId.HasValue)
         {
-            await LogActivityAsync(adminId.Value, $"Tạo người dùng mới: {vm.Username} ({vm.Email}) với vai trò ID {vm.RoleId}");
+            await _auditLogService.LogActivityAsync(adminId.Value, $"Tạo người dùng mới: {vm.Username} ({vm.Email}) với vai trò ID {vm.RoleId}");
         }
 
         return Json(new { success = true });
@@ -555,7 +559,7 @@ public class AdminController : Controller
         var adminId = GetCurrentUserId();
         if (adminId.HasValue)
         {
-            await LogActivityAsync(adminId.Value, $"Cập nhật thông tin người dùng: {vm.Username} (ID: {vm.Id})");
+            await _auditLogService.LogActivityAsync(adminId.Value, $"Cập nhật thông tin người dùng: {vm.Username} (ID: {vm.Id})");
         }
 
         return Json(new { success = true });
@@ -592,7 +596,7 @@ public class AdminController : Controller
         if (adminId.HasValue)
         {
             var statusStr = vm.IsActive ? "kích hoạt" : "vô hiệu hóa";
-            await LogActivityAsync(adminId.Value, $"Thay đổi trạng thái của người dùng (ID: {id}) thành {statusStr}");
+            await _auditLogService.LogActivityAsync(adminId.Value, $"Thay đổi trạng thái của người dùng (ID: {id}) thành {statusStr}");
         }
 
         return Json(new { success = true, isActive = vm.IsActive });
@@ -610,7 +614,7 @@ public class AdminController : Controller
         var adminId = GetCurrentUserId();
         if (adminId.HasValue)
         {
-            await LogActivityAsync(adminId.Value, $"Xóa người dùng (ID: {id})");
+            await _auditLogService.LogActivityAsync(adminId.Value, $"Xóa người dùng (ID: {id})");
         }
 
         return Json(new { success = true });
@@ -620,23 +624,6 @@ public class AdminController : Controller
     {
         var raw = HttpContext.Session.GetString("UserId");
         return int.TryParse(raw, out var id) ? id : null;
-    }
-
-    private async Task LogActivityAsync(int userId, string action)
-    {
-        var user = await _context.Users.Include(u => u.Role).FirstOrDefaultAsync(u => u.Id == userId);
-        if (user != null)
-        {
-            _context.AuditLogs.Add(new AuditLog
-            {
-                UserId = userId,
-                Username = user.Username,
-                UserRole = user.Role?.Name ?? "Admin",
-                Action = action,
-                Timestamp = DateTime.UtcNow
-            });
-            await _context.SaveChangesAsync();
-        }
     }
 }
 
