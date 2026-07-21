@@ -34,6 +34,7 @@ public class UserService : IUserService
         if (await _userRepo.UsernameExistsAsync(vm.Username))
             return UserServiceResult<int>.Fail("Username already exists.");
 
+        // BR-20: Email addresses must be unique.
         if (await _userRepo.EmailExistsAsync(vm.Email))
             return UserServiceResult<int>.Fail("Email already exists.");
 
@@ -61,6 +62,7 @@ public class UserService : IUserService
             && await _userRepo.UsernameExistsAsync(vm.Username))
             return UserServiceResult<object>.Fail("Username already exists.");
 
+        // BR-20: Email addresses must be unique.
         if (!string.Equals(existing.Email, vm.Email, StringComparison.OrdinalIgnoreCase)
             && await _userRepo.EmailExistsAsync(vm.Email))
             return UserServiceResult<object>.Fail("Email already exists.");
