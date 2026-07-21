@@ -1,3 +1,5 @@
+//Created by TungDPL
+//Last update: 7/21/2026
 namespace EnglishLearningOnlineSystem.Services.Models;
 
 public class AuthServiceResult

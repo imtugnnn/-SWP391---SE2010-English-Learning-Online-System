@@ -1,3 +1,5 @@
+//Create by TungDPL
+//Last Update: 7/21/2026
 using EnglishLearningOnlineSystem.Repositories.Interfaces;
 using EnglishLearningOnlineSystem.Services.Interfaces;
 using EnglishLearningOnlineSystem.Services.Models;
@@ -16,6 +18,7 @@ namespace EnglishLearningOnlineSystem.Controllers;
 
 public class AuthController : Controller
 {
+    //Khai báo interface service + repository
     private readonly IAuthService _authService;
     private readonly IPasswordResetService _passwordResetService;
     private readonly IUserRepository _userRepository;
@@ -57,7 +60,7 @@ public class AuthController : Controller
             return View(model);
         }
 
-        var result = await _authService.LoginAsync(model);
+        var result = await _authService.LoginAsync(model); //Gọi LoginAsync từ AuthService
 
         if (!result.Succeeded)
         {
@@ -68,10 +71,12 @@ public class AuthController : Controller
         if (user != null)
         {
             // BR-21: Successful login grants permissions according to the assigned role.
-            HttpContext.Session.SetString("UserId", user.Id.ToString());
+            //Lưu cả userid và userrole vào session
+            HttpContext.Session.SetString("UserId", user.Id.ToString()); 
             HttpContext.Session.SetString("UserRole", user.RoleId.ToString());
         }
 
+        //Chuyển sang function RedirectByRole ở trong controller
         return RedirectByRole(user);
     }
 
@@ -269,6 +274,7 @@ public class AuthController : Controller
         return View(viewName, model);
     }
 
+    //Dẫn người dùng đến dashboard tương ứng vơi role
     private IActionResult RedirectByRole(Models.User? user)
     {
         return user?.RoleId switch

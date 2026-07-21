@@ -22,6 +22,7 @@ public class AuthService : IAuthService
         var email = model.Email.Trim();
         var user = await _userRepository.FindByEmailAsync(email);
 
+        //Kiểm tra nếu tài khoản chưa được đăng ký
         if (user == null)
         {
             return AuthServiceResult.Failure((nameof(model.Email), "Email chưa được đăng ký."));
@@ -32,7 +33,8 @@ public class AuthService : IAuthService
         {
             return AuthServiceResult.Failure((string.Empty, "Tài khoản của bạn đã bị vô hiệu hóa. Vui lòng liên hệ quản trị viên."));
         }
-
+        
+        //Kiểm tra nếu tài khoản dang bị khóa do nhập sai 5 lần
         if (user.LockoutEnd.HasValue && user.LockoutEnd.Value > DateTime.UtcNow)
         {
             var remainingMinutes = (int)Math.Ceiling((user.LockoutEnd.Value - DateTime.UtcNow).TotalMinutes);
@@ -49,6 +51,7 @@ public class AuthService : IAuthService
             isPasswordValid = false;
         }
 
+        //Nếu tài khoản nhập sai mật khẩu, lưu 1 lần thử, sai 5 lần khóa 30p
         if (!isPasswordValid)
         {
             user.AccessFailedCount++;

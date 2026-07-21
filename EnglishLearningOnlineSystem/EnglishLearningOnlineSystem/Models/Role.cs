@@ -1,4 +1,5 @@
-﻿namespace EnglishLearningOnlineSystem.Models;
+﻿//Create by TungDPL
+namespace EnglishLearningOnlineSystem.Models;
 
 public class Role
 {

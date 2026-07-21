@@ -184,6 +184,11 @@ public class AdminController : Controller
         }
 
         var user = userResult.Data;
+        if (user.RoleId == 2)
+        {
+            return Json(new { success = false, message = "Không được phép thay đổi trạng thái tài khoản Admin." });
+        }
+
         var vm = new UserEditViewModel
         {
             Id = user.Id,
