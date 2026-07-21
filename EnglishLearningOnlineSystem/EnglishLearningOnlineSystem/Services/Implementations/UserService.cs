@@ -1,8 +1,9 @@
-﻿using EnglishLearningOnlineSystem.Models;
+using EnglishLearningOnlineSystem.Models;
 using EnglishLearningOnlineSystem.Repositories.Interfaces;
 using EnglishLearningOnlineSystem.Services.Interfaces;
 using EnglishLearningOnlineSystem.Services.Models;
 using EnglishLearningOnlineSystem.ViewModels;
+using EnglishLearningOnlineSystem.ViewModels.Admin;
 
 namespace EnglishLearningOnlineSystem.Services.Implementations;
 
@@ -87,5 +88,23 @@ public class UserService : IUserService
 
         await _userRepo.DeleteAsync(existing);
         return UserServiceResult<object>.Ok(null);
+    }
+
+    public async Task<UserServiceResult<UserManagementViewModel>> GetUserManagementDataAsync()
+    {
+        var now = DateTime.Now;
+        var thisMonthStart = new DateTime(now.Year, now.Month, 1);
+        var lastMonthStart = thisMonthStart.AddMonths(-1);
+
+        var users = await _userRepo.GetAllAsync();
+        var stats = await _userRepo.GetUserStatsAsync(thisMonthStart, lastMonthStart);
+
+        var vm = new UserManagementViewModel
+        {
+            Users = users,
+            Stats = stats
+        };
+
+        return UserServiceResult<UserManagementViewModel>.Ok(vm);
     }
 }

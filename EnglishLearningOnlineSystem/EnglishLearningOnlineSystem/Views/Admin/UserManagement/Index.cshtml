@@ -1,4 +1,4 @@
-@model List<EnglishLearningOnlineSystem.Models.User>
+@model EnglishLearningOnlineSystem.ViewModels.Admin.UserManagementViewModel
 
 @{
     ViewData["Title"] = "Quản lý người dùng";
@@ -6,37 +6,31 @@
     var rolesList = ViewBag.Roles as List<EnglishLearningOnlineSystem.Models.Role> ?? new List<EnglishLearningOnlineSystem.Models.Role>();
     var activeYearId = ViewBag.ActiveAcademicYearId as int?;
 
-    // Calculate Stats
-    var totalUsers = Model.Count;
-    var activeUsers = Model.Count(u => u.IsActive);
-    var studentCount = Model.Count(u => u.Role?.Name == "Student");
-    var teacherCount = Model.Count(u => u.Role?.Name == "Teacher");
-    var parentCount = Model.Count(u => u.Role?.Name == "Parent");
-    var contentManagerCount = Model.Count(u => u.Role?.Name == "Content Manager");
+    // Use pre-computed Stats from the model
+    var totalUsers = Model.Stats.TotalUsers;
+    var activeUsers = Model.Stats.ActiveUsers;
+    var studentCount = Model.Stats.StudentCount;
+    var teacherCount = Model.Stats.TeacherCount;
+    var parentCount = Model.Stats.ParentCount;
+    var contentManagerCount = Model.Stats.ContentManagerCount;
 
-    // Trends computation
-    var now = DateTime.Now;
-    var thisMonthStart = new DateTime(now.Year, now.Month, 1);
-    var lastMonthStart = thisMonthStart.AddMonths(-1);
+    var newThisMonth = Model.Stats.NewThisMonth;
+    var newLastMonth = Model.Stats.NewLastMonth;
 
-    // Dynamic trend counts
-    var newThisMonth = Model.Count(u => u.CreateAt >= thisMonthStart);
-    var newLastMonth = Model.Count(u => u.CreateAt >= lastMonthStart && u.CreateAt < thisMonthStart);
+    var activeThisMonth = Model.Stats.ActiveThisMonth;
+    var activeLastMonth = Model.Stats.ActiveLastMonth;
 
-    var activeThisMonth = Model.Count(u => u.IsActive && u.LastLoginAt.HasValue && u.LastLoginAt.Value >= thisMonthStart);
-    var activeLastMonth = Model.Count(u => u.IsActive && u.LastLoginAt.HasValue && u.LastLoginAt.Value >= lastMonthStart && u.LastLoginAt.Value < thisMonthStart);
+    var studentsThisMonth = Model.Stats.StudentsThisMonth;
+    var studentsLastMonth = Model.Stats.StudentsLastMonth;
 
-    var studentsThisMonth = Model.Count(u => u.Role?.Name == "Student" && u.LastLoginAt.HasValue && u.LastLoginAt.Value >= thisMonthStart);
-    var studentsLastMonth = Model.Count(u => u.Role?.Name == "Student" && u.LastLoginAt.HasValue && u.LastLoginAt.Value >= lastMonthStart && u.LastLoginAt.Value < thisMonthStart);
+    var teachersThisMonth = Model.Stats.TeachersThisMonth;
+    var teachersLastMonth = Model.Stats.TeachersLastMonth;
 
-    var teachersThisMonth = Model.Count(u => u.Role?.Name == "Teacher" && u.LastLoginAt.HasValue && u.LastLoginAt.Value >= thisMonthStart);
-    var teachersLastMonth = Model.Count(u => u.Role?.Name == "Teacher" && u.LastLoginAt.HasValue && u.LastLoginAt.Value >= lastMonthStart && u.LastLoginAt.Value < thisMonthStart);
+    var parentsThisMonth = Model.Stats.ParentsThisMonth;
+    var parentsLastMonth = Model.Stats.ParentsLastMonth;
 
-    var parentsThisMonth = Model.Count(u => u.Role?.Name == "Parent" && u.LastLoginAt.HasValue && u.LastLoginAt.Value >= thisMonthStart);
-    var parentsLastMonth = Model.Count(u => u.Role?.Name == "Parent" && u.LastLoginAt.HasValue && u.LastLoginAt.Value >= lastMonthStart && u.LastLoginAt.Value < thisMonthStart);
-
-    var contentThisMonth = Model.Count(u => u.Role?.Name == "Content Manager" && u.LastLoginAt.HasValue && u.LastLoginAt.Value >= thisMonthStart);
-    var contentLastMonth = Model.Count(u => u.Role?.Name == "Content Manager" && u.LastLoginAt.HasValue && u.LastLoginAt.Value >= lastMonthStart && u.LastLoginAt.Value < thisMonthStart);
+    var contentThisMonth = Model.Stats.ContentThisMonth;
+    var contentLastMonth = Model.Stats.ContentLastMonth;
 }
 
 @section Styles
@@ -393,7 +387,7 @@
 @section Scripts {
     <script>
         // Load initial users list from Razor model
-        let users = @Html.Raw(Json.Serialize(Model.Select(u => {
+        let users = @Html.Raw(Json.Serialize(Model.Users.Select(u => {
             string userClass = "-";
             if (activeYearId.HasValue)
             {
