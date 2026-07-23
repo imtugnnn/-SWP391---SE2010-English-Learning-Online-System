@@ -1,14 +1,15 @@
 .admin-sidebar {
     width: 260px;
-    min-height: 100vh;
+    height: 100vh;
     background: linear-gradient(180deg, #0c60da 0%, #0545b5 100%);
     color: white;
     display: flex;
     flex-direction: column;
     transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-    overflow-x: hidden;
+    overflow: hidden;
     position: relative;
     box-shadow: 4px 0 15px rgba(0, 0, 0, 0.05);
+    flex-shrink: 0;
 }
 
 /* Logo */
@@ -192,6 +193,8 @@
     justify-content: center;
     cursor: pointer;
     transition: all 0.2s ease;
+    margin-left: auto;
+    flex-shrink: 0;
 }
 
 .collapse-toggle-btn:hover {
@@ -217,6 +220,14 @@
 .admin-sidebar.collapsed .sidebar-logo {
     justify-content: center;
     padding: 20px 0;
+}
+
+.admin-sidebar.collapsed .sidebar-logo img {
+    display: none;
+}
+
+.admin-sidebar.collapsed .sidebar-logo .collapse-toggle-btn {
+    margin-left: 0;
 }
 
 .admin-sidebar.collapsed .sidebar-profile {
