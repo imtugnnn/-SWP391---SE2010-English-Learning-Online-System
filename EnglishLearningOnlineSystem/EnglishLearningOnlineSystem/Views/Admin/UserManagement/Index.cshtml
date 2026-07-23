@@ -1,4 +1,4 @@
-@model List<EnglishLearningOnlineSystem.Models.User>
+@model EnglishLearningOnlineSystem.ViewModels.Admin.UserManagementViewModel
 
 @{
     ViewData["Title"] = "Quản lý người dùng";
@@ -6,37 +6,31 @@
     var rolesList = ViewBag.Roles as List<EnglishLearningOnlineSystem.Models.Role> ?? new List<EnglishLearningOnlineSystem.Models.Role>();
     var activeYearId = ViewBag.ActiveAcademicYearId as int?;
 
-    // Calculate Stats
-    var totalUsers = Model.Count;
-    var activeUsers = Model.Count(u => u.IsActive);
-    var studentCount = Model.Count(u => u.Role?.Name == "Student");
-    var teacherCount = Model.Count(u => u.Role?.Name == "Teacher");
-    var parentCount = Model.Count(u => u.Role?.Name == "Parent");
-    var contentManagerCount = Model.Count(u => u.Role?.Name == "Content Manager");
+    // Use pre-computed Stats from the model
+    var totalUsers = Model.Stats.TotalUsers;
+    var activeUsers = Model.Stats.ActiveUsers;
+    var studentCount = Model.Stats.StudentCount;
+    var teacherCount = Model.Stats.TeacherCount;
+    var parentCount = Model.Stats.ParentCount;
+    var contentManagerCount = Model.Stats.ContentManagerCount;
 
-    // Trends computation
-    var now = DateTime.Now;
-    var thisMonthStart = new DateTime(now.Year, now.Month, 1);
-    var lastMonthStart = thisMonthStart.AddMonths(-1);
+    var newThisMonth = Model.Stats.NewThisMonth;
+    var newLastMonth = Model.Stats.NewLastMonth;
 
-    // Dynamic trend counts
-    var newThisMonth = Model.Count(u => u.CreateAt >= thisMonthStart);
-    var newLastMonth = Model.Count(u => u.CreateAt >= lastMonthStart && u.CreateAt < thisMonthStart);
+    var activeThisMonth = Model.Stats.ActiveThisMonth;
+    var activeLastMonth = Model.Stats.ActiveLastMonth;
 
-    var activeThisMonth = Model.Count(u => u.IsActive && u.LastLoginAt.HasValue && u.LastLoginAt.Value >= thisMonthStart);
-    var activeLastMonth = Model.Count(u => u.IsActive && u.LastLoginAt.HasValue && u.LastLoginAt.Value >= lastMonthStart && u.LastLoginAt.Value < thisMonthStart);
+    var studentsThisMonth = Model.Stats.StudentsThisMonth;
+    var studentsLastMonth = Model.Stats.StudentsLastMonth;
 
-    var studentsThisMonth = Model.Count(u => u.Role?.Name == "Student" && u.LastLoginAt.HasValue && u.LastLoginAt.Value >= thisMonthStart);
-    var studentsLastMonth = Model.Count(u => u.Role?.Name == "Student" && u.LastLoginAt.HasValue && u.LastLoginAt.Value >= lastMonthStart && u.LastLoginAt.Value < thisMonthStart);
+    var teachersThisMonth = Model.Stats.TeachersThisMonth;
+    var teachersLastMonth = Model.Stats.TeachersLastMonth;
 
-    var teachersThisMonth = Model.Count(u => u.Role?.Name == "Teacher" && u.LastLoginAt.HasValue && u.LastLoginAt.Value >= thisMonthStart);
-    var teachersLastMonth = Model.Count(u => u.Role?.Name == "Teacher" && u.LastLoginAt.HasValue && u.LastLoginAt.Value >= lastMonthStart && u.LastLoginAt.Value < thisMonthStart);
+    var parentsThisMonth = Model.Stats.ParentsThisMonth;
+    var parentsLastMonth = Model.Stats.ParentsLastMonth;
 
-    var parentsThisMonth = Model.Count(u => u.Role?.Name == "Parent" && u.LastLoginAt.HasValue && u.LastLoginAt.Value >= thisMonthStart);
-    var parentsLastMonth = Model.Count(u => u.Role?.Name == "Parent" && u.LastLoginAt.HasValue && u.LastLoginAt.Value >= lastMonthStart && u.LastLoginAt.Value < thisMonthStart);
-
-    var contentThisMonth = Model.Count(u => u.Role?.Name == "Content Manager" && u.LastLoginAt.HasValue && u.LastLoginAt.Value >= thisMonthStart);
-    var contentLastMonth = Model.Count(u => u.Role?.Name == "Content Manager" && u.LastLoginAt.HasValue && u.LastLoginAt.Value >= lastMonthStart && u.LastLoginAt.Value < thisMonthStart);
+    var contentThisMonth = Model.Stats.ContentThisMonth;
+    var contentLastMonth = Model.Stats.ContentLastMonth;
 }
 
 @section Styles
@@ -314,7 +308,7 @@
                         <label class="form-label">Vai trò *</label>
                         <select class="form-select" name="roleId" required>
                             <option value="">-- Chọn vai trò --</option>
-                            @foreach(var r in rolesList)
+                            @foreach(var r in rolesList.Where(x => x.Id != 2))
                             {
                                 <option value="@r.Id">@r.Name</option>
                             }
@@ -369,7 +363,7 @@
                     <div class="mb-3">
                         <label class="form-label">Vai trò *</label>
                         <select class="form-select" name="roleId" id="editRoleId" required>
-                            @foreach(var r in rolesList)
+                            @foreach(var r in rolesList.Where(x => x.Id != 2))
                             {
                                 <option value="@r.Id">@r.Name</option>
                             }
@@ -393,7 +387,7 @@
 @section Scripts {
     <script>
         // Load initial users list from Razor model
-        let users = @Html.Raw(Json.Serialize(Model.Select(u => {
+        let users = @Html.Raw(Json.Serialize(Model.Users.Select(u => {
             string userClass = "-";
             if (activeYearId.HasValue)
             {
@@ -772,16 +766,20 @@
                 const tdActions = document.createElement('td');
                 tdActions.className = 'actions-cell';
                 
-                const editBtn = `<button class="btn-action-circle btn-edit" onclick="openEditModal(${u.id})" title="Sửa"><i class="bi bi-pencil"></i></button>`;
-                
-                const lockIconClass = u.isActive ? 'bi-lock-fill' : 'bi-unlock-fill';
-                const lockBtnClass = u.isActive ? 'btn-lock' : 'btn-unlock';
-                const lockTitle = u.isActive ? 'Khóa tài khoản' : 'Kích hoạt tài khoản';
-                const lockBtn = `<button class="btn-action-circle ${lockBtnClass}" onclick="toggleStatus(${u.id})" title="${lockTitle}"><i class="bi ${lockIconClass}"></i></button>`;
-                
-                const deleteBtn = `<button class="btn-action-circle btn-delete" onclick="deleteUser(${u.id})" title="Xóa"><i class="bi bi-trash"></i></button>`;
-                
-                tdActions.innerHTML = editBtn + lockBtn + deleteBtn;
+                if (u.roleName === 'Admin') {
+                    tdActions.innerHTML = `<span class="text-muted"><i class="bi bi-shield-lock-fill"></i> Hệ thống</span>`;
+                } else {
+                    const editBtn = `<button class="btn-action-circle btn-edit" onclick="openEditModal(${u.id})" title="Sửa"><i class="bi bi-pencil"></i></button>`;
+                    
+                    const lockIconClass = u.isActive ? 'bi-lock-fill' : 'bi-unlock-fill';
+                    const lockBtnClass = u.isActive ? 'btn-lock' : 'btn-unlock';
+                    const lockTitle = u.isActive ? 'Khóa tài khoản' : 'Kích hoạt tài khoản';
+                    const lockBtn = `<button class="btn-action-circle ${lockBtnClass}" onclick="toggleStatus(${u.id})" title="${lockTitle}"><i class="bi ${lockIconClass}"></i></button>`;
+                    
+                    const deleteBtn = `<button class="btn-action-circle btn-delete" onclick="deleteUser(${u.id})" title="Xóa"><i class="bi bi-trash"></i></button>`;
+                    
+                    tdActions.innerHTML = editBtn + lockBtn + deleteBtn;
+                }
                 tr.appendChild(tdActions);
                 
                 tr.addEventListener('click', (e) => {
@@ -938,6 +936,10 @@
         function openEditModal(id) {
             const u = users.find(x => x.id === id);
             if (!u) return;
+            if (u.roleName === 'Admin') {
+                alert("Không được phép chỉnh sửa tài khoản Admin.");
+                return;
+            }
 
             document.getElementById('editUserId').value = u.id;
             document.getElementById('editUsername').value = u.username;
@@ -1000,6 +1002,11 @@
 
         // Toggle user status (lock/unlock)
         function toggleStatus(id) {
+            const u = users.find(x => x.id === id);
+            if (u && u.roleName === 'Admin') {
+                alert("Không được phép thay đổi trạng thái tài khoản Admin.");
+                return;
+            }
             fetch(`/Admin/ToggleUserStatus?id=${id}`, {
                 method: 'POST'
             })
@@ -1024,6 +1031,11 @@
 
         // Delete user
         function deleteUser(id) {
+            const u = users.find(x => x.id === id);
+            if (u && u.roleName === 'Admin') {
+                alert("Không được phép xóa tài khoản Admin.");
+                return;
+            }
             if (!confirm("Bạn có chắc chắn muốn xóa tài khoản người dùng này không? Hành động này không thể hoàn tác.")) {
                 return;
             }

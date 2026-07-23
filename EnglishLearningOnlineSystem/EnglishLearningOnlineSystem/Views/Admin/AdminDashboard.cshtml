@@ -1,3 +1,5 @@
+@* Create by TungDPL *@
+@* Last Update: 7/17/2026 *@
 @using EnglishLearningOnlineSystem.Controllers.Admin
 @{
     ViewData["Title"] = "Bảng điều khiển";
@@ -98,114 +100,8 @@
         </a>
     </div>
 
-    <!-- Dòng 2: Thống kê học tập tổng quan, Xu hướng hoàn thành -->
-    <div class="row-grid-2">
-        <!-- Widget 1: Thống kê học tập tổng quan -->
-        <div class="card-widget widget-overview">
-            <div class="widget-header">
-                <h3>Thống kê học tập tổng quan</h3>
-            </div>
-            <div class="overview-grid-2x2">
-                <div class="overview-subcard">
-                    <div class="subcard-icon text-primary bg-primary-light">
-                        <i class="bi bi-journal-bookmark-fill"></i>
-                    </div>
-                    <div class="subcard-info">
-                        <span class="subcard-title">Bài học đã hoàn thành</span>
-                        <span class="subcard-val">@(ViewBag.TotalUsersAll > 0 ? ViewBag.CompletedLessonsCount.ToString("N0") : "1.254")</span>
-                        <span class="subcard-trend @(ViewBag.LessonsTrendPct >= 0 ? "text-success" : "text-danger")">
-                            <i class="bi @(ViewBag.LessonsTrendPct >= 0 ? "bi-arrow-up-short" : "bi-arrow-down-short")"></i>
-                            @(Math.Abs((int)(ViewBag.LessonsTrendPct ?? 18)))% so với tháng trước
-                        </span>
-                    </div>
-                </div>
-
-                <div class="overview-subcard">
-                    <div class="subcard-icon text-success bg-success-light">
-                        <i class="bi bi-card-checklist"></i>
-                    </div>
-                    <div class="subcard-info">
-                        <span class="subcard-title">Lượt làm bài quiz</span>
-                        <span class="subcard-val">@(ViewBag.TotalUsersAll > 0 ? ViewBag.TotalQuizAttempts.ToString("N0") : "3.912")</span>
-                        <span class="subcard-trend @(ViewBag.QuizAttemptsTrendPct >= 0 ? "text-success" : "text-danger")">
-                            <i class="bi @(ViewBag.QuizAttemptsTrendPct >= 0 ? "bi-arrow-up-short" : "bi-arrow-down-short")"></i>
-                            @(Math.Abs((int)(ViewBag.QuizAttemptsTrendPct ?? 12)))% so với tháng trước
-                        </span>
-                    </div>
-                </div>
-
-                <div class="overview-subcard">
-                    <div class="subcard-icon text-warning bg-warning-light">
-                        <i class="bi bi-trophy-fill"></i>
-                    </div>
-                    <div class="subcard-info">
-                        <span class="subcard-title">Điểm trung bình quiz</span>
-                        <span class="subcard-val">@(ViewBag.TotalUsersAll > 0 ? $"{ViewBag.AvgQuizScore}%" : "82%")</span>
-                        <span class="subcard-trend @(ViewBag.QuizScoreTrendPct >= 0 ? "text-success" : "text-danger")">
-                            <i class="bi @(ViewBag.QuizScoreTrendPct >= 0 ? "bi-arrow-up-short" : "bi-arrow-down-short")"></i>
-                            @(Math.Abs((int)(ViewBag.QuizScoreTrendPct ?? 5)))% so với tháng trước
-                        </span>
-                    </div>
-                </div>
-
-                <div class="overview-subcard">
-                    <div class="subcard-icon text-secondary bg-secondary-light">
-                        <i class="bi bi-fire"></i>
-                    </div>
-                    <div class="subcard-info">
-                        <span class="subcard-title">Người dùng hoạt động</span>
-                        <span class="subcard-val">@(ViewBag.TotalUsersAll > 0 ? ViewBag.StreakUsersCount.ToString("N0") : "418")</span>
-                        <span class="subcard-trend @(ViewBag.ActiveStudentsTrendPct >= 0 ? "text-success" : "text-danger")">
-                            <i class="bi @(ViewBag.ActiveStudentsTrendPct >= 0 ? "bi-arrow-up-short" : "bi-arrow-down-short")"></i>
-                            @(Math.Abs((int)(ViewBag.ActiveStudentsTrendPct ?? 27)))% so với tháng trước
-                        </span>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- Widget 2: Xu hướng hoàn thành -->
-        <div class="card-widget widget-trend">
-            <div class="widget-header">
-                <h3>Xu hướng hoàn thành (6 tháng gần nhất)</h3>
-            </div>
-            <div class="chart-container">
-                <canvas id="trendLineChart"></canvas>
-            </div>
-        </div>
-    </div>
-
-    <!-- Dòng 3: Tỷ lệ hoàn thành bài học & Nhật ký hoạt động gần đây -->
+    <!-- Dòng 2: Nhật ký hoạt động gần đây & Danh sách lớp học -->
     <div class="row-grid-2" style="margin-top: 24px;">
-        <!-- Widget 3: Tỷ lệ hoàn thành bài học -->
-        <div class="card-widget widget-donut">
-            <div class="widget-header">
-                <h3>Tỷ lệ hoàn thành bài học</h3>
-            </div>
-            <div class="donut-chart-box">
-                <div class="donut-chart-wrapper">
-                    <canvas id="completionDonutChart"></canvas>
-                </div>
-                <div class="donut-legend">
-                    <div class="donut-legend-item">
-                        <span class="legend-dot" style="background-color: #3b82f6;"></span>
-                        <span class="legend-lbl">Hoàn thành</span>
-                        <span class="legend-val">@ViewBag.PctCompleted%</span>
-                    </div>
-                    <div class="donut-legend-item">
-                        <span class="legend-dot" style="background-color: #10b981;"></span>
-                        <span class="legend-lbl">Đang học</span>
-                        <span class="legend-val">@ViewBag.PctInProgress%</span>
-                    </div>
-                    <div class="donut-legend-item">
-                        <span class="legend-dot" style="background-color: #f97316;"></span>
-                        <span class="legend-lbl">Chưa bắt đầu</span>
-                        <span class="legend-val">@ViewBag.PctNotStarted%</span>
-                    </div>
-                </div>
-            </div>
-        </div>
-
         <!-- Widget 4: Nhật ký hoạt động gần đây -->
         <div class="card-widget widget-audit-log" style="display: flex; flex-direction: column; height: 100%;">
             <div class="widget-header" style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #f1f5f9; padding-bottom: 15px; margin-bottom: 15px;">
@@ -266,243 +162,66 @@
                 </table>
             </div>
         </div>
-    </div>
 
-    <!-- Dòng 3: Hiệu suất lớp học, Nội dung học tập -->
-    <div class="row-grid-2">
-        <!-- Widget 1: Hiệu suất lớp học -->
-        <div class="card-widget widget-performance">
-            <div class="widget-header">
-                <h3>Hiệu suất lớp học</h3>
+        <!-- Widget 5: Danh sách lớp học theo năm học -->
+        <div class="card-widget widget-classes-list" style="display: flex; flex-direction: column; height: 100%;">
+            <div class="widget-header" style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #f1f5f9; padding-bottom: 15px; margin-bottom: 15px;">
+                <h3 style="font-weight: 700; color: #1e3a5f; margin: 0; font-size: 1.05rem;">
+                    <i class="bi bi-mortarboard-fill text-primary me-2"></i> Lớp học năm học hiện tại (@ViewBag.ActiveAcademicYear)
+                </h3>
+                <a asp-controller="AcademicYears" asp-action="Index" class="btn btn-sm btn-outline-primary rounded-pill px-3" style="font-size: 0.8rem; border-color: #38bdf8; color: #0369a1; font-weight: 800; text-decoration: none;">
+                    Xem tất cả
+                </a>
             </div>
-            <div class="table-responsive">
-                <table class="table table-custom">
+            <div class="table-responsive" style="flex-grow: 1; overflow-y: auto;">
+                <table class="table table-hover align-middle" style="margin-bottom: 0;">
                     <thead>
-                        <tr>
-                            <th>Lớp học</th>
-                            <th>Tỷ lệ hoàn thành</th>
-                            <th>Điểm trung bình quiz</th>
-                            <th>Học sinh tích cực</th>
+                        <tr style="background: #f0f9ff; color: #0369a1; font-size: .78rem; text-transform: uppercase; letter-spacing: .04em; border-bottom: 1px solid #bae6fd;">
+                            <th style="padding: 10px 12px; border-bottom: none;">Tên lớp</th>
+                            <th style="padding: 10px 12px; border-bottom: none;">Khóa học</th>
+                            <th style="padding: 10px 12px; border-bottom: none;">Giáo viên</th>
+                            <th style="padding: 10px 12px; border-bottom: none; text-align: center;">Học sinh</th>
                         </tr>
                     </thead>
                     <tbody>
-                        @if (ViewBag.TopClassesPerformance != null && ((List<ClassPerformanceViewModel>)ViewBag.TopClassesPerformance).Any())
+                        @{
+                            var activeClasses = ViewBag.ActiveClassesList as List<EnglishLearningOnlineSystem.Models.Class>;
+                        }
+                        @if (activeClasses == null || !activeClasses.Any())
                         {
-                            foreach (var cp in (List<ClassPerformanceViewModel>)ViewBag.TopClassesPerformance)
-                            {
-                                <tr>
-                                    <td><strong>@cp.ClassName</strong></td>
-                                    <td>
-                                        <div class="progress-bar-wrapper">
-                                            <div class="progress custom-progress">
-                                                <div class="progress-bar bg-success" role="progressbar" style="width: @(cp.CompletionRate)%;" aria-valuenow="@cp.CompletionRate" aria-valuemin="0" aria-valuemax="100"></div>
-                                            </div>
-                                            <span class="progress-val">@cp.CompletionRate%</span>
-                                        </div>
-                                    </td>
-                                    <td><strong>@cp.AvgQuizScore%</strong></td>
-                                    <td>@cp.ActiveStudentsText</td>
-                                </tr>
-                            }
+                            <tr>
+                                <td colspan="4" class="text-center py-4 text-muted">
+                                    <i class="bi bi-info-circle me-1"></i> Không có lớp học nào trong năm học này.
+                                </td>
+                            </tr>
                         }
                         else
                         {
-                            // Mock data preview matching reference UI
-                            <tr>
-                                <td><strong>10A1</strong></td>
-                                <td>
-                                    <div class="progress-bar-wrapper">
-                                        <div class="progress custom-progress">
-                                            <div class="progress-bar bg-success" role="progressbar" style="width: 95%;" aria-valuenow="95" aria-valuemin="0" aria-valuemax="100"></div>
-                                        </div>
-                                        <span class="progress-val">95%</span>
-                                    </div>
-                                </td>
-                                <td><strong>91%</strong></td>
-                                <td>38 / 40</td>
-                            </tr>
-                            <tr>
-                                <td><strong>10A2</strong></td>
-                                <td>
-                                    <div class="progress-bar-wrapper">
-                                        <div class="progress custom-progress">
-                                            <div class="progress-bar bg-success" role="progressbar" style="width: 89%;" aria-valuenow="89" aria-valuemin="0" aria-valuemax="100"></div>
-                                        </div>
-                                        <span class="progress-val">89%</span>
-                                    </div>
-                                </td>
-                                <td><strong>87%</strong></td>
-                                <td>36 / 40</td>
-                            </tr>
-                            <tr>
-                                <td><strong>11A3</strong></td>
-                                <td>
-                                    <div class="progress-bar-wrapper">
-                                        <div class="progress custom-progress">
-                                            <div class="progress-bar bg-success" role="progressbar" style="width: 82%;" aria-valuenow="82" aria-valuemin="0" aria-valuemax="100"></div>
-                                        </div>
-                                        <span class="progress-val">82%</span>
-                                    </div>
-                                </td>
-                                <td><strong>84%</strong></td>
-                                <td>35 / 40</td>
-                            </tr>
-                            <tr>
-                                <td><strong>11B1</strong></td>
-                                <td>
-                                    <div class="progress-bar-wrapper">
-                                        <div class="progress custom-progress">
-                                            <div class="progress-bar bg-success" role="progressbar" style="width: 76%;" aria-valuenow="76" aria-valuemin="0" aria-valuemax="100"></div>
-                                        </div>
-                                        <span class="progress-val">76%</span>
-                                    </div>
-                                </td>
-                                <td><strong>78%</strong></td>
-                                <td>32 / 40</td>
-                            </tr>
-                            <tr>
-                                <td><strong>12A1</strong></td>
-                                <td>
-                                    <div class="progress-bar-wrapper">
-                                        <div class="progress custom-progress">
-                                            <div class="progress-bar bg-success" role="progressbar" style="width: 68%;" aria-valuenow="68" aria-valuemin="0" aria-valuemax="100"></div>
-                                        </div>
-                                        <span class="progress-val">68%</span>
-                                    </div>
-                                </td>
-                                <td><strong>71%</strong></td>
-                                <td>28 / 40</td>
-                            </tr>
+                            foreach (var cls in activeClasses)
+                            {
+                                <tr>
+                                    <td style="padding: 12px 12px; border-bottom: 1px solid #f1f5f9; font-weight: 700; color: #1e3a5f;">
+                                        @cls.ClassName
+                                    </td>
+                                    <td style="padding: 12px 12px; border-bottom: 1px solid #f1f5f9; color: #334155; font-size: 0.88rem;">
+                                        @(cls.Course?.CourseName ?? "Chưa gán")
+                                    </td>
+                                    <td style="padding: 12px 12px; border-bottom: 1px solid #f1f5f9; color: #64748b; font-size: 0.88rem;">
+                                        @(cls.Teacher?.Username ?? "Chưa phân công")
+                                    </td>
+                                    <td style="padding: 12px 12px; border-bottom: 1px solid #f1f5f9; text-align: center; font-weight: bold; color: #10b981; font-size: 0.88rem;">
+                                        @(cls.Enrollments?.Count ?? 0)
+                                    </td>
+                                </tr>
+                            }
                         }
                     </tbody>
                 </table>
             </div>
-            <div class="widget-footer-link">
-                <a asp-controller="AcademicYears" asp-action="Index">Xem tất cả lớp học <i class="bi bi-arrow-right-short"></i></a>
-            </div>
         </div>
-
-        <!-- Widget 2: Nội dung học tập -->
-        <div class="card-widget widget-content-stats">
-            <div class="widget-header">
-                <h3>Nội dung học tập</h3>
-            </div>
-            <!-- Grid 4 stats nhỏ trên cùng -->
-            <div class="content-stats-top-grid">
-                <div class="content-stat-item">
-                    <div class="cs-icon bg-primary-light text-primary">
-                        <i class="bi bi-journal-album"></i>
-                    </div>
-                    <div class="cs-info">
-                        <span class="cs-title">Khóa học</span>
-                        <span class="cs-val">@ViewBag.TotalCoursesCount</span>
-                        <span class="cs-sub">@ViewBag.ActiveCoursesCount đang hoạt động</span>
-                    </div>
-                </div>
-
-                <div class="content-stat-item">
-                    <div class="cs-icon bg-success-light text-success">
-                        <i class="bi bi-journal-text"></i>
-                    </div>
-                    <div class="cs-info">
-                        <span class="cs-title">Bài học</span>
-                        <span class="cs-val">@ViewBag.TotalLessonsCount</span>
-                        <span class="cs-sub">@ViewBag.ActiveLessonsCount đã xuất bản</span>
-                    </div>
-                </div>
-
-                <div class="content-stat-item">
-                    <div class="cs-icon bg-warning-light text-warning">
-                        <i class="bi bi-question-circle"></i>
-                    </div>
-                    <div class="cs-info">
-                        <span class="cs-title">Quiz</span>
-                        <span class="cs-val">@ViewBag.TotalQuizzesCount</span>
-                        <span class="cs-sub">@ViewBag.ActiveQuizzesCount đang hoạt động</span>
-                    </div>
-                </div>
-
-                <div class="content-stat-item">
-                    <div class="cs-icon bg-secondary-light text-secondary">
-                        <i class="bi bi-controller"></i>
-                    </div>
-                    <div class="cs-info">
-                        <span class="cs-title">Mini Game</span>
-                        <span class="cs-val">@ViewBag.TotalMinigamesCount</span>
-                        <span class="cs-sub">@ViewBag.ActiveMinigamesCount đang hoạt động</span>
-                    </div>
-                </div>
-            </div>
-
-            <!-- List Top khóa học -->
-            <div class="top-courses-usage">
-                <h4>Top khóa học theo mức độ sử dụng</h4>
-                <div class="course-usage-list">
-                    @if (ViewBag.TopCoursesByUse != null && ((List<CourseUseViewModel>)ViewBag.TopCoursesByUse).Any())
-                    {
-                        int rank = 1;
-                        foreach (var cu in (List<CourseUseViewModel>)ViewBag.TopCoursesByUse)
-                        {
-                            <div class="course-usage-item">
-                                <span class="course-rank">@rank</span>
-                                <div class="course-use-details">
-                                    <div class="course-use-header">
-                                        <span class="course-use-name">@cu.CourseName</span>
-                                        <span class="course-use-stats">@cu.StudentCount học sinh <strong>(@cu.UsagePercentage%)</strong></span>
-                                    </div>
-                                    <div class="progress custom-progress-small">
-                                        <div class="progress-bar bg-primary" role="progressbar" style="width: @(cu.UsagePercentage)%;" aria-valuenow="@cu.UsagePercentage" aria-valuemin="0" aria-valuemax="100"></div>
-                                    </div>
-                                </div>
-                            </div>
-                            rank++;
-                        }
-                    }
-                    else
-                    {
-                        // Mock data preview matching reference UI
-                        <div class="course-usage-item">
-                            <span class="course-rank">1</span>
-                            <div class="course-use-details">
-                                <div class="course-use-header">
-                                    <span class="course-use-name">Starter English</span>
-                                    <span class="course-use-stats">186 học sinh <strong>(92%)</strong></span>
-                                </div>
-                                <div class="progress custom-progress-small">
-                                    <div class="progress-bar bg-primary" role="progressbar" style="width: 92%;" aria-valuenow="92" aria-valuemin="0" aria-valuemax="100"></div>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="course-usage-item">
-                            <span class="course-rank">2</span>
-                            <div class="course-use-details">
-                                <div class="course-use-header">
-                                    <span class="course-use-name">Basic Grammar</span>
-                                    <span class="course-use-stats">112 học sinh <strong>(84%)</strong></span>
-                                </div>
-                                <div class="progress custom-progress-small">
-                                    <div class="progress-bar bg-primary" role="progressbar" style="width: 84%;" aria-valuenow="84" aria-valuemin="0" aria-valuemax="100"></div>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="course-usage-item">
-                            <span class="course-rank">3</span>
-                            <div class="course-use-details">
-                                <div class="course-use-header">
-                                    <span class="course-use-name">Daily Conversation</span>
-                                    <span class="course-use-stats">75 học sinh <strong>(61%)</strong></span>
-                                </div>
-                                <div class="progress custom-progress-small">
-                                    <div class="progress-bar bg-primary" role="progressbar" style="width: 61%;" aria-valuenow="61" aria-valuemin="0" aria-valuemax="100"></div>
-                                </div>
-                            </div>
-                        </div>
-                    }
-                </div>
-            </div>
-        </div>
-
     </div>
+
+
 
     <!-- Thao tác nhanh -->
     <div class="quick-actions-section">
@@ -565,127 +284,3 @@
         </div>
     </div>
 </div>
-
-@section Scripts
-{
-    <!-- Load Chart.js CDN -->
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-
-    <script>
-        document.addEventListener("DOMContentLoaded", function () {
-            // Retrieve dynamic data from ViewBag
-            const trendMonths = @Html.Raw(Json.Serialize(ViewBag.TrendMonths)) || ['Tháng 1', 'Tháng 2', 'Tháng 3', 'Tháng 4', 'Tháng 5', 'Tháng 6'];
-            const lessonTrend = @Html.Raw(Json.Serialize(ViewBag.LessonTrend)) || [620, 780, 850, 980, 1150, 1254];
-            const quizTrend = @Html.Raw(Json.Serialize(ViewBag.QuizTrend)) || [1800, 2100, 2300, 2700, 3200, 3912];
-
-            const pctCompleted = @(ViewBag.PctCompleted ?? 58);
-            const pctInProgress = @(ViewBag.PctInProgress ?? 31);
-            const pctNotStarted = @(ViewBag.PctNotStarted ?? 11);
-
-            // Chart 1: Completion Trend (Line Chart)
-            const trendCtx = document.getElementById('trendLineChart').getContext('2d');
-            
-            // Adjust mock trend line data if real data is empty
-            const finalLessonData = lessonTrend.every(v => v === 0) ? [620, 780, 850, 980, 1150, 1254] : lessonTrend;
-            const finalQuizData = quizTrend.every(v => v === 0) ? [1800, 2100, 2300, 2700, 3200, 3912] : quizTrend;
-
-            new Chart(trendCtx, {
-                type: 'line',
-                data: {
-                    labels: trendMonths,
-                    datasets: [
-                        {
-                            label: 'Bài học hoàn thành',
-                            data: finalLessonData,
-                            borderColor: '#3b82f6',
-                            backgroundColor: '#eff6ff',
-                            borderWidth: 2,
-                            tension: 0.3,
-                            pointBackgroundColor: '#3b82f6',
-                            pointRadius: 4
-                        },
-                        {
-                            label: 'Quiz hoàn thành',
-                            data: finalQuizData,
-                            borderColor: '#10b981',
-                            backgroundColor: '#ecfdf5',
-                            borderWidth: 2,
-                            tension: 0.3,
-                            pointBackgroundColor: '#10b981',
-                            pointRadius: 4
-                        }
-                    ]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: {
-                        legend: {
-                            display: true,
-                            position: 'top',
-                            labels: {
-                                boxWidth: 12,
-                                boxHeight: 12,
-                                usePointStyle: true,
-                                font: {
-                                    size: 11,
-                                    weight: '500'
-                                }
-                            }
-                        }
-                    },
-                    scales: {
-                        y: {
-                            grid: {
-                                color: '#f1f5f9'
-                            },
-                            ticks: {
-                                color: '#64748b',
-                                font: {
-                                    size: 10
-                                }
-                            }
-                        },
-                        x: {
-                            grid: {
-                                display: false
-                            },
-                            ticks: {
-                                color: '#64748b',
-                                font: {
-                                    size: 10
-                                }
-                            }
-                        }
-                    }
-                }
-            });
-
-            // Chart 2: Completion Rate Donut
-            const donutCtx = document.getElementById('completionDonutChart').getContext('2d');
-            new Chart(donutCtx, {
-                type: 'doughnut',
-                data: {
-                    labels: ['Hoàn thành', 'Đang học', 'Chưa bắt đầu'],
-                    datasets: [{
-                        data: [pctCompleted, pctInProgress, pctNotStarted],
-                        backgroundColor: ['#3b82f6', '#10b981', '#f97316'],
-                        hoverOffset: 4,
-                        borderWidth: 3,
-                        borderColor: '#ffffff'
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    cutout: '65%',
-                    plugins: {
-                        legend: {
-                            display: false // We use our custom legend in HTML
-                        }
-                    }
-                }
-            });
-        });
-    </script>
-}

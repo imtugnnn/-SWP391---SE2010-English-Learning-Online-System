@@ -1,4 +1,7 @@
+//Create by TungDPL
+//Last update: 7/21/2026
 using EnglishLearningOnlineSystem.Models;
+using EnglishLearningOnlineSystem.ViewModels.Admin;
 
 namespace EnglishLearningOnlineSystem.Repositories.Interfaces;
 
@@ -15,4 +18,6 @@ public interface IUserRepository
     Task DeleteAsync(User user);
 
     Task AddStudentProfileAsync(StudentProfile studentProfile);
+    Task<UserStatsViewModel> GetUserStatsAsync(DateTime thisMonthStart, DateTime lastMonthStart);
 }
+

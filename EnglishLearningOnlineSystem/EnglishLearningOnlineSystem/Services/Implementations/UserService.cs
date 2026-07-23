@@ -1,8 +1,9 @@
-﻿using EnglishLearningOnlineSystem.Models;
+using EnglishLearningOnlineSystem.Models;
 using EnglishLearningOnlineSystem.Repositories.Interfaces;
 using EnglishLearningOnlineSystem.Services.Interfaces;
 using EnglishLearningOnlineSystem.Services.Models;
 using EnglishLearningOnlineSystem.ViewModels;
+using EnglishLearningOnlineSystem.ViewModels.Admin;
 
 namespace EnglishLearningOnlineSystem.Services.Implementations;
 
@@ -29,10 +30,12 @@ public class UserService : IUserService
     public async Task<UserServiceResult<int>> CreateAsync(UserCreateViewModel vm)
     {
         if (vm.RoleId <= 0) return UserServiceResult<int>.Fail("Role is required.");
+        if (vm.RoleId == 2) return UserServiceResult<int>.Fail("Không được phép tạo tài khoản có vai trò Admin.");
 
         if (await _userRepo.UsernameExistsAsync(vm.Username))
             return UserServiceResult<int>.Fail("Username already exists.");
 
+        // BR-20: Email addresses must be unique.
         if (await _userRepo.EmailExistsAsync(vm.Email))
             return UserServiceResult<int>.Fail("Email already exists.");
 
@@ -55,11 +58,15 @@ public class UserService : IUserService
         var existing = await _userRepo.GetByIdAsync(vm.Id);
         if (existing == null) return UserServiceResult<object>.Fail("User not found.");
 
+        if (existing.RoleId == 2 || vm.RoleId == 2)
+            return UserServiceResult<object>.Fail("Không được phép chỉnh sửa hoặc gán vai trò Admin.");
+
         // cách B: chỉ check trùng nếu có thay đổi
         if (!string.Equals(existing.Username, vm.Username, StringComparison.Ordinal)
             && await _userRepo.UsernameExistsAsync(vm.Username))
             return UserServiceResult<object>.Fail("Username already exists.");
 
+        // BR-20: Email addresses must be unique.
         if (!string.Equals(existing.Email, vm.Email, StringComparison.OrdinalIgnoreCase)
             && await _userRepo.EmailExistsAsync(vm.Email))
             return UserServiceResult<object>.Fail("Email already exists.");
@@ -85,7 +92,28 @@ public class UserService : IUserService
         var existing = await _userRepo.GetByIdAsync(id);
         if (existing == null) return UserServiceResult<object>.Fail("User not found.");
 
+        if (existing.RoleId == 2)
+            return UserServiceResult<object>.Fail("Không được phép xóa tài khoản Admin.");
+
         await _userRepo.DeleteAsync(existing);
         return UserServiceResult<object>.Ok(null);
+    }
+
+    public async Task<UserServiceResult<UserManagementViewModel>> GetUserManagementDataAsync()
+    {
+        var now = DateTime.Now;
+        var thisMonthStart = new DateTime(now.Year, now.Month, 1);
+        var lastMonthStart = thisMonthStart.AddMonths(-1);
+
+        var users = await _userRepo.GetAllAsync();
+        var stats = await _userRepo.GetUserStatsAsync(thisMonthStart, lastMonthStart);
+
+        var vm = new UserManagementViewModel
+        {
+            Users = users,
+            Stats = stats
+        };
+
+        return UserServiceResult<UserManagementViewModel>.Ok(vm);
     }
 }

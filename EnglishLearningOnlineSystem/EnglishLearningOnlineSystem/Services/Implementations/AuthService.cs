@@ -22,21 +22,54 @@ public class AuthService : IAuthService
         var email = model.Email.Trim();
         var user = await _userRepository.FindByEmailAsync(email);
 
+        //Kiểm tra nếu tài khoản chưa được đăng ký
         if (user == null)
         {
             return AuthServiceResult.Failure((nameof(model.Email), "Email chưa được đăng ký."));
         }
 
+        // BR-19: Inactive accounts cannot log in.
         if (!user.IsActive)
         {
             return AuthServiceResult.Failure((string.Empty, "Tài khoản của bạn đã bị vô hiệu hóa. Vui lòng liên hệ quản trị viên."));
         }
-
-        if (!BCrypt.Net.BCrypt.Verify(model.Password, user.Password))
+        
+        //Kiểm tra nếu tài khoản dang bị khóa do nhập sai 5 lần
+        if (user.LockoutEnd.HasValue && user.LockoutEnd.Value > DateTime.UtcNow)
         {
-            return AuthServiceResult.Failure((nameof(model.Password), "Mật khẩu không chính xác."));
+            var remainingMinutes = (int)Math.Ceiling((user.LockoutEnd.Value - DateTime.UtcNow).TotalMinutes);
+            return AuthServiceResult.Failure((string.Empty, $"Tài khoản của bạn đang tạm thời bị khóa do đăng nhập sai nhiều lần. Vui lòng thử lại sau {remainingMinutes} phút."));
         }
 
+        bool isPasswordValid = false;
+        try
+        {
+            isPasswordValid = BCrypt.Net.BCrypt.Verify(model.Password, user.Password);
+        }
+        catch
+        {
+            isPasswordValid = false;
+        }
+
+        //Nếu tài khoản nhập sai mật khẩu, lưu 1 lần thử, sai 5 lần khóa 30p
+        if (!isPasswordValid)
+        {
+            user.AccessFailedCount++;
+            if (user.AccessFailedCount >= 5)
+            {
+                user.LockoutEnd = DateTime.UtcNow.AddMinutes(30);
+                await _userRepository.UpdateAsync(user);
+                return AuthServiceResult.Failure((nameof(model.Password), "Mật khẩu không chính xác. Tài khoản đã bị khóa 30 phút vì đăng nhập sai 5 lần."));
+            }
+            else
+            {
+                await _userRepository.UpdateAsync(user);
+                return AuthServiceResult.Failure((nameof(model.Password), $"Mật khẩu không chính xác. Bạn còn {5 - user.AccessFailedCount} lần thử."));
+            }
+        }
+
+        user.AccessFailedCount = 0;
+        user.LockoutEnd = null;
         user.LastLoginAt = DateTime.UtcNow;
         await _userRepository.UpdateAsync(user);
 
@@ -50,6 +83,7 @@ public class AuthService : IAuthService
 
         if (user != null)
         {
+            // BR-19: Inactive accounts cannot log in.
             if (!user.IsActive)
             {
                 return (AuthServiceResult.Failure((string.Empty, "Tài khoản của bạn đã bị vô hiệu hóa. Vui lòng liên hệ quản trị viên.")), null);
@@ -81,6 +115,7 @@ public class AuthService : IAuthService
             errors.Add((nameof(model.Username), "Tên đăng nhập đã tồn tại."));
         }
 
+        // BR-20: Email addresses must be unique.
         if (await _userRepository.EmailExistsAsync(email))
         {
             errors.Add((nameof(model.Email), "Email đã được đăng ký. Vui lòng sử dụng chức năng Đăng nhập bằng Google."));
