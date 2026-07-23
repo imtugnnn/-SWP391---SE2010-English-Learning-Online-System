@@ -107,13 +107,40 @@
         border-radius: 18px;
         padding: 20px;
         height: 100%;
+    }
+
+    .metric-card {
+        display: block;
+        color: inherit;
+        text-decoration: none;
+        cursor: pointer;
         transition: border-color .2s, box-shadow .2s, transform .15s;
     }
 
-    .summary-card:hover {
+    .metric-card:hover,
+    .metric-card:focus-visible {
         border-color: #38bdf8;
         box-shadow: 0 4px 16px rgba(14,165,233,.13);
         transform: translateY(-2px);
+        color: inherit;
+        outline: none;
+    }
+
+    .metric-card:active {
+        transform: translateY(0);
+    }
+
+    .metric-link-hint {
+        display: block;
+        color: #0284c7;
+        font-size: .78rem;
+        font-weight: 800;
+        margin-top: 8px;
+    }
+
+    .info-card,
+    .metric-static {
+        cursor: default;
     }
 
     .summary-label {
@@ -266,28 +293,28 @@
 
                 <div class="row g-3 mb-4">
                     <div class="col-md-3">
-                        <div class="summary-card">
+                        <div class="summary-card info-card">
                             <div class="info-label">Tên lớp</div>
                             <p class="info-value">@Model.ClassName</p>
                         </div>
                     </div>
 
                     <div class="col-md-3">
-                        <div class="summary-card">
+                        <div class="summary-card info-card">
                             <div class="info-label">Khối lớp</div>
                             <p class="info-value">@Model.GradeLevel</p>
                         </div>
                     </div>
 
                     <div class="col-md-3">
-                        <div class="summary-card">
+                        <div class="summary-card info-card">
                             <div class="info-label">Năm học</div>
                             <p class="info-value">@Model.AcademicYear</p>
                         </div>
                     </div>
 
                     <div class="col-md-3">
-                        <div class="summary-card">
+                        <div class="summary-card info-card">
                             <div class="info-label">Giáo viên</div>
                             <p class="info-value">@Model.TeacherName</p>
                         </div>
@@ -296,31 +323,45 @@
 
                 <div class="row g-3">
                     <div class="col-md-3">
-                        <div class="summary-card">
+                        <a asp-controller="Teacher"
+                           asp-action="ManageStudentList"
+                           asp-route-classId="@Model.ClassId"
+                           class="summary-card metric-card">
                             <div class="summary-label">Tổng học sinh</div>
                             <p class="summary-value">@Model.StudentCount</p>
-                        </div>
+                            <span class="metric-link-hint">Xem danh sách →</span>
+                        </a>
                     </div>
 
                     <div class="col-md-3">
-                        <div class="summary-card">
+                        <a asp-controller="Teacher"
+                           asp-action="AssignmentOverview"
+                           asp-route-classId="@Model.ClassId"
+                           class="summary-card metric-card">
                             <div class="summary-label">Bài đã giao</div>
                             <p class="summary-value">@Model.AssignmentCount</p>
-                        </div>
+                            <span class="metric-link-hint">Xem bài giao →</span>
+                        </a>
                     </div>
 
                     <div class="col-md-3">
-                        <div class="summary-card">
+                        <div class="summary-card metric-static">
                             <div class="summary-label">Tỉ lệ hoàn thành</div>
                             <p class="summary-value">@Model.CompletionRate%</p>
                         </div>
                     </div>
 
                     <div class="col-md-3">
-                        <div class="summary-card">
+                        <a asp-controller="Teacher"
+                           asp-action="StudentsNeedSupport"
+                           asp-route-classFilter="@Model.ClassId"
+                           asp-route-reason="overdue"
+                           asp-route-sortBy="overdue"
+                           class="summary-card metric-card">
                             <div class="summary-label">Chậm tiến độ</div>
                             <p class="summary-value">@Model.StudentsBehindSchedule</p>
-                        </div>
+                            <span class="metric-link-hint">Xem học sinh →</span>
+                        </a>
                     </div>
                 </div>
             </div>
@@ -334,7 +375,7 @@
                    asp-action="ManageStudentList"
                    asp-route-classId="@Model.ClassId"
                    class="btn-teacher">
-                    Quản lý học sinh
+                    Xem danh sách học sinh
                 </a>
             </div>
 

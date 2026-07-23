@@ -242,7 +242,7 @@
                         </div>
 
                         <h1 class="page-title">
-                            Quản lý học sinh lớp <span>@Model.ClassName</span>
+                            Danh sách học sinh lớp <span>@Model.ClassName</span>
                         </h1>
 
                         <p class="page-subtitle">
@@ -322,10 +322,16 @@
                             </select>
                         </div>
 
-                        <div class="col-md-2 d-grid">
+                        <div class="col-md-2 d-grid gap-2">
                             <button type="submit" class="btn-teacher">
                                 Lọc
                             </button>
+                            <a asp-controller="Teacher"
+                               asp-action="ManageStudentList"
+                               asp-route-classId="@Model.ClassId"
+                               class="btn-teacher-outline text-center">
+                                Đặt lại
+                            </a>
                         </div>
                     </div>
                 </form>

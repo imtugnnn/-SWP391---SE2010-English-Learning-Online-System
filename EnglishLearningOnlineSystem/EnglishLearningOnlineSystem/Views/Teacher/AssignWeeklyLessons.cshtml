@@ -302,6 +302,19 @@
                             </div>
                         </div>
                     </div>
+
+                    <div class="summary-card mb-4">
+                        <label asp-for="Status" class="form-label">Trạng thái bài giao</label>
+                        <select asp-for="Status" class="form-select" id="assignmentStatus">
+                            <option value="Published">Xuất bản ngay</option>
+                            <option value="Draft">Lưu bản nháp</option>
+                        </select>
+                        <span asp-validation-for="Status" class="text-danger small fw-semibold"></span>
+                        <div class="text-muted small mt-2" id="assignmentStatusHelp">
+                            Bản nháp không hiển thị cho học sinh và không gửi thông báo.
+                        </div>
+                    </div>
+
                     @if (Model.HasCourse)
                     {
                         <div class="summary-card mb-4">
@@ -351,7 +364,7 @@
 
                             <span class="page-badge mb-0">
                                 <span class="page-badge-dot"></span>
-                                @Model.Lessons.Count bài học
+                                <span id="selectedLessonCount">@Model.SelectedLessonIds.Count</span>/@Model.Lessons.Count bài học đã chọn
                             </span>
                         </div>
 
@@ -361,7 +374,12 @@
                                 <table class="table table-hover align-middle">
                                     <thead>
                                         <tr>
-                                            <th>Chọn</th>
+                                            <th>
+                                                <input class="form-check-input"
+                                                       type="checkbox"
+                                                       id="selectAllLessons"
+                                                       aria-label="Chọn tất cả bài học" />
+                                            </th>
                                             <th>Bài học</th>
                                             <th>Chủ đề</th>
                                             <th>Thời lượng</th>
@@ -417,8 +435,10 @@
 
                         @if (Model.Lessons.Any())
                         {
-                            <button type="submit" class="btn-teacher">
-                                Giao bài học
+                            <button type="submit" class="btn-teacher" id="assignmentSubmitButton">
+                                @(Model.Status == EnglishLearningOnlineSystem.Models.AssignmentStatus.Draft
+                                    ? "Lưu bản nháp"
+                                    : "Giao bài ngay")
                             </button>
                         }
                     </div>
@@ -431,6 +451,50 @@
 
 @section Scripts {
     <partial name="_ValidationScriptsPartial" />
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            const statusSelect = document.getElementById("assignmentStatus");
+            const statusHelp = document.getElementById("assignmentStatusHelp");
+            const submitButton = document.getElementById("assignmentSubmitButton");
+            const selectAll = document.getElementById("selectAllLessons");
+            const lessonCheckboxes = Array.from(document.querySelectorAll(".lesson-check"));
+            const selectedCount = document.getElementById("selectedLessonCount");
+
+            const updateStatusPresentation = function () {
+                if (!statusSelect || !submitButton) {
+                    return;
+                }
+
+                const isDraft = statusSelect.value === "Draft";
+                submitButton.textContent = isDraft ? "Lưu bản nháp" : "Giao bài ngay";
+                statusHelp.textContent = isDraft
+                    ? "Bản nháp không hiển thị cho học sinh và không gửi thông báo."
+                    : "Xuất bản ngay sẽ gửi thông báo đến các học sinh đang hoạt động.";
+            };
+
+            const updateLessonSelection = function () {
+                const checkedCount = lessonCheckboxes.filter(item => item.checked).length;
+                if (selectedCount) {
+                    selectedCount.textContent = checkedCount.toString();
+                }
+
+                if (selectAll) {
+                    selectAll.checked = lessonCheckboxes.length > 0 && checkedCount === lessonCheckboxes.length;
+                    selectAll.indeterminate = checkedCount > 0 && checkedCount < lessonCheckboxes.length;
+                }
+            };
+
+            statusSelect?.addEventListener("change", updateStatusPresentation);
+            lessonCheckboxes.forEach(item => item.addEventListener("change", updateLessonSelection));
+            selectAll?.addEventListener("change", function () {
+                lessonCheckboxes.forEach(item => item.checked = selectAll.checked);
+                updateLessonSelection();
+            });
+
+            updateStatusPresentation();
+            updateLessonSelection();
+        });
+    </script>
 
     @if (!Model.HasCourse)
     {

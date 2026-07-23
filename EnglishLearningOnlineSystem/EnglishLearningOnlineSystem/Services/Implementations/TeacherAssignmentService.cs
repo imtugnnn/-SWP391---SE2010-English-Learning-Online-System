@@ -1,4 +1,5 @@
 ﻿using EnglishLearningOnlineSystem.Models;
+using EnglishLearningOnlineSystem.Data;
 using EnglishLearningOnlineSystem.Repositories.Interfaces;
 using EnglishLearningOnlineSystem.Services.Interfaces;
 using EnglishLearningOnlineSystem.ViewModels;
@@ -9,13 +10,16 @@ public class TeacherAssignmentService : ITeacherAssignmentService
 {
     private readonly IClassRepository _classRepository;
     private readonly IAssignmentRepository _assignmentRepository;
+    private readonly AppDbContext _context;
 
     public TeacherAssignmentService(
         IClassRepository classRepository,
-        IAssignmentRepository assignmentRepository)
+        IAssignmentRepository assignmentRepository,
+        AppDbContext context)
     {
         _classRepository = classRepository;
         _assignmentRepository = assignmentRepository;
+        _context = context;
     }
 
     public async Task<AssignWeeklyLessonViewModel?> GetAssignWeeklyLessonsFormAsync(
@@ -92,17 +96,16 @@ public class TeacherAssignmentService : ITeacherAssignmentService
         }
 
         var courseId = classEntity.CourseId ?? model.SelectedCourseId.Value;
-
-        if (classEntity.CourseId == null)
-        {
-            await _classRepository.UpdateClassCourseAsync(
-                classEntity.ClassId,
-                courseId);
-        }
-
         var selectedLessonIds = model.SelectedLessonIds
             .Distinct()
             .ToList();
+
+        if (!await _assignmentRepository.ValidateLessonsBelongToCourseAsync(
+                courseId,
+                selectedLessonIds))
+        {
+            return false;
+        }
 
         var existingLessonIds = await _assignmentRepository.GetAssignedLessonIdsAsync(
             courseId,
@@ -124,19 +127,51 @@ public class TeacherAssignmentService : ITeacherAssignmentService
             LessonId = lessonId,
             WeekStartDate = model.WeekStartDate,
             DueDate = model.DueDate,
-            IsVisible = true
+            IsVisible = model.Status == AssignmentStatus.Published
         }).ToList();
 
-        await _assignmentRepository.AddWeeklyAssignmentsAsync(assignments);
+        using var transaction = await _context.Database.BeginTransactionAsync();
+        try
+        {
+            if (classEntity.CourseId == null)
+            {
+                await _classRepository.UpdateClassCourseAsync(
+                    classEntity.ClassId,
+                    courseId);
+            }
 
-        return true;
+            await _assignmentRepository.AddWeeklyAssignmentsAsync(assignments);
+
+            if (model.Status == AssignmentStatus.Published)
+            {
+                var students = await _classRepository.GetActiveStudentsByClassIdAsync(model.ClassId);
+                var notifications = students.Select(student => new Notification
+                {
+                    UserId = student.StudentId,
+                    Type = "NEW_ASSIGNMENT",
+                    Message = $"Giáo viên vừa giao bài học mới từ {model.WeekStartDate:dd/MM/yyyy} đến {model.DueDate:dd/MM/yyyy}.",
+                    IsRead = false,
+                    CreateAt = DateTime.UtcNow
+                }).ToList();
+
+                await _classRepository.AddNotificationsAsync(notifications);
+            }
+            await _context.SaveChangesAsync();
+            await transaction.CommitAsync();
+            return true;
+        }
+        catch
+        {
+            await transaction.RollbackAsync();
+            throw;
+        }
     }
 
     private async Task<Class?> ValidateTeacherAccessAsync(int classId, int teacherId)
     {
         var classEntity = await _classRepository.GetClassDetailByIdAsync(classId);
 
-        if (classEntity == null)
+        if (classEntity == null || classEntity.IsDeleted)
         {
             return null;
         }
@@ -156,7 +191,13 @@ public class TeacherAssignmentService : ITeacherAssignmentService
             return false;
         }
 
-        if (model.DueDate < model.WeekStartDate)
+        if (model.DueDate <= model.WeekStartDate)
+        {
+            return false;
+        }
+
+        if (model.Status != AssignmentStatus.Draft &&
+            model.Status != AssignmentStatus.Published)
         {
             return false;
         }
@@ -181,8 +222,9 @@ public class TeacherAssignmentService : ITeacherAssignmentService
         var assignments = await _assignmentRepository.GetAssignmentsByCourseIdsAsync(courseIds);
 
         var totalAssignments = assignments.Count;
-        var activeAssignments = assignments.Count(a => a.DueDate >= DateTime.UtcNow);
-        var expiredAssignments = assignments.Count(a => a.DueDate < DateTime.UtcNow);
+        var draftAssignments = assignments.Count(a => !a.IsVisible);
+        var activeAssignments = assignments.Count(a => a.IsVisible && a.DueDate >= DateTime.UtcNow);
+        var expiredAssignments = assignments.Count(a => a.IsVisible && a.DueDate < DateTime.UtcNow);
 
         var filteredAssignments = ApplyAssignmentStatusFilter(assignments, status);
         filteredAssignments = ApplyAssignmentSorting(filteredAssignments, sortBy);
@@ -214,6 +256,7 @@ public class TeacherAssignmentService : ITeacherAssignmentService
             TotalPages = totalPages,
 
             TotalAssignments = totalAssignments,
+            DraftAssignments = draftAssignments,
             ActiveAssignments = activeAssignments,
             ExpiredAssignments = expiredAssignments,
 
@@ -224,7 +267,9 @@ public class TeacherAssignmentService : ITeacherAssignmentService
                 Topic = a.Lesson?.Topic ?? "Chưa cập nhật",
                 WeekStartDate = a.WeekStartDate,
                 DueDate = a.DueDate,
-                Status = a.DueDate < DateTime.UtcNow ? "Quá hạn" : "Đang hoạt động"
+                Status = !a.IsVisible
+                    ? "Bản nháp"
+                    : a.DueDate < DateTime.UtcNow ? "Quá hạn" : "Đang hoạt động"
             }).ToList()
         };
     }
@@ -237,8 +282,9 @@ public class TeacherAssignmentService : ITeacherAssignmentService
 
         return normalizedStatus switch
         {
-            "active" => assignments.Where(a => a.DueDate >= DateTime.UtcNow).ToList(),
-            "expired" => assignments.Where(a => a.DueDate < DateTime.UtcNow).ToList(),
+            "draft" => assignments.Where(a => !a.IsVisible).ToList(),
+            "active" => assignments.Where(a => a.IsVisible && a.DueDate >= DateTime.UtcNow).ToList(),
+            "expired" => assignments.Where(a => a.IsVisible && a.DueDate < DateTime.UtcNow).ToList(),
             _ => assignments
         };
     }

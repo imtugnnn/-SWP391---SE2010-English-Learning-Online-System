@@ -495,6 +495,9 @@ public class StudentManagementService : IStudentManagementService
             InProgressLessons = inProgressLessons,
             AverageQuizScore = averageQuizScore,
             TotalXPEarned = totalXPEarned,
+            StudyDurationMinutes = progressRecords
+                .Where(p => string.Equals(p.CompletionStatus, "Completed", StringComparison.OrdinalIgnoreCase))
+                .Sum(p => p.Lesson?.EstimatedMinutes ?? 0),
 
             LessonProgresses = BuildLessonProgressViewModels(progressRecords),
             Feedbacks = BuildFeedbackViewModels(feedbacks)
@@ -632,6 +635,14 @@ public class StudentManagementService : IStudentManagementService
         };
 
         await _classRepository.AddTeacherFeedbackAsync(feedback);
+        await _classRepository.AddNotificationAsync(new Notification
+        {
+            UserId = model.StudentId,
+            Type = "TEACHER_FEEDBACK",
+            Message = "Giáo viên vừa gửi phản hồi cho bạn. Hãy kiểm tra ngay!",
+            IsRead = false,
+            CreateAt = DateTime.UtcNow
+        });
 
         return true;
     }

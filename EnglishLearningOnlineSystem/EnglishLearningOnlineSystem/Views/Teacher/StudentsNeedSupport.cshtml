@@ -344,8 +344,13 @@
                             </select>
                         </div>
 
-                        <div class="col-md-2 d-grid">
+                        <div class="col-md-2 d-grid gap-2">
                             <button type="submit" class="btn-teacher">Lọc</button>
+                            <a asp-controller="Teacher"
+                               asp-action="StudentsNeedSupport"
+                               class="btn-teacher-outline text-center">
+                                Đặt lại
+                            </a>
                         </div>
                     </div>
                 </form>

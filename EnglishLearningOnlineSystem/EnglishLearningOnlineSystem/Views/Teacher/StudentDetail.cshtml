@@ -388,31 +388,38 @@
                 </div>
 
                 <div class="row g-3 mt-1">
-                    <div class="col-md-3">
+                    <div class="col-md">
                         <div class="summary-card">
                             <div class="summary-label">Bài đã hoàn thành</div>
                             <p class="summary-value">@Model.CompletedLessons</p>
                         </div>
                     </div>
 
-                    <div class="col-md-3">
+                    <div class="col-md">
                         <div class="summary-card">
                             <div class="summary-label">Đang học</div>
                             <p class="summary-value">@Model.InProgressLessons</p>
                         </div>
                     </div>
 
-                    <div class="col-md-3">
+                    <div class="col-md">
                         <div class="summary-card">
                             <div class="summary-label">Điểm quiz TB</div>
                             <p class="summary-value">@Model.AverageQuizScore</p>
                         </div>
                     </div>
 
-                    <div class="col-md-3">
+                    <div class="col-md">
                         <div class="summary-card">
                             <div class="summary-label">XP đã nhận</div>
                             <p class="summary-value">@Model.TotalXPEarned</p>
+                        </div>
+                    </div>
+
+                    <div class="col-md">
+                        <div class="summary-card">
+                            <div class="summary-label">Thời gian học</div>
+                            <p class="summary-value">@Model.StudyDurationMinutes phút</p>
                         </div>
                     </div>
                 </div>

@@ -1,5 +1,11 @@
 ﻿<!DOCTYPE html>
-<html lang="en">
+@{
+    var currentAction = ViewContext.RouteData.Values["action"]?.ToString();
+    var isDashboardSection = currentAction is "Dashboard" or "ClassDetail";
+    var isAssignmentSection = currentAction is "AssignmentOverview" or "AssignWeeklyLessons";
+    var isStudentSection = currentAction is "StudentsNeedSupport" or "ManageStudentList" or "StudentDetail" or "ProvideFeedback";
+}
+<html lang="vi">
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -10,6 +16,7 @@
     <link rel="stylesheet" href="~/EnglishLearningOnlineSystem.styles.css" asp-append-version="true" />
 </head>
 <body>
+    <a class="teacher-skip-link" href="#teacher-main-content">Đi tới nội dung chính</a>
     <header class="teacher-navbar">
         <nav class="teacher-navbar__inner" aria-label="Điều hướng giáo viên">
             <a class="teacher-brand" asp-controller="Teacher" asp-action="Dashboard">
@@ -17,10 +24,29 @@
                 <span>Teacher</span>
             </a>
 
-            <div class="teacher-nav-links">
-                <a asp-controller="Teacher" asp-action="Dashboard">Tổng quan</a>
-                <a asp-controller="Teacher" asp-action="AssignmentOverview">Bài đã giao</a>
-                <a asp-controller="Teacher" asp-action="StudentsNeedSupport">Học sinh cần hỗ trợ</a>
+            <button class="teacher-nav-toggle"
+                    type="button"
+                    data-bs-toggle="collapse"
+                    data-bs-target="#teacherNavigation"
+                    aria-controls="teacherNavigation"
+                    aria-expanded="false"
+                    aria-label="Mở hoặc đóng menu giáo viên">
+                <span></span><span></span><span></span>
+            </button>
+
+            <div class="teacher-nav-links collapse" id="teacherNavigation">
+                <a asp-controller="Teacher"
+                   asp-action="Dashboard"
+                   class="@(isDashboardSection ? "active" : null)"
+                   aria-current="@(isDashboardSection ? "page" : null)">Tổng quan</a>
+                <a asp-controller="Teacher"
+                   asp-action="AssignmentOverview"
+                   class="@(isAssignmentSection ? "active" : null)"
+                   aria-current="@(isAssignmentSection ? "page" : null)">Bài đã giao</a>
+                <a asp-controller="Teacher"
+                   asp-action="StudentsNeedSupport"
+                   class="@(isStudentSection ? "active" : null)"
+                   aria-current="@(isStudentSection ? "page" : null)">Học sinh cần hỗ trợ</a>
                 <form asp-controller="Auth" asp-action="Logout" method="post" class="teacher-logout-form">
                     @Html.AntiForgeryToken()
                     <button type="submit" class="teacher-logout">Đăng xuất</button>
@@ -29,7 +55,7 @@
         </nav>
     </header>
 
-    <main role="main" class="teacher-main">
+    <main id="teacher-main-content" role="main" class="teacher-main" tabindex="-1">
         @RenderBody()
     </main>
 
