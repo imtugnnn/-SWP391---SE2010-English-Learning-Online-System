@@ -27,8 +27,13 @@ public class TeacherController : Controller
         _teacherAssignmentService = teacherAssignmentService;
         _teacherDashboardService = teacherDashboardService;
     }
+
+    /// <summary>
+    /// Hiển thị trang tổng quan của giáo viên cùng số liệu lớp học, bài giao và thông báo.
+    /// </summary>
     public async Task<IActionResult> Dashboard()
     {
+        // Chỉ cho phép tài khoản giáo viên đã đăng nhập truy cập chức năng.
         var teacherId = GetCurrentUserId();
 
         if (teacherId == null)
@@ -44,6 +49,11 @@ public class TeacherController : Controller
 
         return View(viewModel);
     }
+
+    /// <summary>
+    /// Hiển thị chi tiết một lớp do giáo viên hiện tại phụ trách.
+    /// </summary>
+    /// <param name="classId">Mã lớp cần xem.</param>
     public async Task<IActionResult> ClassDetail(int classId)
     {
         var teacherId = GetCurrentUserId();
@@ -63,6 +73,10 @@ public class TeacherController : Controller
         return View(viewModel);
     }
 
+    /// <summary>
+    /// Lấy mã người dùng từ session và đồng thời xác nhận người dùng có role Teacher (RoleId = 3).
+    /// </summary>
+    /// <returns>Mã giáo viên hợp lệ; null nếu chưa đăng nhập hoặc không đúng role.</returns>
     private int? GetCurrentUserId()
     {
         var role = HttpContext.Session.GetString("UserRole");
@@ -74,6 +88,10 @@ public class TeacherController : Controller
         var raw = HttpContext.Session.GetString("UserId");
         return int.TryParse(raw, out var id) ? id : null;
     }
+
+    /// <summary>
+    /// Hiển thị danh sách học sinh trong lớp, có hỗ trợ tìm kiếm, lọc, sắp xếp và phân trang.
+    /// </summary>
     public async Task<IActionResult> ManageStudentList(
     int classId,
     string? keyword,
@@ -104,6 +122,9 @@ public class TeacherController : Controller
         return View(viewModel);
     }
 
+    /// <summary>
+    /// Tổng hợp các học sinh cần giáo viên hỗ trợ theo lớp, nguyên nhân và cách sắp xếp.
+    /// </summary>
     public async Task<IActionResult> StudentsNeedSupport(
         string? classFilter,
         string? reason,
@@ -125,6 +146,9 @@ public class TeacherController : Controller
         return View(viewModel);
     }
 
+    /// <summary>
+    /// Hiển thị hồ sơ và tiến độ học tập của một học sinh thuộc lớp giáo viên phụ trách.
+    /// </summary>
     public async Task<IActionResult> StudentDetail(int classId, int studentId)
     {
         var teacherId = GetCurrentUserId();
@@ -146,6 +170,10 @@ public class TeacherController : Controller
 
         return View(viewModel);
     }
+
+    /// <summary>
+    /// Chuẩn bị biểu mẫu để giáo viên gửi phản hồi cho học sinh.
+    /// </summary>
     [HttpGet]
     public async Task<IActionResult> ProvideFeedback(int classId, int studentId)
     {
@@ -168,6 +196,10 @@ public class TeacherController : Controller
 
         return View(viewModel);
     }
+
+    /// <summary>
+    /// Kiểm tra và lưu phản hồi của giáo viên, sau đó quay lại trang chi tiết học sinh.
+    /// </summary>
     [HttpPost]
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> ProvideFeedback(ProvideStudentFeedbackViewModel model)
@@ -204,6 +236,10 @@ public class TeacherController : Controller
                 studentId = model.StudentId
             });
     }
+
+    /// <summary>
+    /// Hiển thị biểu mẫu chọn các bài học sẽ giao cho lớp trong tuần.
+    /// </summary>
     [HttpGet]
     public async Task<IActionResult> AssignWeeklyLessons(int classId, int? selectedCourseId)
     {
@@ -227,6 +263,9 @@ public class TeacherController : Controller
         return View(viewModel);
     }
 
+    /// <summary>
+    /// Kiểm tra dữ liệu và tạo các bài giao tuần ở trạng thái nháp hoặc đã phát hành.
+    /// </summary>
     [HttpPost]
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> AssignWeeklyLessons(AssignWeeklyLessonViewModel model)
@@ -261,6 +300,7 @@ public class TeacherController : Controller
 
         if (!ModelState.IsValid)
         {
+            // Nạp lại danh sách khóa học/bài học để biểu mẫu lỗi vẫn hiển thị đủ dữ liệu.
             var reloadModel = await _teacherAssignmentService.GetAssignWeeklyLessonsFormAsync(
                 model.ClassId,
                 teacherId.Value);
@@ -313,6 +353,10 @@ public class TeacherController : Controller
             ? RedirectToAction(nameof(AssignmentOverview), new { classId = model.ClassId, status = "draft" })
             : RedirectToAction(nameof(ClassDetail), new { classId = model.ClassId });
     }
+
+    /// <summary>
+    /// Hiển thị toàn bộ bài giao của giáo viên, có hỗ trợ lọc theo lớp/trạng thái và phân trang.
+    /// </summary>
     public async Task<IActionResult> AssignmentOverview(
     int? classId,
     string? status,

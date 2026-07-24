@@ -22,6 +22,9 @@ public class TeacherAssignmentService : ITeacherAssignmentService
         _context = context;
     }
 
+    /// <summary>
+    /// Nạp lớp, khóa học và danh sách bài học đã phát hành để tạo biểu mẫu giao bài tuần.
+    /// </summary>
     public async Task<AssignWeeklyLessonViewModel?> GetAssignWeeklyLessonsFormAsync(
     int classId,
     int teacherId,
@@ -74,6 +77,9 @@ public class TeacherAssignmentService : ITeacherAssignmentService
         };
     }
 
+    /// <summary>
+    /// Tạo bài giao cho các bài học hợp lệ và gửi thông báo nếu giáo viên phát hành ngay.
+    /// </summary>
     public async Task<bool> AssignWeeklyLessonsAsync(
     AssignWeeklyLessonViewModel model,
     int teacherId)
@@ -107,6 +113,7 @@ public class TeacherAssignmentService : ITeacherAssignmentService
             return false;
         }
 
+        // Loại bỏ những bài đã được giao trong cùng tuần để tránh tạo dữ liệu trùng.
         var existingLessonIds = await _assignmentRepository.GetAssignedLessonIdsAsync(
             courseId,
             selectedLessonIds,
@@ -130,6 +137,7 @@ public class TeacherAssignmentService : ITeacherAssignmentService
             IsVisible = model.Status == AssignmentStatus.Published
         }).ToList();
 
+        // Việc cập nhật khóa học, tạo bài giao và thông báo phải thành công như một đơn vị.
         using var transaction = await _context.Database.BeginTransactionAsync();
         try
         {
@@ -167,6 +175,9 @@ public class TeacherAssignmentService : ITeacherAssignmentService
         }
     }
 
+    /// <summary>
+    /// Xác nhận lớp tồn tại và thuộc quyền quản lý của giáo viên hiện tại.
+    /// </summary>
     private async Task<Class?> ValidateTeacherAccessAsync(int classId, int teacherId)
     {
         var classEntity = await _classRepository.GetClassDetailByIdAsync(classId);
@@ -184,6 +195,9 @@ public class TeacherAssignmentService : ITeacherAssignmentService
         return classEntity;
     }
 
+    /// <summary>
+    /// Kiểm tra các điều kiện nghiệp vụ cơ bản trước khi lưu bài giao.
+    /// </summary>
     private static bool ValidateAssignmentInput(AssignWeeklyLessonViewModel model)
     {
         if (model.SelectedLessonIds == null || !model.SelectedLessonIds.Any())
@@ -204,6 +218,9 @@ public class TeacherAssignmentService : ITeacherAssignmentService
 
         return true;
     }
+    /// <summary>
+    /// Lấy danh sách bài giao thuộc các lớp của giáo viên, áp dụng bộ lọc và phân trang.
+    /// </summary>
     public async Task<TeacherAssignmentOverviewViewModel> GetAssignmentOverviewAsync(
     int? classId,
     int teacherId,
@@ -274,6 +291,9 @@ public class TeacherAssignmentService : ITeacherAssignmentService
         };
     }
 
+    /// <summary>
+    /// Lọc bài giao theo trạng thái nháp, đang hoạt động hoặc quá hạn.
+    /// </summary>
     private static List<WeeklyAssignment> ApplyAssignmentStatusFilter(
         List<WeeklyAssignment> assignments,
         string? status)
@@ -289,6 +309,9 @@ public class TeacherAssignmentService : ITeacherAssignmentService
         };
     }
 
+    /// <summary>
+    /// Sắp xếp bài giao theo lựa chọn trên màn hình tổng quan.
+    /// </summary>
     private static List<WeeklyAssignment> ApplyAssignmentSorting(
         List<WeeklyAssignment> assignments,
         string? sortBy)
@@ -303,6 +326,7 @@ public class TeacherAssignmentService : ITeacherAssignmentService
         };
     }
 
+    // Chuẩn hóa giá trị bộ lọc để việc so sánh không phụ thuộc hoa/thường.
     private static string NormalizeAssignmentStatus(string? status)
     {
         return string.IsNullOrWhiteSpace(status)
@@ -310,6 +334,7 @@ public class TeacherAssignmentService : ITeacherAssignmentService
             : status.Trim().ToLower();
     }
 
+    // Chuẩn hóa tiêu chí sắp xếp và dùng giá trị mặc định khi đầu vào rỗng.
     private static string NormalizeAssignmentSort(string? sortBy)
     {
         return string.IsNullOrWhiteSpace(sortBy)

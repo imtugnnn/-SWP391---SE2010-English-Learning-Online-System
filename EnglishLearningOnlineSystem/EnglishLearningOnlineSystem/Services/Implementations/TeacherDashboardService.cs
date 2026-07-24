@@ -25,6 +25,9 @@ public class TeacherDashboardService : ITeacherDashboardService
         _context = context;
     }
 
+    /// <summary>
+    /// Tổng hợp dữ liệu dashboard cho giáo viên từ các lớp phụ trách, bài giao và thông báo.
+    /// </summary>
     public async Task<TeacherDashboardViewModel> GetTeacherDashboardAsync(int teacherId)
     {
         var classes = await _classRepository.GetClassesByTeacherIdAsync(teacherId);
@@ -54,6 +57,7 @@ public class TeacherDashboardService : ITeacherDashboardService
 
         foreach (var classEntity in classes)
         {
+            // Tính thống kê riêng từng lớp để hiển thị trong danh sách lớp của dashboard.
             var enrollments = await _classRepository.GetStudentsByClassIdAsync(classEntity.ClassId);
 
             var classAssignments = assignments
