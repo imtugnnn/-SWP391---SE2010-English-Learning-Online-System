@@ -1,5 +1,5 @@
 @* Create by TungDPL *@
-@* Last Update: 7/2/2026 *@
+@* Last Update: 7/23/2026 *@
 @model List<EnglishLearningOnlineSystem.Models.SystemNotification>
 
 @{
@@ -698,8 +698,8 @@
                 const viewBtn = `<button class="btn-action btn-action-view" onclick="openDetailsModal(${n.id})" title="Xem chi tiết"><i class="bi bi-eye"></i></button>`;
                 const editBtn = `<button class="btn-action btn-action-edit" onclick="openEditModal(${n.id})" title="Chỉnh sửa"><i class="bi bi-pencil"></i></button>`;
                 
-                // Show cancel (trash) icon only if not already canceled
-                const deleteBtn = `<button class="btn-action btn-action-delete" onclick="deleteNotification(${n.id})" title="Hủy thông báo" ${n.status === 'Đã hủy' ? 'disabled style="opacity: 0.5; cursor: not-allowed;"' : ''}><i class="bi bi-trash"></i></button>`;
+                // Show cancel (trash) icon only if not already canceled or if already published
+                const deleteBtn = `<button class="btn-action btn-action-delete" onclick="deleteNotification(${n.id})" title="Hủy thông báo" ${(n.status === 'Đã hủy' || n.status === 'Đã phát hành') ? 'disabled style="opacity: 0.5; cursor: not-allowed;"' : ''}><i class="bi bi-trash"></i></button>`;
                 
                 tdActions.innerHTML = `<div class="actions-cell justify-content-center">${viewBtn} ${editBtn} ${deleteBtn}</div>`;
                 tr.appendChild(tdActions);
@@ -968,6 +968,10 @@
             if (!n) return;
             if (n.status === 'Đã hủy') {
                 alert("Thông báo này đã được hủy trước đó.");
+                return;
+            }
+            if (n.status === 'Đã phát hành') {
+                alert("Không thể hủy thông báo đã phát hành.");
                 return;
             }
             if (!confirm("Bạn có chắc chắn muốn hủy thông báo này không? Trạng thái sẽ chuyển thành 'Đã hủy'.")) return;

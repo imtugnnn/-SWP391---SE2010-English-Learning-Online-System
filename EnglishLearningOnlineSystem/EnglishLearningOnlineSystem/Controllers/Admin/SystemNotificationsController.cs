@@ -1,6 +1,6 @@
 //Create by TungDPL
 //Create at 6/26/2026
-//Last update: 7/15/2026
+//Last update: 7/23/2026
 using Microsoft.AspNetCore.Mvc;
 using EnglishLearningOnlineSystem.Data;
 using EnglishLearningOnlineSystem.Models;
@@ -116,6 +116,11 @@ namespace EnglishLearningOnlineSystem.Controllers.Admin
             if (notification == null)
             {
                 return Json(new { success = false, message = "Không tìm thấy thông báo." });
+            }
+
+            if (notification.Status == "Đã phát hành")
+            {
+                return Json(new { success = false, message = "Không thể hủy thông báo đã phát hành." });
             }
 
             // BR-NOTI-09: Published notifications cannot be permanently deleted. They can only be archived or deactivated to preserve the system audit history. (Soft delete by updating status to "Đã hủy")
