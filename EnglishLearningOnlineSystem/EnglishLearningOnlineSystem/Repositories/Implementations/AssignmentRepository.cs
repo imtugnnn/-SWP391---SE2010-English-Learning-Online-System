@@ -41,7 +41,17 @@ public class AssignmentRepository : IAssignmentRepository
     public async Task AddWeeklyAssignmentsAsync(List<WeeklyAssignment> assignments)
     {
         await _context.WeeklyAssignments!.AddRangeAsync(assignments);
-        await _context.SaveChangesAsync();
+    }
+
+    public async Task<bool> ValidateLessonsBelongToCourseAsync(int courseId, List<int> lessonIds)
+    {
+        var distinctLessonIds = lessonIds.Distinct().ToList();
+        var matchingLessonCount = await _context.Lessons!
+            .CountAsync(l => distinctLessonIds.Contains(l.LessonId) &&
+                             l.CourseId == courseId &&
+                             l.IsPublished);
+
+        return matchingLessonCount == distinctLessonIds.Count;
     }
     public async Task<List<WeeklyAssignment>> GetAssignmentsByCourseIdsAsync(List<int> courseIds)
     {
