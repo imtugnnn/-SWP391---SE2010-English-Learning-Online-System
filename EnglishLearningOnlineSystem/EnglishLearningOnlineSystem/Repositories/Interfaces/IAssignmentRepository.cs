@@ -14,6 +14,7 @@ public interface IAssignmentRepository
         DateTime weekStartDate);
 
     Task AddWeeklyAssignmentsAsync(List<WeeklyAssignment> assignments);
+    Task<bool> ValidateLessonsBelongToCourseAsync(int courseId, List<int> lessonIds);
 
     Task<List<WeeklyAssignment>> GetAssignmentsByCourseIdsAsync(List<int> courseIds);
 }

@@ -18,6 +18,9 @@ public class StudentManagementService : IStudentManagementService
         _classRepository = classRepository;
     }
 
+    /// <summary>
+    /// Lấy danh sách học sinh trong lớp với tìm kiếm, lọc trạng thái, sắp xếp và phân trang.
+    /// </summary>
     public async Task<ManageStudentListViewModel?> GetManageStudentListAsync(
         int classId,
         int teacherId,
@@ -70,6 +73,9 @@ public class StudentManagementService : IStudentManagementService
             inactiveStudents);
     }
 
+    /// <summary>
+    /// Tổng hợp các học sinh có dấu hiệu cần hỗ trợ trong những lớp giáo viên phụ trách.
+    /// </summary>
     public async Task<TeacherStudentsNeedSupportViewModel> GetStudentsNeedSupportAsync(
         int teacherId,
         string? classFilter,
@@ -117,12 +123,18 @@ public class StudentManagementService : IStudentManagementService
         };
     }
 
+    /// <summary>
+    /// Đếm số học sinh cần hỗ trợ để hiển thị trên dashboard giáo viên.
+    /// </summary>
     public async Task<int> CountStudentsNeedSupportAsync(int teacherId)
     {
         var model = await GetStudentsNeedSupportAsync(teacherId, "all", "all", "risk");
         return model.TotalNeedSupport;
     }
 
+    /// <summary>
+    /// Phân tích tiến độ của từng học sinh trong lớp và tạo danh sách các trường hợp có rủi ro.
+    /// </summary>
     private async Task<List<TeacherSupportStudentItemViewModel>> BuildSupportItemsForClassAsync(Class classEntity)
     {
         var enrollments = await _classRepository.GetStudentsByClassIdAsync(classEntity.ClassId);
@@ -207,11 +219,13 @@ public class StudentManagementService : IStudentManagementService
         return items;
     }
 
+    // Chuyển mã lớp từ query string sang số; null tương ứng với tất cả lớp.
     private static int? ParseClassFilter(string? classFilter)
     {
         return int.TryParse(classFilter, out var classId) ? classId : null;
     }
 
+    // Chuẩn hóa nguyên nhân cần hỗ trợ để áp dụng bộ lọc nhất quán.
     private static string NormalizeSupportReason(string? reason)
     {
         return string.IsNullOrWhiteSpace(reason)
@@ -219,6 +233,7 @@ public class StudentManagementService : IStudentManagementService
             : reason.Trim().ToLower();
     }
 
+    // Chuẩn hóa tiêu chí sắp xếp danh sách học sinh cần hỗ trợ.
     private static string NormalizeSupportSort(string? sortBy)
     {
         return string.IsNullOrWhiteSpace(sortBy)
@@ -226,6 +241,9 @@ public class StudentManagementService : IStudentManagementService
             : sortBy.Trim();
     }
 
+    /// <summary>
+    /// Lọc học sinh theo dấu hiệu rủi ro mà giáo viên lựa chọn.
+    /// </summary>
     private static List<TeacherSupportStudentItemViewModel> ApplySupportReasonFilter(
         List<TeacherSupportStudentItemViewModel> items,
         string reason)
@@ -240,6 +258,9 @@ public class StudentManagementService : IStudentManagementService
         };
     }
 
+    /// <summary>
+    /// Sắp xếp học sinh cần hỗ trợ theo mức độ ưu tiên hoặc tiêu chí được chọn.
+    /// </summary>
     private static List<TeacherSupportStudentItemViewModel> ApplySupportSorting(
         List<TeacherSupportStudentItemViewModel> items,
         string? sortBy)
@@ -265,6 +286,7 @@ public class StudentManagementService : IStudentManagementService
         };
     }
 
+    // Điểm rủi ro càng cao thì học sinh càng cần được giáo viên ưu tiên hỗ trợ.
     private static int CalculateRiskScore(bool hasLowScore, int overdueCount, bool isInactive, int notStartedCount)
     {
         var score = 0;
@@ -275,6 +297,9 @@ public class StudentManagementService : IStudentManagementService
         return score;
     }
 
+    /// <summary>
+    /// Bảo đảm giáo viên chỉ có thể truy cập lớp được phân công cho mình.
+    /// </summary>
     private async Task<Class?> ValidateTeacherAccessAsync(int classId, int teacherId)
     {
         var classEntity = await _classRepository.GetClassDetailByIdAsync(classId);
@@ -292,6 +317,7 @@ public class StudentManagementService : IStudentManagementService
         return classEntity;
     }
 
+    // Tìm học sinh theo tên hoặc email, không phân biệt hoa/thường.
     private static List<ClassEnrollment> ApplySearch(
         List<ClassEnrollment> enrollments,
         string? keyword)
@@ -310,6 +336,7 @@ public class StudentManagementService : IStudentManagementService
             .ToList();
     }
 
+    // Lọc học sinh theo trạng thái tài khoản đang hoạt động hoặc ngừng hoạt động.
     private static List<ClassEnrollment> ApplyStatusFilter(
         List<ClassEnrollment> enrollments,
         string? status)
@@ -324,6 +351,7 @@ public class StudentManagementService : IStudentManagementService
         };
     }
 
+    // Sắp xếp danh sách ghi danh theo tiêu chí giáo viên lựa chọn.
     private static List<ClassEnrollment> ApplySorting(
         List<ClassEnrollment> enrollments,
         string? sortBy)
@@ -339,6 +367,7 @@ public class StudentManagementService : IStudentManagementService
         };
     }
 
+    // Chỉ lấy các bản ghi thuộc trang hiện tại.
     private static List<ClassEnrollment> ApplyPagination(
         List<ClassEnrollment> enrollments,
         int page,
@@ -350,6 +379,9 @@ public class StudentManagementService : IStudentManagementService
             .ToList();
     }
 
+    /// <summary>
+    /// Ánh xạ dữ liệu lớp và ghi danh sang model dùng bởi màn hình quản lý học sinh.
+    /// </summary>
     private static ManageStudentListViewModel BuildViewModel(
         Class classEntity,
         List<ClassEnrollment> pagedEnrollments,
@@ -394,16 +426,19 @@ public class StudentManagementService : IStudentManagementService
         };
     }
 
+    // Không cho phép chỉ số trang nhỏ hơn 1.
     private static int NormalizePage(int page)
     {
         return page < 1 ? 1 : page;
     }
 
+    // Tính tổng số trang và làm tròn lên khi trang cuối không đủ số bản ghi.
     private static int CalculateTotalPages(int totalItems, int pageSize)
     {
         return (int)Math.Ceiling(totalItems / (double)pageSize);
     }
 
+    // Chuẩn hóa bộ lọc trạng thái, mặc định hiển thị tất cả.
     private static string NormalizeStatus(string? status)
     {
         return string.IsNullOrWhiteSpace(status)
@@ -411,12 +446,16 @@ public class StudentManagementService : IStudentManagementService
             : status.Trim().ToLower();
     }
 
+    // Chuẩn hóa tiêu chí sắp xếp, mặc định theo tên học sinh.
     private static string NormalizeSortBy(string? sortBy)
     {
         return string.IsNullOrWhiteSpace(sortBy)
             ? "name"
             : sortBy.Trim().ToLower();
     }
+    /// <summary>
+    /// Lấy hồ sơ, tiến độ bài học và lịch sử phản hồi của một học sinh trong lớp.
+    /// </summary>
     public async Task<TeacherStudentDetailViewModel?> GetStudentDetailAsync(
     int classId,
     int studentId,
@@ -453,6 +492,7 @@ public class StudentManagementService : IStudentManagementService
             feedbacks);
     }
 
+    // Xác nhận học sinh có bản ghi ghi danh trong lớp trước khi đọc hoặc ghi dữ liệu.
     private async Task<bool> ValidateStudentBelongsToClassAsync(int classId, int studentId)
     {
         var enrollments = await _classRepository.GetStudentsByClassIdAsync(classId);
@@ -460,6 +500,9 @@ public class StudentManagementService : IStudentManagementService
         return enrollments.Any(e => e.StudentId == studentId);
     }
 
+    /// <summary>
+    /// Kết hợp hồ sơ, tiến độ và phản hồi thành dữ liệu cho trang chi tiết học sinh.
+    /// </summary>
     private static TeacherStudentDetailViewModel BuildStudentDetailViewModel(
         EnglishLearningOnlineSystem.Models.Class classEntity,
         EnglishLearningOnlineSystem.Models.StudentProfile studentProfile,
@@ -495,24 +538,30 @@ public class StudentManagementService : IStudentManagementService
             InProgressLessons = inProgressLessons,
             AverageQuizScore = averageQuizScore,
             TotalXPEarned = totalXPEarned,
+            StudyDurationMinutes = progressRecords
+                .Where(p => string.Equals(p.CompletionStatus, "Completed", StringComparison.OrdinalIgnoreCase))
+                .Sum(p => p.Lesson?.EstimatedMinutes ?? 0),
 
             LessonProgresses = BuildLessonProgressViewModels(progressRecords),
             Feedbacks = BuildFeedbackViewModels(feedbacks)
         };
     }
 
+    // Đếm các bài học đã hoàn thành.
     private static int CountCompletedLessons(List<EnglishLearningOnlineSystem.Models.Progress> progressRecords)
     {
         return progressRecords.Count(p =>
             string.Equals(p.CompletionStatus, "Completed", StringComparison.OrdinalIgnoreCase));
     }
 
+    // Đếm các bài học chưa hoàn thành.
     private static int CountInProgressLessons(List<EnglishLearningOnlineSystem.Models.Progress> progressRecords)
     {
         return progressRecords.Count(p =>
             !string.Equals(p.CompletionStatus, "Completed", StringComparison.OrdinalIgnoreCase));
     }
 
+    // Tính điểm quiz trung bình và làm tròn đến hai chữ số thập phân.
     private static double CalculateAverageQuizScore(List<EnglishLearningOnlineSystem.Models.Progress> progressRecords)
     {
         if (!progressRecords.Any())
@@ -523,11 +572,13 @@ public class StudentManagementService : IStudentManagementService
         return Math.Round(progressRecords.Average(p => p.QuizScore), 2);
     }
 
+    // Tính tổng XP học sinh đã nhận từ các bài học.
     private static int CalculateTotalXPEarned(List<EnglishLearningOnlineSystem.Models.Progress> progressRecords)
     {
         return progressRecords.Sum(p => p.XPEarned);
     }
 
+    // Chuyển các bản ghi tiến độ sang dữ liệu hiển thị cho giáo viên.
     private static List<TeacherStudentLessonProgressViewModel> BuildLessonProgressViewModels(
         List<EnglishLearningOnlineSystem.Models.Progress> progressRecords)
     {
@@ -545,6 +596,7 @@ public class StudentManagementService : IStudentManagementService
         }).ToList();
     }
 
+    // Chuyển lịch sử phản hồi sang dữ liệu hiển thị và bổ sung nhãn đã đọc/chưa đọc.
     private static List<TeacherStudentFeedbackViewModel> BuildFeedbackViewModels(
         List<EnglishLearningOnlineSystem.Models.TeacherFeedback> feedbacks)
     {
@@ -558,6 +610,9 @@ public class StudentManagementService : IStudentManagementService
             CreateAt = f.CreateAt
         }).ToList();
     }
+    /// <summary>
+    /// Kiểm tra quyền truy cập và chuẩn bị thông tin học sinh cho biểu mẫu phản hồi.
+    /// </summary>
     public async Task<ProvideStudentFeedbackViewModel?> GetProvideFeedbackFormAsync(
     int classId,
     int studentId,
@@ -597,6 +652,9 @@ public class StudentManagementService : IStudentManagementService
         };
     }
 
+    /// <summary>
+    /// Lưu phản hồi của giáo viên và tạo thông báo mới cho học sinh.
+    /// </summary>
     public async Task<bool> CreateStudentFeedbackAsync(
         ProvideStudentFeedbackViewModel model,
         int teacherId)
@@ -632,6 +690,14 @@ public class StudentManagementService : IStudentManagementService
         };
 
         await _classRepository.AddTeacherFeedbackAsync(feedback);
+        await _classRepository.AddNotificationAsync(new Notification
+        {
+            UserId = model.StudentId,
+            Type = "TEACHER_FEEDBACK",
+            Message = "Giáo viên vừa gửi phản hồi cho bạn. Hãy kiểm tra ngay!",
+            IsRead = false,
+            CreateAt = DateTime.UtcNow
+        });
 
         return true;
     }

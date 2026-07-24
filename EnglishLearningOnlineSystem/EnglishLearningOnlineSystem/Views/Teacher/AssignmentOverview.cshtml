@@ -2,7 +2,6 @@
 
 @{
     ViewData["Title"] = "Tổng quan bài giao";
-    Layout = "_TeacherLayout";
 }
 
 <style>
@@ -277,21 +276,28 @@
                 </div>
 
                 <div class="row g-3">
-                    <div class="col-md-4">
+                    <div class="col-md-3">
                         <div class="summary-card">
                             <div class="summary-label">Tổng bài giao</div>
                             <p class="summary-value">@Model.TotalAssignments</p>
                         </div>
                     </div>
 
-                    <div class="col-md-4">
+                    <div class="col-md-3">
+                        <div class="summary-card">
+                            <div class="summary-label">Bản nháp</div>
+                            <p class="summary-value">@Model.DraftAssignments</p>
+                        </div>
+                    </div>
+
+                    <div class="col-md-3">
                         <div class="summary-card">
                             <div class="summary-label">Đang hoạt động</div>
                             <p class="summary-value">@Model.ActiveAssignments</p>
                         </div>
                     </div>
 
-                    <div class="col-md-4">
+                    <div class="col-md-3">
                         <div class="summary-card">
                             <div class="summary-label">Quá hạn</div>
                             <p class="summary-value">@Model.ExpiredAssignments</p>
@@ -313,25 +319,32 @@
                                name="classId"
                                value="@Model.ClassId" />
                         <div class="col-md-5">
-                            <label class="form-label">Trạng thái</label>
-                            <select name="status" class="form-select">
+                            <label class="form-label" for="teacher-assignment-status">Trạng thái</label>
+                            <select name="status" id="teacher-assignment-status" class="form-select">
                                 <option value="all" selected="@(Model.Status == "all")">Tất cả</option>
+                                <option value="draft" selected="@(Model.Status == "draft")">Bản nháp</option>
                                 <option value="active" selected="@(Model.Status == "active")">Đang hoạt động</option>
                                 <option value="expired" selected="@(Model.Status == "expired")">Quá hạn</option>
                             </select>
                         </div>
 
                         <div class="col-md-5">
-                            <label class="form-label">Sắp xếp</label>
-                            <select name="sortBy" class="form-select">
+                            <label class="form-label" for="teacher-assignment-sort">Sắp xếp</label>
+                            <select name="sortBy" id="teacher-assignment-sort" class="form-select">
                                 <option value="dueDate" selected="@(Model.SortBy == "dueDate")">Hạn hoàn thành</option>
                                 <option value="startDate" selected="@(Model.SortBy == "startDate")">Ngày bắt đầu</option>
                                 <option value="lesson" selected="@(Model.SortBy == "lesson")">Tên bài học</option>
                             </select>
                         </div>
 
-                        <div class="col-md-2 d-grid">
+                        <div class="col-md-2 d-grid gap-2">
                             <button type="submit" class="btn-teacher">Lọc</button>
+                            <a asp-controller="Teacher"
+                               asp-action="AssignmentOverview"
+                               asp-route-classId="@Model.ClassId"
+                               class="btn-teacher-outline text-center">
+                                Đặt lại
+                            </a>
                         </div>
                     </div>
                 </form>
@@ -371,7 +384,11 @@
                                     <td>@item.WeekStartDate.ToString("dd/MM/yyyy")</td>
                                     <td>@item.DueDate.ToString("dd/MM/yyyy")</td>
                                     <td>
-                                        @if (item.Status == "Quá hạn")
+                                        @if (item.Status == "Bản nháp")
+                                        {
+                                            <span class="badge-soft-secondary">@item.Status</span>
+                                        }
+                                        else if (item.Status == "Quá hạn")
                                         {
                                             <span class="badge-soft-danger">@item.Status</span>
                                         }

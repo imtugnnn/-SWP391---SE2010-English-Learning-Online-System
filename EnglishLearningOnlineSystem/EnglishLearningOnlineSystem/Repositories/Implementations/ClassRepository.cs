@@ -106,7 +106,7 @@ public class ClassRepository : IClassRepository
         return await _context.Classes!
             .Include(c => c.Teacher)
             .Include(c => c.AcademicYear)
-            .Where(c => c.TeacherId == teacherId)
+            .Where(c => c.TeacherId == teacherId && !c.IsDeleted)
             .AsNoTracking()
             .ToListAsync();
     }
@@ -121,7 +121,16 @@ public class ClassRepository : IClassRepository
         }
 
         classEntity.CourseId = courseId;
+    }
 
+    public async Task AddNotificationsAsync(List<Notification> notifications)
+    {
+        await _context.Notifications!.AddRangeAsync(notifications);
+    }
+
+    public async Task AddNotificationAsync(Notification notification)
+    {
+        await _context.Notifications!.AddAsync(notification);
         await _context.SaveChangesAsync();
     }
 }

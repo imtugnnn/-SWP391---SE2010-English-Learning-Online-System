@@ -2,7 +2,6 @@
 
 @{
     ViewData["Title"] = "Gửi phản hồi học sinh";
-    Layout = "_TeacherLayout";
 }
 
 <style>
@@ -237,8 +236,13 @@
                         <label asp-for="Content" class="form-label">Nội dung phản hồi</label>
                         <textarea asp-for="Content"
                                   class="form-control"
+                                  id="feedbackContent"
+                                  maxlength="1000"
                                   rows="8"
                                   placeholder="Nhập phản hồi cho học sinh..."></textarea>
+                        <div class="text-end text-muted small mt-1">
+                            <span id="feedbackCharacterCount">0</span>/1000 ký tự
+                        </div>
                         <span asp-validation-for="Content" class="text-danger small fw-semibold"></span>
                     </div>
 
@@ -251,7 +255,7 @@
                             Hủy
                         </a>
 
-                        <button type="submit" class="btn-teacher">
+                        <button type="submit" class="btn-teacher" id="feedbackSubmitButton">
                             Gửi phản hồi
                         </button>
                     </div>
@@ -263,4 +267,28 @@
 
 @section Scripts {
     <partial name="_ValidationScriptsPartial" />
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            const form = document.querySelector('form[action*="ProvideFeedback"]');
+            const content = document.getElementById("feedbackContent");
+            const counter = document.getElementById("feedbackCharacterCount");
+            const submitButton = document.getElementById("feedbackSubmitButton");
+
+            const updateCounter = function () {
+                counter.textContent = content.value.length.toString();
+            };
+
+            content.addEventListener("input", updateCounter);
+            updateCounter();
+
+            form.addEventListener("submit", function () {
+                if (!form.checkValidity()) {
+                    return;
+                }
+
+                submitButton.disabled = true;
+                submitButton.textContent = "Đang gửi...";
+            });
+        });
+    </script>
 }

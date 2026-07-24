@@ -1,4 +1,5 @@
 ﻿using EnglishLearningOnlineSystem.Models;
+using EnglishLearningOnlineSystem.Data;
 using EnglishLearningOnlineSystem.Repositories.Interfaces;
 using EnglishLearningOnlineSystem.Services.Interfaces;
 using EnglishLearningOnlineSystem.ViewModels;
@@ -9,15 +10,21 @@ public class TeacherAssignmentService : ITeacherAssignmentService
 {
     private readonly IClassRepository _classRepository;
     private readonly IAssignmentRepository _assignmentRepository;
+    private readonly AppDbContext _context;
 
     public TeacherAssignmentService(
         IClassRepository classRepository,
-        IAssignmentRepository assignmentRepository)
+        IAssignmentRepository assignmentRepository,
+        AppDbContext context)
     {
         _classRepository = classRepository;
         _assignmentRepository = assignmentRepository;
+        _context = context;
     }
 
+    /// <summary>
+    /// Nạp lớp, khóa học và danh sách bài học đã phát hành để tạo biểu mẫu giao bài tuần.
+    /// </summary>
     public async Task<AssignWeeklyLessonViewModel?> GetAssignWeeklyLessonsFormAsync(
     int classId,
     int teacherId,
@@ -70,6 +77,9 @@ public class TeacherAssignmentService : ITeacherAssignmentService
         };
     }
 
+    /// <summary>
+    /// Tạo bài giao cho các bài học hợp lệ và gửi thông báo nếu giáo viên phát hành ngay.
+    /// </summary>
     public async Task<bool> AssignWeeklyLessonsAsync(
     AssignWeeklyLessonViewModel model,
     int teacherId)
@@ -92,18 +102,18 @@ public class TeacherAssignmentService : ITeacherAssignmentService
         }
 
         var courseId = classEntity.CourseId ?? model.SelectedCourseId.Value;
-
-        if (classEntity.CourseId == null)
-        {
-            await _classRepository.UpdateClassCourseAsync(
-                classEntity.ClassId,
-                courseId);
-        }
-
         var selectedLessonIds = model.SelectedLessonIds
             .Distinct()
             .ToList();
 
+        if (!await _assignmentRepository.ValidateLessonsBelongToCourseAsync(
+                courseId,
+                selectedLessonIds))
+        {
+            return false;
+        }
+
+        // Loại bỏ những bài đã được giao trong cùng tuần để tránh tạo dữ liệu trùng.
         var existingLessonIds = await _assignmentRepository.GetAssignedLessonIdsAsync(
             courseId,
             selectedLessonIds,
@@ -124,19 +134,55 @@ public class TeacherAssignmentService : ITeacherAssignmentService
             LessonId = lessonId,
             WeekStartDate = model.WeekStartDate,
             DueDate = model.DueDate,
-            IsVisible = true
+            IsVisible = model.Status == AssignmentStatus.Published
         }).ToList();
 
-        await _assignmentRepository.AddWeeklyAssignmentsAsync(assignments);
+        // Việc cập nhật khóa học, tạo bài giao và thông báo phải thành công như một đơn vị.
+        using var transaction = await _context.Database.BeginTransactionAsync();
+        try
+        {
+            if (classEntity.CourseId == null)
+            {
+                await _classRepository.UpdateClassCourseAsync(
+                    classEntity.ClassId,
+                    courseId);
+            }
 
-        return true;
+            await _assignmentRepository.AddWeeklyAssignmentsAsync(assignments);
+
+            if (model.Status == AssignmentStatus.Published)
+            {
+                var students = await _classRepository.GetActiveStudentsByClassIdAsync(model.ClassId);
+                var notifications = students.Select(student => new Notification
+                {
+                    UserId = student.StudentId,
+                    Type = "NEW_ASSIGNMENT",
+                    Message = $"Giáo viên vừa giao bài học mới từ {model.WeekStartDate:dd/MM/yyyy} đến {model.DueDate:dd/MM/yyyy}.",
+                    IsRead = false,
+                    CreateAt = DateTime.UtcNow
+                }).ToList();
+
+                await _classRepository.AddNotificationsAsync(notifications);
+            }
+            await _context.SaveChangesAsync();
+            await transaction.CommitAsync();
+            return true;
+        }
+        catch
+        {
+            await transaction.RollbackAsync();
+            throw;
+        }
     }
 
+    /// <summary>
+    /// Xác nhận lớp tồn tại và thuộc quyền quản lý của giáo viên hiện tại.
+    /// </summary>
     private async Task<Class?> ValidateTeacherAccessAsync(int classId, int teacherId)
     {
         var classEntity = await _classRepository.GetClassDetailByIdAsync(classId);
 
-        if (classEntity == null)
+        if (classEntity == null || classEntity.IsDeleted)
         {
             return null;
         }
@@ -149,6 +195,9 @@ public class TeacherAssignmentService : ITeacherAssignmentService
         return classEntity;
     }
 
+    /// <summary>
+    /// Kiểm tra các điều kiện nghiệp vụ cơ bản trước khi lưu bài giao.
+    /// </summary>
     private static bool ValidateAssignmentInput(AssignWeeklyLessonViewModel model)
     {
         if (model.SelectedLessonIds == null || !model.SelectedLessonIds.Any())
@@ -156,13 +205,22 @@ public class TeacherAssignmentService : ITeacherAssignmentService
             return false;
         }
 
-        if (model.DueDate < model.WeekStartDate)
+        if (model.DueDate <= model.WeekStartDate)
+        {
+            return false;
+        }
+
+        if (model.Status != AssignmentStatus.Draft &&
+            model.Status != AssignmentStatus.Published)
         {
             return false;
         }
 
         return true;
     }
+    /// <summary>
+    /// Lấy danh sách bài giao thuộc các lớp của giáo viên, áp dụng bộ lọc và phân trang.
+    /// </summary>
     public async Task<TeacherAssignmentOverviewViewModel> GetAssignmentOverviewAsync(
     int? classId,
     int teacherId,
@@ -181,8 +239,9 @@ public class TeacherAssignmentService : ITeacherAssignmentService
         var assignments = await _assignmentRepository.GetAssignmentsByCourseIdsAsync(courseIds);
 
         var totalAssignments = assignments.Count;
-        var activeAssignments = assignments.Count(a => a.DueDate >= DateTime.UtcNow);
-        var expiredAssignments = assignments.Count(a => a.DueDate < DateTime.UtcNow);
+        var draftAssignments = assignments.Count(a => !a.IsVisible);
+        var activeAssignments = assignments.Count(a => a.IsVisible && a.DueDate >= DateTime.UtcNow);
+        var expiredAssignments = assignments.Count(a => a.IsVisible && a.DueDate < DateTime.UtcNow);
 
         var filteredAssignments = ApplyAssignmentStatusFilter(assignments, status);
         filteredAssignments = ApplyAssignmentSorting(filteredAssignments, sortBy);
@@ -214,6 +273,7 @@ public class TeacherAssignmentService : ITeacherAssignmentService
             TotalPages = totalPages,
 
             TotalAssignments = totalAssignments,
+            DraftAssignments = draftAssignments,
             ActiveAssignments = activeAssignments,
             ExpiredAssignments = expiredAssignments,
 
@@ -224,11 +284,16 @@ public class TeacherAssignmentService : ITeacherAssignmentService
                 Topic = a.Lesson?.Topic ?? "Chưa cập nhật",
                 WeekStartDate = a.WeekStartDate,
                 DueDate = a.DueDate,
-                Status = a.DueDate < DateTime.UtcNow ? "Quá hạn" : "Đang hoạt động"
+                Status = !a.IsVisible
+                    ? "Bản nháp"
+                    : a.DueDate < DateTime.UtcNow ? "Quá hạn" : "Đang hoạt động"
             }).ToList()
         };
     }
 
+    /// <summary>
+    /// Lọc bài giao theo trạng thái nháp, đang hoạt động hoặc quá hạn.
+    /// </summary>
     private static List<WeeklyAssignment> ApplyAssignmentStatusFilter(
         List<WeeklyAssignment> assignments,
         string? status)
@@ -237,12 +302,16 @@ public class TeacherAssignmentService : ITeacherAssignmentService
 
         return normalizedStatus switch
         {
-            "active" => assignments.Where(a => a.DueDate >= DateTime.UtcNow).ToList(),
-            "expired" => assignments.Where(a => a.DueDate < DateTime.UtcNow).ToList(),
+            "draft" => assignments.Where(a => !a.IsVisible).ToList(),
+            "active" => assignments.Where(a => a.IsVisible && a.DueDate >= DateTime.UtcNow).ToList(),
+            "expired" => assignments.Where(a => a.IsVisible && a.DueDate < DateTime.UtcNow).ToList(),
             _ => assignments
         };
     }
 
+    /// <summary>
+    /// Sắp xếp bài giao theo lựa chọn trên màn hình tổng quan.
+    /// </summary>
     private static List<WeeklyAssignment> ApplyAssignmentSorting(
         List<WeeklyAssignment> assignments,
         string? sortBy)
@@ -257,6 +326,7 @@ public class TeacherAssignmentService : ITeacherAssignmentService
         };
     }
 
+    // Chuẩn hóa giá trị bộ lọc để việc so sánh không phụ thuộc hoa/thường.
     private static string NormalizeAssignmentStatus(string? status)
     {
         return string.IsNullOrWhiteSpace(status)
@@ -264,6 +334,7 @@ public class TeacherAssignmentService : ITeacherAssignmentService
             : status.Trim().ToLower();
     }
 
+    // Chuẩn hóa tiêu chí sắp xếp và dùng giá trị mặc định khi đầu vào rỗng.
     private static string NormalizeAssignmentSort(string? sortBy)
     {
         return string.IsNullOrWhiteSpace(sortBy)

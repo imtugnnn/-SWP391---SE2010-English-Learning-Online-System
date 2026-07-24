@@ -21,6 +21,10 @@ public class AssignWeeklyLessonViewModel
     [Required(ErrorMessage = "Vui lòng chọn hạn hoàn thành.")]
     public DateTime DueDate { get; set; } = DateTime.Today.AddDays(7);
 
+    [Required(ErrorMessage = "Vui lòng chọn trạng thái bài giao.")]
+    public EnglishLearningOnlineSystem.Models.AssignmentStatus Status { get; set; }
+        = EnglishLearningOnlineSystem.Models.AssignmentStatus.Published;
+
     public List<int> SelectedLessonIds { get; set; } = new();
 
     public List<CourseOptionViewModel> Courses { get; set; } = new();

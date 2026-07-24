@@ -11,6 +11,7 @@ public class TeacherAssignmentOverviewViewModel
     public int TotalPages { get; set; }
 
     public int TotalAssignments { get; set; }
+    public int DraftAssignments { get; set; }
     public int ActiveAssignments { get; set; }
     public int ExpiredAssignments { get; set; }
 

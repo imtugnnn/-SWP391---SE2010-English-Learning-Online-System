@@ -56,9 +56,6 @@ builder.Services.AddScoped<IWordScrambleService, WordScrambleService>();
 builder.Services.AddScoped<IStudentGameProgressRepository, StudentGameProgressRepository>();
 builder.Services.AddScoped<IMatchingGameService, MatchingGameService>();
 
-builder.Services.AddScoped<ILessonRepository, LessonRepository>();
-builder.Services.AddScoped<ILessonService, LessonService>();
-
 builder.Services.AddScoped<IQuizRepository, QuizRepository>();
 builder.Services.AddScoped<IQuizService, QuizService>();
 

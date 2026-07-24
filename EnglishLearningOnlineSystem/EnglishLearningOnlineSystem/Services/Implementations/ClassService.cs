@@ -13,6 +13,9 @@ public class ClassService : IClassService
         _classRepository = classRepository;
     }
 
+    /// <summary>
+    /// Lấy thông tin lớp, học sinh, bài giao và tỷ lệ hoàn thành cho giáo viên phụ trách.
+    /// </summary>
     public async Task<TeacherClassDetailViewModel?> GetTeacherClassDetailAsync(int classId, int teacherId)
     {
         var classEntity = await _classRepository.GetClassDetailByIdAsync(classId);
@@ -24,6 +27,7 @@ public class ClassService : IClassService
 
         if (classEntity.TeacherId != teacherId)
         {
+            // Không tiết lộ dữ liệu lớp cho giáo viên không được phân công.
             return null;
         }
 
@@ -41,6 +45,7 @@ public class ClassService : IClassService
 
         var totalExpectedProgress = studentIds.Count * lessonIds.Count;
 
+        // Tỷ lệ hoàn thành được tính trên tổng số bài mà tất cả học sinh cần hoàn thành.
         var completedProgressCount = progressRecords.Count(p =>
             string.Equals(p.CompletionStatus, "Completed", StringComparison.OrdinalIgnoreCase));
 
@@ -54,6 +59,7 @@ public class ClassService : IClassService
             .Distinct()
             .ToList();
 
+        // Một học sinh bị trễ tiến độ khi còn ít nhất một bài quá hạn chưa hoàn thành.
         var studentsBehindSchedule = studentIds.Count(studentId =>
             overdueLessonIds.Any(lessonId =>
                 !progressRecords.Any(p =>
@@ -94,6 +100,9 @@ public class ClassService : IClassService
         };
     }
 
+    /// <summary>
+    /// Chuyển hạn nộp thành trạng thái ngắn gọn để hiển thị cho giáo viên.
+    /// </summary>
     private static string GetAssignmentStatus(DateTime dueDate)
     {
         return dueDate < DateTime.UtcNow ? "Quá hạn" : "Đang hoạt động";

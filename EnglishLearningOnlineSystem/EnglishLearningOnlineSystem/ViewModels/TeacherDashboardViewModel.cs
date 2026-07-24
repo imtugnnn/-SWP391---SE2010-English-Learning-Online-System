@@ -10,6 +10,9 @@ public class TeacherDashboardViewModel
     public int ActiveAssignments { get; set; }
     public int ExpiredAssignments { get; set; }
     public int StudentsNeedAttention { get; set; }
+    public List<EnglishLearningOnlineSystem.Models.SystemNotification> SystemNotifications { get; set; } = new();
+    public List<EnglishLearningOnlineSystem.Models.Notification> PersonalNotifications { get; set; } = new();
+    public int NotificationCount { get; set; }
 
     public List<TeacherDashboardClassViewModel> Classes { get; set; } = new();
 }

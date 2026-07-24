@@ -22,6 +22,7 @@ public class TeacherStudentDetailViewModel
     public int InProgressLessons { get; set; }
     public double AverageQuizScore { get; set; }
     public int TotalXPEarned { get; set; }
+    public int StudyDurationMinutes { get; set; }
 
     public List<TeacherStudentLessonProgressViewModel> LessonProgresses { get; set; } = new();
     public List<TeacherStudentFeedbackViewModel> Feedbacks { get; set; } = new();

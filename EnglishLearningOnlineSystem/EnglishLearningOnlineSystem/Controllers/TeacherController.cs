@@ -15,23 +15,25 @@ public class TeacherController : Controller
     private readonly IStudentManagementService _studentManagementService;
     private readonly ITeacherAssignmentService _teacherAssignmentService;
     private readonly ITeacherDashboardService _teacherDashboardService;
-    private readonly EnglishLearningOnlineSystem.Data.AppDbContext _context;
 
     public TeacherController(
         IClassService classService,
         IStudentManagementService studentManagementService,
         ITeacherAssignmentService teacherAssignmentService,
-        ITeacherDashboardService teacherDashboardService,
-        EnglishLearningOnlineSystem.Data.AppDbContext context)
+        ITeacherDashboardService teacherDashboardService)
     {
         _classService = classService;
         _studentManagementService = studentManagementService;
         _teacherAssignmentService = teacherAssignmentService;
         _teacherDashboardService = teacherDashboardService;
-        _context = context;
     }
+
+    /// <summary>
+    /// Hiển thị trang tổng quan của giáo viên cùng số liệu lớp học, bài giao và thông báo.
+    /// </summary>
     public async Task<IActionResult> Dashboard()
     {
+        // Chỉ cho phép tài khoản giáo viên đã đăng nhập truy cập chức năng.
         var teacherId = GetCurrentUserId();
 
         if (teacherId == null)
@@ -41,29 +43,17 @@ public class TeacherController : Controller
 
         var viewModel = await _teacherDashboardService.GetTeacherDashboardAsync(teacherId.Value);
 
-        // Lấy thông báo hệ thống dành cho Giáo viên hoặc Tất cả người dùng
-        var systemNotifications = _context.SystemNotifications != null
-            ? await _context.SystemNotifications
-                .Where(n => n.Status == "Đã phát hành" &&
-                            (n.UserType == "Tất cả" || n.UserType == "Giáo viên" || n.Recipient == "Tất cả người dùng" || n.Recipient == "Giáo viên"))
-                .OrderByDescending(n => n.PublishTime ?? n.CreatedAt)
-                .ToListAsync()
-            : new List<SystemNotification>();
-
-        // Lấy thông báo cá nhân của Giáo viên
-        var personalNotifications = _context.Notifications != null
-            ? await _context.Notifications
-                .Where(n => n.UserId == teacherId.Value)
-                .OrderByDescending(n => n.CreateAt)
-                .ToListAsync()
-            : new List<Notification>();
-
-        ViewBag.SystemNotifications = systemNotifications;
-        ViewBag.PersonalNotifications = personalNotifications;
-        ViewBag.NotificationCount = systemNotifications.Count + personalNotifications.Count(n => !n.IsRead);
+        ViewBag.SystemNotifications = viewModel.SystemNotifications;
+        ViewBag.PersonalNotifications = viewModel.PersonalNotifications;
+        ViewBag.NotificationCount = viewModel.NotificationCount;
 
         return View(viewModel);
     }
+
+    /// <summary>
+    /// Hiển thị chi tiết một lớp do giáo viên hiện tại phụ trách.
+    /// </summary>
+    /// <param name="classId">Mã lớp cần xem.</param>
     public async Task<IActionResult> ClassDetail(int classId)
     {
         var teacherId = GetCurrentUserId();
@@ -77,17 +67,31 @@ public class TeacherController : Controller
 
         if (viewModel == null)
         {
-            return Content("Không tìm thấy lớp học hoặc bạn không có quyền truy cập lớp này.");
+            return NotFound();
         }
 
         return View(viewModel);
     }
 
+    /// <summary>
+    /// Lấy mã người dùng từ session và đồng thời xác nhận người dùng có role Teacher (RoleId = 3).
+    /// </summary>
+    /// <returns>Mã giáo viên hợp lệ; null nếu chưa đăng nhập hoặc không đúng role.</returns>
     private int? GetCurrentUserId()
     {
+        var role = HttpContext.Session.GetString("UserRole");
+        if (role != "3")
+        {
+            return null;
+        }
+
         var raw = HttpContext.Session.GetString("UserId");
         return int.TryParse(raw, out var id) ? id : null;
     }
+
+    /// <summary>
+    /// Hiển thị danh sách học sinh trong lớp, có hỗ trợ tìm kiếm, lọc, sắp xếp và phân trang.
+    /// </summary>
     public async Task<IActionResult> ManageStudentList(
     int classId,
     string? keyword,
@@ -112,12 +116,15 @@ public class TeacherController : Controller
 
         if (viewModel == null)
         {
-            return Content("Không tìm thấy lớp học hoặc bạn không có quyền quản lý danh sách học sinh của lớp này.");
+            return NotFound();
         }
 
         return View(viewModel);
     }
 
+    /// <summary>
+    /// Tổng hợp các học sinh cần giáo viên hỗ trợ theo lớp, nguyên nhân và cách sắp xếp.
+    /// </summary>
     public async Task<IActionResult> StudentsNeedSupport(
         string? classFilter,
         string? reason,
@@ -139,6 +146,9 @@ public class TeacherController : Controller
         return View(viewModel);
     }
 
+    /// <summary>
+    /// Hiển thị hồ sơ và tiến độ học tập của một học sinh thuộc lớp giáo viên phụ trách.
+    /// </summary>
     public async Task<IActionResult> StudentDetail(int classId, int studentId)
     {
         var teacherId = GetCurrentUserId();
@@ -155,11 +165,15 @@ public class TeacherController : Controller
 
         if (viewModel == null)
         {
-            return Content("Không tìm thấy học sinh hoặc bạn không có quyền xem thông tin học sinh này.");
+            return NotFound();
         }
 
         return View(viewModel);
     }
+
+    /// <summary>
+    /// Chuẩn bị biểu mẫu để giáo viên gửi phản hồi cho học sinh.
+    /// </summary>
     [HttpGet]
     public async Task<IActionResult> ProvideFeedback(int classId, int studentId)
     {
@@ -177,11 +191,15 @@ public class TeacherController : Controller
 
         if (viewModel == null)
         {
-            return Content("Không tìm thấy học sinh hoặc bạn không có quyền gửi phản hồi cho học sinh này.");
+            return NotFound();
         }
 
         return View(viewModel);
     }
+
+    /// <summary>
+    /// Kiểm tra và lưu phản hồi của giáo viên, sau đó quay lại trang chi tiết học sinh.
+    /// </summary>
     [HttpPost]
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> ProvideFeedback(ProvideStudentFeedbackViewModel model)
@@ -208,8 +226,6 @@ public class TeacherController : Controller
             return View(model);
         }
 
-        await LogActivityAsync(teacherId.Value, $"Gửi phản hồi cho học sinh (ID: {model.StudentId}) tại lớp (ID: {model.ClassId})");
-
         TempData["SuccessMessage"] = "Phản hồi đã được gửi thành công.";
 
         return RedirectToAction(
@@ -220,6 +236,10 @@ public class TeacherController : Controller
                 studentId = model.StudentId
             });
     }
+
+    /// <summary>
+    /// Hiển thị biểu mẫu chọn các bài học sẽ giao cho lớp trong tuần.
+    /// </summary>
     [HttpGet]
     public async Task<IActionResult> AssignWeeklyLessons(int classId, int? selectedCourseId)
     {
@@ -237,12 +257,15 @@ public class TeacherController : Controller
 
         if (viewModel == null)
         {
-            return Content("Không tìm thấy lớp học hoặc bạn không có quyền giao bài cho lớp này.");
+            return NotFound();
         }
 
         return View(viewModel);
     }
 
+    /// <summary>
+    /// Kiểm tra dữ liệu và tạo các bài giao tuần ở trạng thái nháp hoặc đã phát hành.
+    /// </summary>
     [HttpPost]
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> AssignWeeklyLessons(AssignWeeklyLessonViewModel model)
@@ -259,26 +282,39 @@ public class TeacherController : Controller
             ModelState.AddModelError(string.Empty, "Vui lòng chọn ít nhất một bài học.");
         }
 
-        if (model.DueDate < model.WeekStartDate)
+        if (!model.SelectedCourseId.HasValue)
         {
-            ModelState.AddModelError(string.Empty, "Hạn hoàn thành không được nhỏ hơn ngày bắt đầu.");
+            ModelState.AddModelError(nameof(model.SelectedCourseId), "Vui lòng chọn chương trình học trước khi giao bài.");
+        }
+
+        if (model.DueDate <= model.WeekStartDate)
+        {
+            ModelState.AddModelError(string.Empty, "Hạn hoàn thành phải lớn hơn ngày bắt đầu.");
+        }
+
+        if (model.Status != AssignmentStatus.Draft &&
+            model.Status != AssignmentStatus.Published)
+        {
+            ModelState.AddModelError(nameof(model.Status), "Trạng thái bài giao không hợp lệ.");
         }
 
         if (!ModelState.IsValid)
         {
+            // Nạp lại danh sách khóa học/bài học để biểu mẫu lỗi vẫn hiển thị đủ dữ liệu.
             var reloadModel = await _teacherAssignmentService.GetAssignWeeklyLessonsFormAsync(
                 model.ClassId,
                 teacherId.Value);
 
             if (reloadModel == null)
             {
-                return Content("Không thể tải lại dữ liệu giao bài.");
+                return NotFound();
             }
 
             reloadModel.WeekStartDate = model.WeekStartDate;
             reloadModel.DueDate = model.DueDate;
             reloadModel.SelectedLessonIds = model.SelectedLessonIds ?? new List<int>();
             reloadModel.SelectedCourseId = model.SelectedCourseId;
+            reloadModel.Status = model.Status;
 
             return View(reloadModel);
         }
@@ -298,29 +334,29 @@ public class TeacherController : Controller
 
             if (reloadModel == null)
             {
-                return Content("Không thể tải lại dữ liệu giao bài.");
+                return NotFound();
             }
 
             reloadModel.WeekStartDate = model.WeekStartDate;
             reloadModel.DueDate = model.DueDate;
             reloadModel.SelectedLessonIds = model.SelectedLessonIds ?? new List<int>();
+            reloadModel.Status = model.Status;
 
             return View(reloadModel);
         }
 
-        if (!model.SelectedCourseId.HasValue)
-        {
-            ModelState.AddModelError(string.Empty, "Vui lòng chọn chương trình học trước khi giao bài.");
-        }
+        TempData["SuccessMessage"] = model.Status == AssignmentStatus.Draft
+            ? "Đã lưu bài giao ở trạng thái bản nháp."
+            : "Giao bài học theo tuần thành công.";
 
-        await LogActivityAsync(teacherId.Value, $"Giao bài học theo tuần cho lớp (ID: {model.ClassId}), các bài học ID: [{string.Join(", ", model.SelectedLessonIds ?? new List<int>())}] từ ngày {model.WeekStartDate:dd/MM/yyyy} đến ngày {model.DueDate:dd/MM/yyyy}");
-
-        TempData["SuccessMessage"] = "Giao bài học theo tuần thành công.";
-
-        return RedirectToAction(
-            nameof(ClassDetail),
-            new { classId = model.ClassId });
+        return model.Status == AssignmentStatus.Draft
+            ? RedirectToAction(nameof(AssignmentOverview), new { classId = model.ClassId, status = "draft" })
+            : RedirectToAction(nameof(ClassDetail), new { classId = model.ClassId });
     }
+
+    /// <summary>
+    /// Hiển thị toàn bộ bài giao của giáo viên, có hỗ trợ lọc theo lớp/trạng thái và phân trang.
+    /// </summary>
     public async Task<IActionResult> AssignmentOverview(
     int? classId,
     string? status,
@@ -345,20 +381,4 @@ public class TeacherController : Controller
         return View(viewModel);
     }
 
-    private async Task LogActivityAsync(int userId, string action)
-    {
-        var user = await _context.Users.Include(u => u.Role).FirstOrDefaultAsync(u => u.Id == userId);
-        if (user != null)
-        {
-            _context.AuditLogs.Add(new AuditLog
-            {
-                UserId = userId,
-                Username = user.Username,
-                UserRole = user.Role?.Name ?? "Teacher",
-                Action = action,
-                Timestamp = DateTime.UtcNow
-            });
-            await _context.SaveChangesAsync();
-        }
-    }
 }
