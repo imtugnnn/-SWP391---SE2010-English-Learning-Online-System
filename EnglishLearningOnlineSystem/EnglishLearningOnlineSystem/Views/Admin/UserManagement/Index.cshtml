@@ -303,6 +303,7 @@
                     <div class="mb-3">
                         <label class="form-label">Ngày sinh</label>
                         <input type="date" class="form-control" name="birthDate" />
+                        <div class="validation-error-msg" id="create-error-birthDate"></div>
                     </div>
                     <div class="mb-3">
                         <label class="form-label">Vai trò *</label>
@@ -359,6 +360,7 @@
                     <div class="mb-3">
                         <label class="form-label">Ngày sinh</label>
                         <input type="date" class="form-control" name="birthDate" id="editBirthDate" />
+                        <div class="validation-error-msg" id="edit-error-birthDate"></div>
                     </div>
                     <div class="mb-3">
                         <label class="form-label">Vai trò *</label>
@@ -884,6 +886,32 @@
             }
         }
 
+        function validateBirthDate(roleId, birthDateStr) {
+            roleId = parseInt(roleId, 10);
+            if (roleId === 1 || roleId === 2 || roleId === 3 || roleId === 5) {
+                if (!birthDateStr) {
+                    return { isValid: false, message: 'Ngày sinh là bắt buộc.' };
+                }
+                const birthDate = new Date(birthDateStr);
+                const today = new Date();
+                let age = today.getFullYear() - birthDate.getFullYear();
+                const monthDiff = today.getMonth() - birthDate.getMonth();
+                if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birthDate.getDate())) {
+                    age--;
+                }
+                if (roleId === 1) {
+                    if (age <= 6) {
+                        return { isValid: false, message: 'Học sinh phải lớn hơn 6 tuổi.' };
+                    }
+                } else {
+                    if (age < 18 || age > 100) {
+                        return { isValid: false, message: 'Giáo viên, Quản lý nội dung, Admin phải từ 18 đến 100 tuổi.' };
+                    }
+                }
+            }
+            return { isValid: true, message: '' };
+        }
+
         // Create User Form Submit
         function submitCreateUser(e) {
             e.preventDefault();
@@ -895,6 +923,19 @@
             });
             
             const form = e.target;
+            const roleIdVal = form.roleId.value;
+            const birthDateVal = form.birthDate.value;
+            
+            const ageCheck = validateBirthDate(roleIdVal, birthDateVal);
+            if (!ageCheck.isValid) {
+                const errEl = document.getElementById('create-error-birthDate');
+                if (errEl) {
+                    errEl.innerText = ageCheck.message;
+                    errEl.style.display = 'block';
+                }
+                return;
+            }
+            
             const data = {
                 username: form.username.value,
                 email: form.email.value,
@@ -963,7 +1004,26 @@
         function submitEditUser(e) {
             e.preventDefault();
             
+            // Clear prior validations
+            document.querySelectorAll('#editUserForm .validation-error-msg').forEach(el => {
+                el.innerText = '';
+                el.style.display = 'none';
+            });
+            
             const form = e.target;
+            const roleIdVal = form.roleId.value;
+            const birthDateVal = form.birthDate.value;
+            
+            const ageCheck = validateBirthDate(roleIdVal, birthDateVal);
+            if (!ageCheck.isValid) {
+                const errEl = document.getElementById('edit-error-birthDate');
+                if (errEl) {
+                    errEl.innerText = ageCheck.message;
+                    errEl.style.display = 'block';
+                }
+                return;
+            }
+            
             const data = {
                 id: parseInt(form.id.value, 10),
                 username: form.username.value,

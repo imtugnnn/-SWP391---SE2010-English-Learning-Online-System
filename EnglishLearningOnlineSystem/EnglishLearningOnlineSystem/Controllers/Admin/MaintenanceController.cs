@@ -20,10 +20,12 @@ public class MaintenanceController : Controller
         _context = context;
     }
 
+    
     [HttpGet("/Admin/Maintenance")]
     public async Task<IActionResult> Index()
     {
         var userRoleSession = HttpContext.Session.GetString("UserRole");
+        //Nếu người dùng khoông phải là admin, không cho đăng nhập
         if (userRoleSession != "2")
         {
             return RedirectToAction("Login", "Auth");

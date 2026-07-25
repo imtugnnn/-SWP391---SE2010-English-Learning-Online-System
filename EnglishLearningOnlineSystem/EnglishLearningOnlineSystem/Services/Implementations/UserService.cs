@@ -32,6 +32,9 @@ public class UserService : IUserService
         if (vm.RoleId <= 0) return UserServiceResult<int>.Fail("Role is required.");
         if (vm.RoleId == 2) return UserServiceResult<int>.Fail("Không được phép tạo tài khoản có vai trò Admin.");
 
+        var ageValidation = ValidateAge(vm.RoleId, vm.BirthDate);
+        if (!ageValidation.isValid) return UserServiceResult<int>.Fail(ageValidation.errorMessage);
+
         if (await _userRepo.UsernameExistsAsync(vm.Username))
             return UserServiceResult<int>.Fail("Username already exists.");
 
@@ -60,6 +63,9 @@ public class UserService : IUserService
 
         if (existing.RoleId == 2 || vm.RoleId == 2)
             return UserServiceResult<object>.Fail("Không được phép chỉnh sửa hoặc gán vai trò Admin.");
+
+        var ageValidation = ValidateAge(vm.RoleId, vm.BirthDate);
+        if (!ageValidation.isValid) return UserServiceResult<object>.Fail(ageValidation.errorMessage);
 
         // cách B: chỉ check trùng nếu có thay đổi
         if (!string.Equals(existing.Username, vm.Username, StringComparison.Ordinal)
@@ -115,5 +121,40 @@ public class UserService : IUserService
         };
 
         return UserServiceResult<UserManagementViewModel>.Ok(vm);
+    }
+
+    private (bool isValid, string errorMessage) ValidateAge(int roleId, DateTime? birthDate)
+    {
+        // 1: Student, 2: Admin, 3: Teacher, 5: Content Manager
+        if (roleId == 1 || roleId == 2 || roleId == 3 || roleId == 5)
+        {
+            if (!birthDate.HasValue)
+            {
+                return (false, "Ngày sinh là bắt buộc.");
+            }
+
+            var today = DateTime.Today;
+            var age = today.Year - birthDate.Value.Year;
+            if (birthDate.Value.Date > today.AddYears(-age))
+            {
+                age--;
+            }
+
+            if (roleId == 1)
+            {
+                if (age <= 6)
+                {
+                    return (false, "Học sinh phải lớn hơn 6 tuổi.");
+                }
+            }
+            else // Admin (2), Teacher (3), Content Manager (5)
+            {
+                if (age < 18 || age > 100)
+                {
+                    return (false, "Giáo viên, Quản lý nội dung, Admin phải từ 18 đến 100 tuổi.");
+                }
+            }
+        }
+        return (true, string.Empty);
     }
 }
