@@ -381,4 +381,28 @@ public class TeacherController : Controller
         return View(viewModel);
     }
 
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> PublishDraft(int assignmentId, int classId)
+    {
+        var teacherId = GetCurrentUserId();
+        if (teacherId == null)
+        {
+            return RedirectToAction("Login", "Auth");
+        }
+
+        var success = await _teacherAssignmentService.PublishDraftAsync(
+            assignmentId,
+            classId,
+            teacherId.Value);
+
+        TempData[success ? "SuccessMessage" : "ErrorMessage"] = success
+            ? "Bản nháp đã được xuất bản thành công."
+            : "Không thể xuất bản bản nháp. Vui lòng kiểm tra lại lớp và trạng thái bài giao.";
+
+        return RedirectToAction(
+            nameof(AssignmentOverview),
+            new { classId, status = "draft" });
+    }
+
 }

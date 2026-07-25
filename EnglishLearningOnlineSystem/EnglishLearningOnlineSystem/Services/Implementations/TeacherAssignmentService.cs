@@ -3,6 +3,8 @@ using EnglishLearningOnlineSystem.Data;
 using EnglishLearningOnlineSystem.Repositories.Interfaces;
 using EnglishLearningOnlineSystem.Services.Interfaces;
 using EnglishLearningOnlineSystem.ViewModels;
+using Microsoft.EntityFrameworkCore;
+using System.Data;
 
 namespace EnglishLearningOnlineSystem.Services.Implementations;
 
@@ -113,6 +115,10 @@ public class TeacherAssignmentService : ITeacherAssignmentService
             return false;
         }
 
+        // Serializable giúp hai request đồng thời không cùng vượt qua bước kiểm tra trùng.
+        using var transaction = await _context.Database.BeginTransactionAsync(
+            IsolationLevel.Serializable);
+
         // Loại bỏ những bài đã được giao trong cùng tuần để tránh tạo dữ liệu trùng.
         var existingLessonIds = await _assignmentRepository.GetAssignedLessonIdsAsync(
             courseId,
@@ -125,6 +131,7 @@ public class TeacherAssignmentService : ITeacherAssignmentService
 
         if (!newLessonIds.Any())
         {
+            await transaction.RollbackAsync();
             return false;
         }
 
@@ -138,7 +145,6 @@ public class TeacherAssignmentService : ITeacherAssignmentService
         }).ToList();
 
         // Việc cập nhật khóa học, tạo bài giao và thông báo phải thành công như một đơn vị.
-        using var transaction = await _context.Database.BeginTransactionAsync();
         try
         {
             if (classEntity.CourseId == null)
@@ -340,5 +346,70 @@ public class TeacherAssignmentService : ITeacherAssignmentService
         return string.IsNullOrWhiteSpace(sortBy)
             ? "dueDate"
             : sortBy.Trim();
+    }
+
+    /// <summary>
+    /// Phát hành bản nháp thuộc chương trình học của lớp và thông báo cho học sinh.
+    /// </summary>
+    public async Task<bool> PublishDraftAsync(int assignmentId, int classId, int teacherId)
+    {
+        var classEntity = await ValidateTeacherAccessAsync(classId, teacherId);
+        if (classEntity?.CourseId == null)
+        {
+            return false;
+        }
+
+        using var transaction = await _context.Database.BeginTransactionAsync(
+            IsolationLevel.Serializable);
+
+        try
+        {
+            var assignment = await _context.WeeklyAssignments!
+                .FirstOrDefaultAsync(a =>
+                    a.AssignmentId == assignmentId &&
+                    a.CourseId == classEntity.CourseId);
+
+            if (assignment == null || assignment.IsVisible)
+            {
+                await transaction.RollbackAsync();
+                return false;
+            }
+
+            var hasPublishedDuplicate = await _context.WeeklyAssignments!
+                .AnyAsync(a =>
+                    a.AssignmentId != assignment.AssignmentId &&
+                    a.CourseId == assignment.CourseId &&
+                    a.LessonId == assignment.LessonId &&
+                    a.WeekStartDate.Date == assignment.WeekStartDate.Date &&
+                    a.IsVisible);
+
+            if (hasPublishedDuplicate)
+            {
+                await transaction.RollbackAsync();
+                return false;
+            }
+
+            assignment.IsVisible = true;
+
+            var students = await _classRepository.GetActiveStudentsByClassIdAsync(classId);
+            var notifications = students.Select(student => new Notification
+            {
+                UserId = student.StudentId,
+                Type = "NEW_ASSIGNMENT",
+                Message = $"Giáo viên vừa giao bài học mới từ {assignment.WeekStartDate:dd/MM/yyyy} đến {assignment.DueDate:dd/MM/yyyy}.",
+                IsRead = false,
+                CreateAt = DateTime.UtcNow
+            }).ToList();
+
+            await _classRepository.AddNotificationsAsync(notifications);
+            await _context.SaveChangesAsync();
+            await transaction.CommitAsync();
+            return true;
+        }
+        catch
+        {
+            await transaction.RollbackAsync();
+            throw;
+        }
     }
 }

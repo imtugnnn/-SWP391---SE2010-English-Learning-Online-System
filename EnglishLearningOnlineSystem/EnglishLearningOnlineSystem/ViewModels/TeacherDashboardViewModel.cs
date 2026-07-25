@@ -3,6 +3,7 @@
 public class TeacherDashboardViewModel
 {
     public string TeacherName { get; set; } = string.Empty;
+    public string CurrentAcademicYear { get; set; } = string.Empty;
 
     public int TotalClasses { get; set; }
     public int TotalStudents { get; set; }

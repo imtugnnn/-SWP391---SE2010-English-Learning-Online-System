@@ -27,4 +27,9 @@ public interface ITeacherAssignmentService
     string? status,
     string? sortBy,
     int page);
+
+    /// <summary>
+    /// Phát hành một bài giao đang ở trạng thái bản nháp.
+    /// </summary>
+    Task<bool> PublishDraftAsync(int assignmentId, int classId, int teacherId);
 }
