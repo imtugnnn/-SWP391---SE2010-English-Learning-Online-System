@@ -70,7 +70,7 @@ public class PasswordResetService : IPasswordResetService
 
         if (token == null)
         {
-            return AuthServiceResult.Failure((string.Empty, "Password reset link is invalid."));
+            return AuthServiceResult.Failure((string.Empty, "Đường link không hợp lệ"));
         }
 
         //BR16: Password token is only valid for 15 minutes
@@ -84,6 +84,11 @@ public class PasswordResetService : IPasswordResetService
         if (!token.User.IsActive)
         {
             return AuthServiceResult.Failure((string.Empty, "Your account is inactive. Please contact support."));
+        }
+
+        if (string.IsNullOrWhiteSpace(model.Password))
+        {
+            return AuthServiceResult.Failure((nameof(model.Password), "Mật khẩu không được để trống."));
         }
 
         token.User.Password = BCrypt.Net.BCrypt.HashPassword(model.Password);

@@ -118,6 +118,7 @@ namespace EnglishLearningOnlineSystem.Controllers.Admin
                 return Json(new { success = false, message = "Không tìm thấy thông báo." });
             }
 
+            //Nếu trạng thái là "Đã phát hành" -> không cho xóa
             if (notification.Status == "Đã phát hành")
             {
                 return Json(new { success = false, message = "Không thể hủy thông báo đã phát hành." });
@@ -131,6 +132,7 @@ namespace EnglishLearningOnlineSystem.Controllers.Admin
             _context.SystemNotifications.Update(notification);
             await _context.SaveChangesAsync();
 
+            //Lưu Audit Log
             var currentAdminId = GetCurrentUserId();
             if (currentAdminId.HasValue)
             {
