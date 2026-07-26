@@ -1,10 +1,15 @@
-﻿<!DOCTYPE html>
 @{
     var currentAction = ViewContext.RouteData.Values["action"]?.ToString();
-    var isDashboardSection = currentAction is "Dashboard" or "ClassDetail";
-    var isAssignmentSection = currentAction is "AssignmentOverview" or "AssignWeeklyLessons";
-    var isStudentSection = currentAction is "StudentsNeedSupport" or "ManageStudentList" or "StudentDetail" or "ProvideFeedback";
+    var isDashboardSection = currentAction == "Dashboard";
+    var isClassSection = currentAction is "ClassDetail"
+        or "AssignmentOverview"
+        or "AssignWeeklyLessons"
+        or "StudentsNeedSupport"
+        or "ManageStudentList"
+        or "StudentDetail"
+        or "ProvideFeedback";
 }
+<!DOCTYPE html>
 <html lang="vi">
 <head>
     <meta charset="utf-8" />
@@ -15,60 +20,80 @@
     <link rel="stylesheet" href="~/css/teacher/teacher-common.css" asp-append-version="true" />
     <link rel="stylesheet" href="~/EnglishLearningOnlineSystem.styles.css" asp-append-version="true" />
 </head>
-<body>
+<body class="teacher-layout">
     <a class="teacher-skip-link" href="#teacher-main-content">Đi tới nội dung chính</a>
-    <header class="teacher-navbar">
-        <nav class="teacher-navbar__inner" aria-label="Điều hướng giáo viên">
-            <a class="teacher-brand" asp-controller="Teacher" asp-action="Dashboard">
-                English Learning
-                <span>Teacher</span>
+
+    <aside class="teacher-sidebar">
+        <a class="teacher-sidebar__brand"
+           asp-controller="Teacher"
+           asp-action="Dashboard"
+           aria-label="English Learning Teacher">
+            <span class="teacher-sidebar__logo" aria-hidden="true">EL</span>
+            <span class="teacher-sidebar__brand-copy">
+                <strong>English Learning</strong>
+                <small>Teacher workspace</small>
+            </span>
+        </a>
+
+        <div class="teacher-sidebar__profile">
+            <span class="teacher-sidebar__avatar" aria-hidden="true">T</span>
+            <span class="teacher-sidebar__profile-copy">
+                <strong>Giáo viên</strong>
+                <small>Quản lý lớp học</small>
+            </span>
+        </div>
+
+        <nav class="teacher-sidebar__nav" aria-label="Điều hướng giáo viên">
+            <a asp-controller="Teacher"
+               asp-action="Dashboard"
+               class="teacher-sidebar__item @(isDashboardSection ? "active" : null)"
+               aria-current="@(isDashboardSection ? "page" : null)">
+                <span class="teacher-sidebar__icon" aria-hidden="true">⌂</span>
+                <span class="teacher-sidebar__label">Tổng quan</span>
             </a>
 
-            <button class="teacher-nav-toggle"
-                    type="button"
-                    data-bs-toggle="collapse"
-                    data-bs-target="#teacherNavigation"
-                    aria-controls="teacherNavigation"
-                    aria-expanded="false"
-                    aria-label="Mở hoặc đóng menu giáo viên">
-                <span></span><span></span><span></span>
-            </button>
-
-            <div class="teacher-nav-links collapse" id="teacherNavigation">
-                <a asp-controller="Teacher"
-                   asp-action="Dashboard"
-                   class="@(isDashboardSection ? "active" : null)"
-                   aria-current="@(isDashboardSection ? "page" : null)">Tổng quan</a>
-                <a asp-controller="Teacher"
-                   asp-action="AssignmentOverview"
-                   class="@(isAssignmentSection ? "active" : null)"
-                   aria-current="@(isAssignmentSection ? "page" : null)">Bài đã giao</a>
-                <a asp-controller="Teacher"
-                   asp-action="StudentsNeedSupport"
-                   class="@(isStudentSection ? "active" : null)"
-                   aria-current="@(isStudentSection ? "page" : null)">Học sinh cần hỗ trợ</a>
-                <form asp-controller="Auth" asp-action="Logout" method="post" class="teacher-logout-form">
-                    @Html.AntiForgeryToken()
-                    <button type="submit" class="teacher-logout">Đăng xuất</button>
-                </form>
-            </div>
+            <a asp-controller="Teacher"
+               asp-action="Dashboard"
+               asp-fragment="teacher-classes"
+               class="teacher-sidebar__item @(isClassSection ? "active" : null)"
+               aria-current="@(isClassSection ? "page" : null)">
+                <span class="teacher-sidebar__icon" aria-hidden="true">▦</span>
+                <span class="teacher-sidebar__label">Lớp học của tôi</span>
+            </a>
         </nav>
-    </header>
 
-    <main id="teacher-main-content" role="main" class="teacher-main" tabindex="-1">
-        @RenderBody()
-    </main>
-
-    <footer class="teacher-footer">
-        <div class="teacher-footer__inner">
-            &copy; 2026 English Learning Online System
+        <div class="teacher-sidebar__footer">
+            <form asp-controller="Auth" asp-action="Logout" method="post">
+                @Html.AntiForgeryToken()
+                <button type="submit" class="teacher-sidebar__item teacher-sidebar__logout">
+                    <span class="teacher-sidebar__icon" aria-hidden="true">↪</span>
+                    <span class="teacher-sidebar__label">Đăng xuất</span>
+                </button>
+            </form>
         </div>
-    </footer>
+    </aside>
+
+    <div class="teacher-page">
+        <header class="teacher-topbar">
+            <div>
+                <div class="teacher-topbar__eyebrow">Teacher workspace</div>
+                <div class="teacher-topbar__title">@(ViewData["Title"] ?? "Teacher")</div>
+            </div>
+            <span class="teacher-topbar__role">Teacher</span>
+        </header>
+
+        <main id="teacher-main-content" role="main" class="teacher-main" tabindex="-1">
+            @RenderBody()
+        </main>
+
+        <footer class="teacher-footer">
+            &copy; 2026 English Learning Online System
+        </footer>
+    </div>
 
     <script src="~/lib/jquery/dist/jquery.min.js"></script>
     <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
     <script src="~/js/site.js" asp-append-version="true"></script>
-
     @await RenderSectionAsync("Scripts", required: false)
 </body>
 </html>

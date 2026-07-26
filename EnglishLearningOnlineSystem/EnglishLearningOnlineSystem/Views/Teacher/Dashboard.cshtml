@@ -107,22 +107,6 @@
         height: 100%;
     }
 
-    .summary-link {
-        display: block;
-        height: 100%;
-        text-decoration: none;
-    }
-
-    .summary-link .summary-card {
-        transition: border-color .2s, box-shadow .2s, transform .15s;
-    }
-
-    .summary-link:hover .summary-card {
-        border-color: #38bdf8;
-        box-shadow: 0 4px 16px rgba(14,165,233,.13);
-        transform: translateY(-2px);
-    }
-
     .summary-label {
         font-size: .78rem;
         font-weight: 900;
@@ -154,6 +138,12 @@
         color: #1e3a5f;
         margin: 0;
         font-size: 1.05rem;
+    }
+
+    .section-subtitle {
+        color: #64748b;
+        font-size: .88rem;
+        margin: 4px 0 0;
     }
 
     .btn-teacher {
@@ -298,7 +288,7 @@
                         </h1>
 
                         <p class="page-subtitle">
-                            Tổng quan lớp học, bài giao và học sinh cần theo dõi trong Teacher Module.
+                            Xem tổng quan và chọn một lớp để quản lý kế hoạch học tập, học sinh và phản hồi.
                         </p>
 
                         <div class="academic-year-chip">
@@ -335,47 +325,44 @@
                     </div>
 
                     <div class="col-md-2">
-                        <a asp-controller="Teacher" asp-action="AssignmentOverview" class="summary-link">
-                            <div class="summary-card">
-                                <div class="summary-label">Bài giao</div>
-                                <p class="summary-value">@Model.TotalAssignments</p>
-                            </div>
-                        </a>
+                        <div class="summary-card">
+                            <div class="summary-label">Bài giao</div>
+                            <p class="summary-value">@Model.TotalAssignments</p>
+                        </div>
                     </div>
 
                     <div class="col-md-2">
-                        <a asp-controller="Teacher" asp-action="AssignmentOverview" asp-route-status="active" class="summary-link">
-                            <div class="summary-card">
-                                <div class="summary-label">Đang hoạt động</div>
-                                <p class="summary-value">@Model.ActiveAssignments</p>
-                            </div>
-                        </a>
+                        <div class="summary-card">
+                            <div class="summary-label">Đang hoạt động</div>
+                            <p class="summary-value">@Model.ActiveAssignments</p>
+                        </div>
                     </div>
 
                     <div class="col-md-2">
-                        <a asp-controller="Teacher" asp-action="AssignmentOverview" asp-route-status="expired" class="summary-link">
-                            <div class="summary-card">
-                                <div class="summary-label">Quá hạn</div>
-                                <p class="summary-value">@Model.ExpiredAssignments</p>
-                            </div>
-                        </a>
+                        <div class="summary-card">
+                            <div class="summary-label">Quá hạn</div>
+                            <p class="summary-value">@Model.ExpiredAssignments</p>
+                        </div>
                     </div>
 
                     <div class="col-md-2">
-                        <a asp-controller="Teacher" asp-action="StudentsNeedSupport" class="summary-link">
-                            <div class="summary-card">
-                                <div class="summary-label">Cần chú ý</div>
-                                <p class="summary-value">@Model.StudentsNeedAttention</p>
-                            </div>
-                        </a>
+                        <div class="summary-card">
+                            <div class="summary-label">Cần chú ý</div>
+                            <p class="summary-value">@Model.StudentsNeedAttention</p>
+                        </div>
                     </div>
                 </div>
             </div>
         </div>
 
-        <div class="section-card">
+        <div class="section-card" id="teacher-classes">
             <div class="section-header">
-                <h2 class="section-title">Danh sách lớp phụ trách</h2>
+                <div>
+                    <h2 class="section-title">Lớp học của tôi</h2>
+                    <p class="section-subtitle">
+                        Chọn một lớp để xem học sinh, bài giao và các trường hợp cần hỗ trợ.
+                    </p>
+                </div>
             </div>
 
             @if (Model.Classes.Any())
@@ -412,21 +399,13 @@
                                         }
                                     </td>
                                     <td class="text-end">
-                                        <div class="d-flex justify-content-end gap-2 flex-wrap">
-                                            <a asp-controller="Teacher"
-                                               asp-action="ClassDetail"
-                                               asp-route-classId="@item.ClassId"
-                                               class="btn-teacher-outline">
-                                                Chi tiết
-                                            </a>
-
-                                            <a asp-controller="Teacher"
-                                               asp-action="AssignWeeklyLessons"
-                                               asp-route-classId="@item.ClassId"
-                                               class="btn-teacher">
-                                                Giao bài
-                                            </a>
-                                        </div>
+                                        <a asp-controller="Teacher"
+                                           asp-action="ClassDetail"
+                                           asp-route-classId="@item.ClassId"
+                                           class="btn-teacher">
+                                            Mở lớp học
+                                            <i class="bi bi-arrow-right ms-2"></i>
+                                        </a>
                                     </td>
                                 </tr>
                             }
