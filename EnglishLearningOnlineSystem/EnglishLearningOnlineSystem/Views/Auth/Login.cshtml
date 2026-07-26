@@ -1,5 +1,5 @@
 @* Create by TungDPL *@
-@* Last Update: 7/21/2026 *@
+@* Last Update: 7/25/2026 *@
 @model LoginViewModel
 
 @{
@@ -43,11 +43,12 @@
         <!-- Post /login -> -->
         <button type="submit" class="btn-login">Đăng nhập</button>
         <a class="btn-google" asp-action="GoogleLogin">Đăng nhập với Google</a>
-        <a class="register-link" asp-action="ForgotPassword">Forgot password?</a>
+        <a class="register-link" asp-action="ForgotPassword">Quên mật khẩu?</a>
     </form>
 </div>
 
 
+    <script src="~/lib/jquery/dist/jquery.min.js"></script>
     <partial name="_ValidationScriptsPartial" />
 </body>
 </html>

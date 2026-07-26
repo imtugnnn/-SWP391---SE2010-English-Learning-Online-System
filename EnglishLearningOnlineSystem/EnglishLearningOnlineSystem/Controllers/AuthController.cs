@@ -226,6 +226,28 @@ public class AuthController : Controller
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> ResetPassword(ResetPasswordViewModel model)
     {
+        // 1. Kiểm tra nếu Password trống/khoảng trắng
+        if (string.IsNullOrWhiteSpace(model.Password))
+        {
+            ModelState.AddModelError("Password", "Hãy nhập mật khẩu mới.");
+            
+            // Xóa mọi lỗi khác của ConfirmPassword (để chỉ hiện mỗi lỗi "Hãy nhập mật khẩu mới.")
+            ModelState.Remove("ConfirmPassword");
+        }
+        else
+        {
+            // 2. Nếu Password không trống, nhưng ConfirmPassword trống/khoảng trắng
+            if (string.IsNullOrWhiteSpace(model.ConfirmPassword))
+            {
+                ModelState.AddModelError("ConfirmPassword", "Hãy xác nhận mật khẩu của bạn.");
+            }
+            // 3. Nếu cả hai đều không trống nhưng không khớp nhau
+            else if (model.Password != model.ConfirmPassword)
+            {
+                ModelState.AddModelError("ConfirmPassword", "Mật khẩu không khớp.");
+            }
+        }
+
         if (!ModelState.IsValid)
         {
             return View(model);

@@ -15,6 +15,5 @@ public class ResetPasswordViewModel
     public string Password { get; set; } = string.Empty;
 
     [Required(ErrorMessage = "Hãy xác nhận mật khẩu của bạn.")]
-    [Compare(nameof(Password), ErrorMessage = "Mật khẩu không khớp.")]
     public string ConfirmPassword { get; set; } = string.Empty;
 }

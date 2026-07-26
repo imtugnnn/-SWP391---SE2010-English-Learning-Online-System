@@ -13,14 +13,16 @@ body {
 
 .admin-wrapper {
     display: flex;
-    min-height: 100vh;
-    overflow-x: hidden;
+    height: 100vh;
+    overflow: hidden;
 }
 
 .admin-main {
     flex: 1;
     display: flex;
     flex-direction: column;
+    height: 100vh;
+    overflow: hidden;
     min-width: 0; /* Prevents flex children from stretching outside viewport */
 }
 

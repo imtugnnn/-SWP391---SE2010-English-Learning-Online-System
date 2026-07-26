@@ -1,6 +1,6 @@
 //Create by TungDPL
 //Create at 6/26/2026
-//Last update: 7/15/2026
+//Last update: 7/23/2026
 using Microsoft.AspNetCore.Mvc;
 using EnglishLearningOnlineSystem.Data;
 using EnglishLearningOnlineSystem.Models;
@@ -118,6 +118,12 @@ namespace EnglishLearningOnlineSystem.Controllers.Admin
                 return Json(new { success = false, message = "Không tìm thấy thông báo." });
             }
 
+            //Nếu trạng thái là "Đã phát hành" -> không cho xóa
+            if (notification.Status == "Đã phát hành")
+            {
+                return Json(new { success = false, message = "Không thể hủy thông báo đã phát hành." });
+            }
+
             // BR-NOTI-09: Published notifications cannot be permanently deleted. They can only be archived or deactivated to preserve the system audit history. (Soft delete by updating status to "Đã hủy")
             notification.Status = "Đã hủy";
             // BR-NOTI-11: The system automatically updates UpdatedAt whenever a notification is modified.
@@ -126,6 +132,7 @@ namespace EnglishLearningOnlineSystem.Controllers.Admin
             _context.SystemNotifications.Update(notification);
             await _context.SaveChangesAsync();
 
+            //Lưu Audit Log
             var currentAdminId = GetCurrentUserId();
             if (currentAdminId.HasValue)
             {

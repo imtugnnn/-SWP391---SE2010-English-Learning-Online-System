@@ -1,3 +1,5 @@
+@* Create by TungDPL *@
+@* Last Update: 7/23/2026 *@
 @inject EnglishLearningOnlineSystem.Data.AppDbContext _context
 <div class="admin-sidebar">
     @{
@@ -12,6 +14,9 @@
             <h4>EduLearn</h4>
             <span>Trang quản trị</span>
         </div>
+        <button type="button" class="collapse-toggle-btn" id="sidebarCollapseBtn" title="Thu gọn sidebar">
+            <i class="bi bi-chevron-double-left"></i>
+        </button>
     </div>
 
     <!-- Profile -->
@@ -112,7 +117,7 @@
         </li>
     </ul>
 
-    <!-- Footer / Collapse & Logout -->
+    <!-- Footer / Logout -->
     <div class="sidebar-footer">
         <form asp-controller="Auth"
               asp-action="Logout"
@@ -124,10 +129,6 @@
                 <span>Đăng xuất</span>
             </button>
         </form>
-
-        <button type="button" class="collapse-toggle-btn" id="sidebarCollapseBtn" title="Thu gọn sidebar">
-            <i class="bi bi-chevron-double-left"></i>
-        </button>
     </div>
 </div>
 
