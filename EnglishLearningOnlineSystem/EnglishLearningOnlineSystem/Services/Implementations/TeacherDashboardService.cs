@@ -31,6 +31,10 @@ public class TeacherDashboardService : ITeacherDashboardService
     public async Task<TeacherDashboardViewModel> GetTeacherDashboardAsync(int teacherId)
     {
         var classes = await _classRepository.GetClassesByTeacherIdAsync(teacherId);
+        var currentAcademicYear = await _context.AcademicYears!
+            .Where(year => year.IsActive)
+            .Select(year => year.YearLabel)
+            .FirstOrDefaultAsync();
 
         var courseIds = classes
             .Where(c => c.CourseId.HasValue)
@@ -83,6 +87,7 @@ public class TeacherDashboardService : ITeacherDashboardService
         return new TeacherDashboardViewModel
         {
             TeacherName = classes.FirstOrDefault()?.Teacher?.Username ?? "Giáo viên",
+            CurrentAcademicYear = currentAcademicYear ?? "Chưa cập nhật",
 
             TotalClasses = classes.Count,
             TotalStudents = totalStudents,

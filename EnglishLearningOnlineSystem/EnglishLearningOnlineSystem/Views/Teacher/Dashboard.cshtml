@@ -85,28 +85,26 @@
         margin-bottom: 0;
     }
 
+    .academic-year-chip {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        margin-top: 16px;
+        padding: 9px 14px;
+        border: 1px solid #bae6fd;
+        border-radius: 999px;
+        background: #f0f9ff;
+        color: #075985;
+        font-size: .88rem;
+        font-weight: 800;
+    }
+
     .summary-card {
         background: #f0f9ff;
         border: 1.5px solid #bae6fd;
         border-radius: 18px;
         padding: 20px;
         height: 100%;
-    }
-
-    .summary-link {
-        display: block;
-        height: 100%;
-        text-decoration: none;
-    }
-
-    .summary-link .summary-card {
-        transition: border-color .2s, box-shadow .2s, transform .15s;
-    }
-
-    .summary-link:hover .summary-card {
-        border-color: #38bdf8;
-        box-shadow: 0 4px 16px rgba(14,165,233,.13);
-        transform: translateY(-2px);
     }
 
     .summary-label {
@@ -140,6 +138,12 @@
         color: #1e3a5f;
         margin: 0;
         font-size: 1.05rem;
+    }
+
+    .section-subtitle {
+        color: #64748b;
+        font-size: .88rem;
+        margin: 4px 0 0;
     }
 
     .btn-teacher {
@@ -245,6 +249,24 @@
     .bg-light-blue {
         background-color: #f0f9ff !important;
     }
+
+    @@media (max-width: 767.98px) {
+        .teacher-class-shell {
+            padding: 20px 12px;
+        }
+
+        .page-card-body {
+            padding: 24px 18px;
+        }
+
+        .page-title {
+            font-size: 1.55rem;
+        }
+
+        .section-header {
+            padding: 16px 18px;
+        }
+    }
 </style>
 
 <div class="teacher-class-shell">
@@ -266,8 +288,13 @@
                         </h1>
 
                         <p class="page-subtitle">
-                            Tổng quan lớp học, bài giao và học sinh cần theo dõi trong Teacher Module.
+                            Xem tổng quan và chọn một lớp để quản lý kế hoạch học tập, học sinh và phản hồi.
                         </p>
+
+                        <div class="academic-year-chip">
+                            <i class="bi bi-calendar3"></i>
+                            <span>Năm học hiện tại: @Model.CurrentAcademicYear</span>
+                        </div>
                     </div>
 
                     <div>
@@ -298,47 +325,44 @@
                     </div>
 
                     <div class="col-md-2">
-                        <a asp-controller="Teacher" asp-action="AssignmentOverview" class="summary-link">
-                            <div class="summary-card">
-                                <div class="summary-label">Bài giao</div>
-                                <p class="summary-value">@Model.TotalAssignments</p>
-                            </div>
-                        </a>
+                        <div class="summary-card">
+                            <div class="summary-label">Bài giao</div>
+                            <p class="summary-value">@Model.TotalAssignments</p>
+                        </div>
                     </div>
 
                     <div class="col-md-2">
-                        <a asp-controller="Teacher" asp-action="AssignmentOverview" asp-route-status="active" class="summary-link">
-                            <div class="summary-card">
-                                <div class="summary-label">Đang hoạt động</div>
-                                <p class="summary-value">@Model.ActiveAssignments</p>
-                            </div>
-                        </a>
+                        <div class="summary-card">
+                            <div class="summary-label">Đang hoạt động</div>
+                            <p class="summary-value">@Model.ActiveAssignments</p>
+                        </div>
                     </div>
 
                     <div class="col-md-2">
-                        <a asp-controller="Teacher" asp-action="AssignmentOverview" asp-route-status="expired" class="summary-link">
-                            <div class="summary-card">
-                                <div class="summary-label">Quá hạn</div>
-                                <p class="summary-value">@Model.ExpiredAssignments</p>
-                            </div>
-                        </a>
+                        <div class="summary-card">
+                            <div class="summary-label">Quá hạn</div>
+                            <p class="summary-value">@Model.ExpiredAssignments</p>
+                        </div>
                     </div>
 
                     <div class="col-md-2">
-                        <a asp-controller="Teacher" asp-action="StudentsNeedSupport" class="summary-link">
-                            <div class="summary-card">
-                                <div class="summary-label">Cần chú ý</div>
-                                <p class="summary-value">@Model.StudentsNeedAttention</p>
-                            </div>
-                        </a>
+                        <div class="summary-card">
+                            <div class="summary-label">Cần chú ý</div>
+                            <p class="summary-value">@Model.StudentsNeedAttention</p>
+                        </div>
                     </div>
                 </div>
             </div>
         </div>
 
-        <div class="section-card">
+        <div class="section-card" id="teacher-classes">
             <div class="section-header">
-                <h2 class="section-title">Danh sách lớp phụ trách</h2>
+                <div>
+                    <h2 class="section-title">Lớp học của tôi</h2>
+                    <p class="section-subtitle">
+                        Chọn một lớp để xem học sinh, bài giao và các trường hợp cần hỗ trợ.
+                    </p>
+                </div>
             </div>
 
             @if (Model.Classes.Any())
@@ -349,7 +373,6 @@
                             <tr>
                                 <th>Lớp</th>
                                 <th>Khối</th>
-                                <th>Năm học</th>
                                 <th>Học sinh</th>
                                 <th>Bài giao</th>
                                 <th>Quá hạn</th>
@@ -363,7 +386,6 @@
                                 <tr>
                                     <td class="fw-bold">@item.ClassName</td>
                                     <td>@item.GradeLevel</td>
-                                    <td>@item.AcademicYear</td>
                                     <td>@item.StudentCount</td>
                                     <td>@item.AssignmentCount</td>
                                     <td>
@@ -377,21 +399,13 @@
                                         }
                                     </td>
                                     <td class="text-end">
-                                        <div class="d-flex justify-content-end gap-2 flex-wrap">
-                                            <a asp-controller="Teacher"
-                                               asp-action="ClassDetail"
-                                               asp-route-classId="@item.ClassId"
-                                               class="btn-teacher-outline">
-                                                Chi tiết
-                                            </a>
-
-                                            <a asp-controller="Teacher"
-                                               asp-action="AssignWeeklyLessons"
-                                               asp-route-classId="@item.ClassId"
-                                               class="btn-teacher">
-                                                Giao bài
-                                            </a>
-                                        </div>
+                                        <a asp-controller="Teacher"
+                                           asp-action="ClassDetail"
+                                           asp-route-classId="@item.ClassId"
+                                           class="btn-teacher">
+                                            Mở lớp học
+                                            <i class="bi bi-arrow-right ms-2"></i>
+                                        </a>
                                     </td>
                                 </tr>
                             }

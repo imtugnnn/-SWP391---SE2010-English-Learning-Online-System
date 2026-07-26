@@ -372,6 +372,7 @@
                                 <th>Ngày bắt đầu</th>
                                 <th>Hạn hoàn thành</th>
                                 <th>Trạng thái</th>
+                                <th>Thao tác</th>
                             </tr>
                         </thead>
 
@@ -395,6 +396,27 @@
                                         else
                                         {
                                             <span class="badge-soft-primary">@item.Status</span>
+                                        }
+                                    </td>
+                                    <td>
+                                        @if (item.Status == "Bản nháp" && Model.ClassId.HasValue)
+                                        {
+                                            <form asp-controller="Teacher"
+                                                  asp-action="PublishDraft"
+                                                  method="post"
+                                                  class="d-inline">
+                                                <input type="hidden" name="assignmentId" value="@item.AssignmentId" />
+                                                <input type="hidden" name="classId" value="@Model.ClassId.Value" />
+                                                <button type="submit"
+                                                        class="btn-teacher"
+                                                        onclick="return confirm('Bạn có chắc muốn xuất bản bài giao này?');">
+                                                    Xuất bản
+                                                </button>
+                                            </form>
+                                        }
+                                        else
+                                        {
+                                            <span class="text-muted">—</span>
                                         }
                                     </td>
                                 </tr>
