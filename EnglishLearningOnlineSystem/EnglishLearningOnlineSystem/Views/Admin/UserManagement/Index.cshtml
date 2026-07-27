@@ -1,3 +1,5 @@
+@* Create by TungDPL *@
+@* Last Update: 7/28/2026 *@
 @model EnglishLearningOnlineSystem.ViewModels.Admin.UserManagementViewModel
 
 @{
@@ -46,10 +48,16 @@
             <h2>Quản lý người dùng</h2>
             <p>Quản lý tất cả tài khoản người dùng trong hệ thống</p>
         </div>
+        <div class="page-header-actions">
+        <button class="btn-import" data-bs-toggle="modal" data-bs-target="#importUsersModal">
+            <i class="bi bi-file-earmark-excel"></i>
+            Import Excel
+        </button>
         <button class="btn-add" data-bs-toggle="modal" data-bs-target="#createUserModal">
             <i class="bi bi-plus-lg"></i>
             Thêm người dùng
         </button>
+        </div>
     </div>
 
     <!-- Stats Cards Row -->
@@ -305,6 +313,42 @@
                 <div class="modal-footer">
                     <button type="button" class="btn-modal-cancel" data-bs-dismiss="modal">Hủy</button>
                     <button type="submit" class="btn-modal-submit">Thêm</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Modal: Import Users -->
+<div class="modal fade" id="importUsersModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content custom-modal">
+            <div class="modal-header">
+                <h5 class="modal-title">Import học sinh bằng Excel</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form id="importUsersForm" enctype="multipart/form-data" onsubmit="submitImportUsers(event)">
+                @Html.AntiForgeryToken()
+                <div class="modal-body">
+                    <div class="import-note">
+                        File Excel cần có 4 cột theo thứ tự: <strong>username</strong>, <strong>email</strong>, <strong>ngày sinh</strong>, <strong>lớp</strong>.
+                        Mật khẩu sẽ được gán mặc định là <strong>123456</strong>, vai trò là <strong>Student</strong>, trạng thái <strong>active</strong>.
+                    </div>
+                    <div class="import-template-row">
+                        <a asp-action="DownloadUserImportTemplate" asp-controller="Admin" class="btn-template-download">
+                            <i class="bi bi-download"></i>
+                            Tải file mẫu Excel
+                        </a>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Chọn file Excel (.xlsx) *</label>
+                        <input type="file" class="form-control" name="importFile" accept=".xlsx" required />
+                        <div class="validation-error-msg" id="import-error-file"></div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn-modal-cancel" data-bs-dismiss="modal">Hủy</button>
+                    <button type="submit" class="btn-modal-submit">Import</button>
                 </div>
             </form>
         </div>
@@ -761,7 +805,7 @@
                     
                     const deleteBtn = `<button class="btn-action-circle btn-delete" onclick="deleteUser(${u.id})" title="Xóa"><i class="bi bi-trash"></i></button>`;
                     
-                    tdActions.innerHTML = editBtn + lockBtn + deleteBtn;
+                    tdActions.innerHTML = `<div class="actions-buttons">${editBtn}${lockBtn}${deleteBtn}</div>`;
                 }
                 tr.appendChild(tdActions);
                 
@@ -1038,6 +1082,57 @@
             .catch(err => {
                 console.error(err);
                 alert("Đã xảy ra lỗi hệ thống khi cập nhật người dùng.");
+            });
+        }
+
+        function submitImportUsers(e) {
+            e.preventDefault();
+
+            const form = e.target;
+            const fileInput = form.querySelector('input[name="importFile"]');
+            const errorEl = document.getElementById('import-error-file');
+
+            if (errorEl) {
+                errorEl.innerText = '';
+                errorEl.style.display = 'none';
+            }
+
+            if (!fileInput.files || fileInput.files.length === 0) {
+                if (errorEl) {
+                    errorEl.innerText = 'Vui lòng chọn tệp Excel.';
+                    errorEl.style.display = 'block';
+                }
+                return;
+            }
+
+            const token = form.querySelector('input[name="__RequestVerificationToken"]').value;
+            const formData = new FormData(form);
+
+            fetch('/Admin/ImportUsersFromExcel', {
+                method: 'POST',
+                headers: {
+                    'RequestVerificationToken': token
+                },
+                body: formData
+            })
+            .then(res => res.json())
+            .then(res => {
+                if (res.success) {
+                    const modal = bootstrap.Modal.getInstance(document.getElementById('importUsersModal'));
+                    modal.hide();
+                    form.reset();
+                    alert(res.message || 'Import thành công.');
+                    location.reload();
+                } else {
+                    const message = res.errors && res.errors.length
+                        ? `${res.message}\n\n${res.errors.join('\n')}`
+                        : (res.message || 'Không thể import file.');
+                    alert(message);
+                }
+            })
+            .catch(err => {
+                console.error(err);
+                alert("Đã xảy ra lỗi khi import Excel.");
             });
         }
 

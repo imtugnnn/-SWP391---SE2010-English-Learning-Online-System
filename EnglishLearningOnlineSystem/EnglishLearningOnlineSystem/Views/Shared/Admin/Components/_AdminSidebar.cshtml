@@ -1,11 +1,15 @@
 @* Create by TungDPL *@
 @* Last Update: 7/23/2026 *@
-@inject EnglishLearningOnlineSystem.Data.AppDbContext _context
+@inject EnglishLearningOnlineSystem.Repositories.Interfaces.IAcademicYearRepository _academicYearRepository
 <div class="admin-sidebar">
     @{
         var controller = ViewContext.RouteData.Values["controller"]?.ToString();
         var action = ViewContext.RouteData.Values["action"]?.ToString();
-        var activeYearId = _context.AcademicYears?.FirstOrDefault(y => y.IsActive)?.AcademicYearId;
+        int? activeYearId = ViewBag.ActiveAcademicYearId is int id ? id : null;
+        if (!activeYearId.HasValue)
+        {
+            activeYearId = (await _academicYearRepository.GetActiveAcademicYearsAsync()).FirstOrDefault()?.AcademicYearId;
+        }
     }
     <!-- Logo -->
     <div class="sidebar-logo">

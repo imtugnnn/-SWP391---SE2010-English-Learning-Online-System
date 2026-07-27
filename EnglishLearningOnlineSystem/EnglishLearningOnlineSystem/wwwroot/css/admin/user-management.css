@@ -38,6 +38,13 @@
     margin-bottom: 24px;
 }
 
+.page-header-actions {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
 .header-title-section h2 {
     font-size: 26px;
     font-weight: 700;
@@ -71,6 +78,28 @@
     background: #0369a1;
     transform: translateY(-1px);
     box-shadow: 0 4px 6px rgba(2, 132, 199, 0.3);
+}
+
+.btn-import {
+    background: #16a34a;
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 8px;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    transition: all 0.2s ease;
+    box-shadow: 0 2px 4px rgba(22, 163, 74, 0.18);
+}
+
+.btn-import:hover {
+    background: #15803d;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 6px rgba(22, 163, 74, 0.28);
 }
 
 /* Dashboard Stats Cards */
@@ -459,8 +488,16 @@
 
 /* Action Buttons */
 .actions-cell {
-    display: flex;
+    text-align: center;
+    vertical-align: middle;
+    white-space: nowrap;
+}
+
+.actions-buttons {
+    display: inline-flex;
+    align-items: center;
     gap: 6px;
+    justify-content: center;
 }
 
 .btn-action-circle {
@@ -614,6 +651,45 @@
     padding: 24px;
 }
 
+.import-note {
+    background: #f8fafc;
+    border: 1px solid var(--border-color);
+    border-radius: 10px;
+    color: var(--text-muted);
+    font-size: 13px;
+    line-height: 1.5;
+    padding: 14px 16px;
+    margin-bottom: 16px;
+}
+
+.import-template-row {
+    display: flex;
+    justify-content: flex-start;
+    margin-bottom: 16px;
+}
+
+.btn-template-download {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 9px 14px;
+    border-radius: 8px;
+    border: 1px solid #86efac;
+    background: #f0fdf4;
+    color: #166534;
+    font-size: 13px;
+    font-weight: 600;
+    text-decoration: none;
+    transition: all 0.2s ease;
+}
+
+.btn-template-download:hover {
+    background: #dcfce7;
+    border-color: #4ade80;
+    color: #14532d;
+    transform: translateY(-1px);
+}
+
 .custom-modal .form-label {
     font-size: 13px;
     font-weight: 600;
@@ -727,4 +803,4 @@
 .suggestion-email {
     font-size: 11px;
     color: var(--text-muted);
-}
+}

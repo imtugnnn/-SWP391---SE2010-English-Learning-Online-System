@@ -11,19 +11,25 @@ public class TeacherDashboardService : ITeacherDashboardService
     private readonly ITeacherDashboardRepository _teacherDashboardRepository;
     private readonly INotificationRepository _notificationRepository;
     private readonly IStudentManagementService _studentManagementService;
+    private readonly ISystemNotificationService _systemNotificationService;
+    private readonly AppDbContext _context;
 
     public TeacherDashboardService(
         IClassRepository classRepository,
         IAssignmentRepository assignmentRepository,
         IStudentManagementService studentManagementService,
         ITeacherDashboardRepository teacherDashboardRepository,
-        INotificationRepository notificationRepository)
+        INotificationRepository notificationRepository,
+        ISystemNotificationService systemNotificationService,
+        AppDbContext context)
     {
         _classRepository = classRepository;
         _assignmentRepository = assignmentRepository;
         _studentManagementService = studentManagementService;
         _teacherDashboardRepository = teacherDashboardRepository;
         _notificationRepository = notificationRepository;
+        _systemNotificationService = systemNotificationService;
+        _context = context;
     }
 
     /// <summary>
@@ -31,6 +37,7 @@ public class TeacherDashboardService : ITeacherDashboardService
     /// </summary>
     public async Task<TeacherDashboardViewModel> GetTeacherDashboardAsync(int teacherId)
     {
+        await _systemNotificationService.RefreshDueScheduledAsync();
         var classes = await _classRepository.GetClassesByTeacherIdAsync(teacherId);
         // Luồng 1: Repository nạp dữ liệu thô thuộc phạm vi dashboard giáo viên.
         var currentAcademicYear = await _teacherDashboardRepository.GetActiveAcademicYearLabelAsync();
