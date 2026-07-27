@@ -62,7 +62,7 @@ public class TeacherDashboardService : ITeacherDashboardService
         foreach (var classEntity in classes)
         {
             // Tính thống kê riêng từng lớp để hiển thị trong danh sách lớp của dashboard.
-            var enrollments = await _classRepository.GetStudentsByClassIdAsync(classEntity.ClassId);
+            var enrollments = await _classRepository.GetActiveStudentsByClassIdAsync(classEntity.ClassId);
 
             var classAssignments = assignments
                 .Where(a => a.CourseId == classEntity.CourseId && a.IsVisible)

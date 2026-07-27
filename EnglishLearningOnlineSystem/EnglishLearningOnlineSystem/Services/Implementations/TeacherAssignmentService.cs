@@ -235,8 +235,15 @@ public class TeacherAssignmentService : ITeacherAssignmentService
     int page)
     {
         var classes = await _classRepository.GetClassesByTeacherIdAsync(teacherId);
+        var selectedClass = classId.HasValue
+            ? classes.FirstOrDefault(c => c.ClassId == classId.Value)
+            : null;
 
-        var courseIds = classes
+        var classesInScope = selectedClass == null
+            ? classes
+            : new List<Class> { selectedClass };
+
+        var courseIds = classesInScope
             .Where(c => c.CourseId.HasValue)
             .Select(c => c.CourseId!.Value)
             .Distinct()
@@ -271,6 +278,7 @@ public class TeacherAssignmentService : ITeacherAssignmentService
         return new TeacherAssignmentOverviewViewModel
         {
             ClassId = classId,
+            ClassName = selectedClass?.ClassName ?? string.Empty,
             Status = NormalizeAssignmentStatus(status),
             SortBy = NormalizeAssignmentSort(sortBy),
             Page = page,

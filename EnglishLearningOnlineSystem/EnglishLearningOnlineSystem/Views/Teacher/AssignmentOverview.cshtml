@@ -248,7 +248,7 @@
                         </div>
 
                         <h1 class="page-title">
-                            Tổng quan <span>bài đã giao</span>
+                            Bài giao tuần · <span>@Model.ClassName</span>
                         </h1>
 
                         <p class="page-subtitle">
@@ -256,23 +256,20 @@
                         </p>
                     </div>
 
-                    @if (Model.ClassId.HasValue)
-                    {
+                    <div class="d-flex gap-2 flex-wrap">
                         <a asp-controller="Teacher"
                            asp-action="ClassDetail"
                            asp-route-classId="@Model.ClassId"
                            class="btn-teacher-outline">
                             Quay lại chi tiết lớp
                         </a>
-                    }
-                    else
-                    {
                         <a asp-controller="Teacher"
-                           asp-action="Dashboard"
-                           class="btn-teacher-outline">
-                            Quay lại Dashboard
+                           asp-action="AssignWeeklyLessons"
+                           asp-route-classId="@Model.ClassId"
+                           class="btn-teacher">
+                            Giao bài tuần mới
                         </a>
-                    }
+                    </div>
                 </div>
 
                 <div class="row g-3">
@@ -399,14 +396,14 @@
                                         }
                                     </td>
                                     <td>
-                                        @if (item.Status == "Bản nháp" && Model.ClassId.HasValue)
+                                        @if (item.Status == "Bản nháp")
                                         {
                                             <form asp-controller="Teacher"
                                                   asp-action="PublishDraft"
                                                   method="post"
                                                   class="d-inline">
                                                 <input type="hidden" name="assignmentId" value="@item.AssignmentId" />
-                                                <input type="hidden" name="classId" value="@Model.ClassId.Value" />
+                                                <input type="hidden" name="classId" value="@Model.ClassId" />
                                                 <button type="submit"
                                                         class="btn-teacher"
                                                         onclick="return confirm('Bạn có chắc muốn xuất bản bài giao này?');">

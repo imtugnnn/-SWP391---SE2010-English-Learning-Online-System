@@ -1,7 +1,7 @@
 ﻿@model EnglishLearningOnlineSystem.ViewModels.ManageStudentListViewModel
 
 @{
-    ViewData["Title"] = "Quản lý học sinh";
+    ViewData["Title"] = "Danh sách học sinh";
 }
 
 <style>
@@ -246,7 +246,7 @@
                         </h1>
 
                         <p class="page-subtitle">
-                            Tìm kiếm, lọc, sắp xếp và theo dõi danh sách học sinh trong lớp.
+                            Tìm kiếm, sắp xếp và theo dõi các học sinh đang hoạt động trong lớp.
                         </p>
                     </div>
 
@@ -261,22 +261,8 @@
                 <div class="row g-3">
                     <div class="col-md-4">
                         <div class="summary-card">
-                            <div class="summary-label">Tổng học sinh</div>
+                            <div class="summary-label">Học sinh đang hoạt động</div>
                             <p class="summary-value">@Model.TotalStudents</p>
-                        </div>
-                    </div>
-
-                    <div class="col-md-4">
-                        <div class="summary-card">
-                            <div class="summary-label">Đang hoạt động</div>
-                            <p class="summary-value">@Model.ActiveStudents</p>
-                        </div>
-                    </div>
-
-                    <div class="col-md-4">
-                        <div class="summary-card">
-                            <div class="summary-label">Không hoạt động</div>
-                            <p class="summary-value">@Model.InactiveStudents</p>
                         </div>
                     </div>
                 </div>
@@ -293,7 +279,7 @@
                     <input type="hidden" name="classId" value="@Model.ClassId" />
 
                     <div class="row g-3 align-items-end">
-                        <div class="col-md-4">
+                        <div class="col-md-5">
                             <label class="form-label" for="teacher-student-keyword">Tìm kiếm</label>
                             <input type="text"
                                    id="teacher-student-keyword"
@@ -303,26 +289,16 @@
                                    placeholder="Nhập tên hoặc email học sinh" />
                         </div>
 
-                        <div class="col-md-3">
-                            <label class="form-label" for="teacher-student-status">Trạng thái</label>
-                            <select name="status" id="teacher-student-status" class="form-select">
-                                <option value="all" selected="@(Model.Status == "all")">Tất cả</option>
-                                <option value="active" selected="@(Model.Status == "active")">Đang hoạt động</option>
-                                <option value="inactive" selected="@(Model.Status == "inactive")">Không hoạt động</option>
-                            </select>
-                        </div>
-
-                        <div class="col-md-3">
+                        <div class="col-md-4">
                             <label class="form-label" for="teacher-student-sort">Sắp xếp</label>
                             <select name="sortBy" id="teacher-student-sort" class="form-select">
                                 <option value="name" selected="@(Model.SortBy == "name")">Tên học sinh</option>
                                 <option value="email" selected="@(Model.SortBy == "email")">Email</option>
                                 <option value="date" selected="@(Model.SortBy == "date")">Ngày tham gia</option>
-                                <option value="status" selected="@(Model.SortBy == "status")">Trạng thái</option>
                             </select>
                         </div>
 
-                        <div class="col-md-2 d-grid gap-2">
+                        <div class="col-md-3 d-grid gap-2">
                             <button type="submit" class="btn-teacher">
                                 Lọc
                             </button>
@@ -356,7 +332,6 @@
                                 <th>Tên học sinh</th>
                                 <th>Email</th>
                                 <th>Ngày tham gia</th>
-                                <th>Trạng thái</th>
                                 <th class="text-end">Thao tác</th>
                             </tr>
                         </thead>
@@ -368,16 +343,6 @@
                                     <td class="fw-bold">@student.StudentName</td>
                                     <td>@student.Email</td>
                                     <td>@student.EnrolledAt.ToString("dd/MM/yyyy")</td>
-                                    <td>
-                                        @if (student.IsActive)
-                                        {
-                                            <span class="badge-soft-success">@student.EnrollmentStatus</span>
-                                        }
-                                        else
-                                        {
-                                            <span class="badge-soft-secondary">@student.EnrollmentStatus</span>
-                                        }
-                                    </td>
                                     <td class="text-end">
                                         <a asp-controller="Teacher"
                                            asp-action="StudentDetail"
@@ -411,7 +376,6 @@
                                    asp-action="ManageStudentList"
                                    asp-route-classId="@Model.ClassId"
                                    asp-route-keyword="@Model.Keyword"
-                                   asp-route-status="@Model.Status"
                                    asp-route-sortBy="@Model.SortBy"
                                    asp-route-page="@(Model.Page - 1)">
                                     Trước
@@ -426,7 +390,6 @@
                                        asp-action="ManageStudentList"
                                        asp-route-classId="@Model.ClassId"
                                        asp-route-keyword="@Model.Keyword"
-                                       asp-route-status="@Model.Status"
                                        asp-route-sortBy="@Model.SortBy"
                                        asp-route-page="@i">
                                         @i
@@ -440,7 +403,6 @@
                                    asp-action="ManageStudentList"
                                    asp-route-classId="@Model.ClassId"
                                    asp-route-keyword="@Model.Keyword"
-                                   asp-route-status="@Model.Status"
                                    asp-route-sortBy="@Model.SortBy"
                                    asp-route-page="@(Model.Page + 1)">
                                     Sau
