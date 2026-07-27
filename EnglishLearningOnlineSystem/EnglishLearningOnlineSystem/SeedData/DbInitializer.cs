@@ -1,6 +1,7 @@
 using EnglishLearningOnlineSystem.Data;
 using EnglishLearningOnlineSystem.Models;
 using Microsoft.EntityFrameworkCore;
+using EnglishLearningOnlineSystem.Data;
 
 namespace EnglishLearningOnlineSystem.SeedData;
 
@@ -106,7 +107,6 @@ public static class DbInitializer
             badges);
 
         await SeedCommunicationsAsync(context, users, students);
-        await SeedAuditLogsAsync(context, users);
     }
 
     private static async Task<Dictionary<string, User>> SeedUsersAsync(
@@ -1148,49 +1148,7 @@ public static class DbInitializer
         await context.SaveChangesAsync();
     }
 
-    private static async Task SeedAuditLogsAsync(
-        AppDbContext context,
-        IReadOnlyDictionary<string, User> users)
-    {
-        var definitions = new[]
-        {
-            new AuditLog
-            {
-                UserId = users["admin"].Id,
-                Username = users["admin"].Username,
-                UserRole = "Admin",
-                Action = "Khởi tạo dữ liệu mẫu hệ thống",
-                Timestamp = DateTime.UtcNow.AddDays(-7)
-            },
-            new AuditLog
-            {
-                UserId = users["content"].Id,
-                Username = users["content"].Username,
-                UserRole = "Content Manager",
-                Action = "Xuất bản khóa học English Foundations 6",
-                Timestamp = DateTime.UtcNow.AddDays(-6)
-            },
-            new AuditLog
-            {
-                UserId = users["teacher"].Id,
-                Username = users["teacher"].Username,
-                UserRole = "Teacher",
-                Action = "Giao bài học My Family cho lớp 6A",
-                Timestamp = DateTime.UtcNow.AddDays(-2)
-            }
-        };
-
-        foreach (var auditLog in definitions)
-        {
-            if (!await context.AuditLogs.AnyAsync(x =>
-                x.UserId == auditLog.UserId && x.Action == auditLog.Action))
-            {
-                context.AuditLogs.Add(auditLog);
-            }
-        }
-
-        await context.SaveChangesAsync();
-    }
+    
 
     private static string GetFirstIncorrectOption(Quiz quiz)
     {
