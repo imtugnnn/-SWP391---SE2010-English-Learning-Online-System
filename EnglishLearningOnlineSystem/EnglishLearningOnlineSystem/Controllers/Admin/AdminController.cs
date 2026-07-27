@@ -12,7 +12,6 @@ namespace EnglishLearningOnlineSystem.Controllers.Admin;
 public class AdminController : Controller
 {
     private readonly IAcademicYearRepository _academicYearRepository;
-    private readonly IAuditLogService _auditLogService;
     private readonly IRoleService _roleService;
     private readonly ISystemNotificationService _systemNotificationService;
     private readonly IUserImportService _userImportService;
@@ -22,14 +21,12 @@ public class AdminController : Controller
         IUserService userService,
         IUserImportService userImportService,
         IRoleService roleService,
-        IAuditLogService auditLogService,
         ISystemNotificationService systemNotificationService,
         IAcademicYearRepository academicYearRepository)
     {
         _userService = userService;
         _userImportService = userImportService;
         _roleService = roleService;
-        _auditLogService = auditLogService;
         _systemNotificationService = systemNotificationService;
         _academicYearRepository = academicYearRepository;
     }
@@ -70,7 +67,6 @@ public class AdminController : Controller
         ViewBag.ParentCountAll = stats.ParentCount;
         ViewBag.ContentManagerCountAll = stats.ContentManagerCount;
         ViewBag.TotalUsersForChart = stats.StudentCount + stats.TeacherCount + stats.ParentCount + stats.ContentManagerCount;
-        ViewBag.LatestAuditLogs = await _auditLogService.GetLatestAsync(5);
         ViewBag.ActiveClassesList = activeClassesList;
         ViewBag.ActiveAcademicYearId = activeAcademicYear?.AcademicYearId;
 
@@ -95,14 +91,6 @@ public class AdminController : Controller
     public async Task<IActionResult> ImportUsersFromExcel(IFormFile importFile)
     {
         var result = await _userImportService.ImportUsersFromExcelAsync(importFile);
-        if (result.Succeeded)
-        {
-            var adminId = GetCurrentUserId();
-            if (adminId.HasValue)
-            {
-                await _auditLogService.LogActivityAsync(adminId.Value, $"Import Excel tạo {result.ImportedCount} học sinh mới");
-            }
-        }
 
         return Json(new
         {
@@ -122,11 +110,5 @@ public class AdminController : Controller
             templateBytes,
             "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
             fileName);
-    }
-
-    private int? GetCurrentUserId()
-    {
-        var raw = HttpContext.Session.GetString("UserId");
-        return int.TryParse(raw, out var id) ? id : null;
     }
 }

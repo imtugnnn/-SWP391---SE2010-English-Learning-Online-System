@@ -12,16 +12,13 @@ public class SystemNotificationService : ISystemNotificationService
 {
     private readonly ISystemNotificationRepository _notificationRepository;
     private readonly IRoleRepository _roleRepository;
-    private readonly IAuditLogService _auditLogService;
 
     public SystemNotificationService(
         ISystemNotificationRepository notificationRepository,
-        IRoleRepository roleRepository,
-        IAuditLogService auditLogService)
+        IRoleRepository roleRepository)
     {
         _notificationRepository = notificationRepository;
         _roleRepository = roleRepository;
-        _auditLogService = auditLogService;
     }
 
     public async Task RefreshDueScheduledAsync()
@@ -81,7 +78,6 @@ public class SystemNotificationService : ISystemNotificationService
         };
 
         await _notificationRepository.AddAsync(notification);
-        await _auditLogService.LogActivityAsync(notification.UserId, $"Tạo thông báo hệ thống: '{notification.Title}' ({notification.Status})");
 
         return SystemNotificationServiceResult<object>.Ok(null);
     }
@@ -114,11 +110,6 @@ public class SystemNotificationService : ISystemNotificationService
 
         await _notificationRepository.UpdateAsync(notification);
 
-        if (currentAdminId.HasValue)
-        {
-            await _auditLogService.LogActivityAsync(currentAdminId.Value, $"Chỉnh sửa thông báo hệ thống: '{notification.Title}' (ID: {notification.Id})");
-        }
-
         return SystemNotificationServiceResult<object>.Ok(null);
     }
 
@@ -139,11 +130,6 @@ public class SystemNotificationService : ISystemNotificationService
         notification.UpdatedAt = DateTime.Now;
 
         await _notificationRepository.UpdateAsync(notification);
-
-        if (currentAdminId.HasValue)
-        {
-            await _auditLogService.LogActivityAsync(currentAdminId.Value, $"Hủy (xóa mềm) thông báo hệ thống: '{notification.Title}' (ID: {notification.Id})");
-        }
 
         return SystemNotificationServiceResult<object>.Ok(null);
     }

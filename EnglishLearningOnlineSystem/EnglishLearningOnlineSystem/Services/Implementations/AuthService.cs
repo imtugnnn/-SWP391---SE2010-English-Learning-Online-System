@@ -41,6 +41,7 @@ public class AuthService : IAuthService
             return AuthServiceResult.Failure((string.Empty, $"Tài khoản của bạn đang tạm thời bị khóa do đăng nhập sai nhiều lần. Vui lòng thử lại sau {remainingMinutes} phút."));
         }
 
+        //Kiểm tra password
         bool isPasswordValid = false;
         try
         {
