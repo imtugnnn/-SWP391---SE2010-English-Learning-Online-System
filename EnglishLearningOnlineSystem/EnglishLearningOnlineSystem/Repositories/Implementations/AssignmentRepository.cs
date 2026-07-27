@@ -42,12 +42,14 @@ public class AssignmentRepository : IAssignmentRepository
     }
 
     public async Task<List<int>> GetAssignedLessonIdsAsync(
+        int classId,
         int courseId,
         List<int> lessonIds,
         DateTime weekStartDate)
     {
         return await _context.WeeklyAssignments!
             .Where(a =>
+                a.ClassId == classId &&
                 a.CourseId == courseId &&
                 a.LessonId.HasValue &&
                 lessonIds.Contains(a.LessonId.Value) &&
@@ -61,19 +63,17 @@ public class AssignmentRepository : IAssignmentRepository
         await _context.WeeklyAssignments!.AddRangeAsync(assignments);
     }
 
-    public async Task<bool> ValidateLessonsBelongToCourseAsync(int courseId, List<int> lessonIds)
+    public async Task<int> CountPublishedLessonsAsync(int courseId, List<int> lessonIds)
     {
         var distinctLessonIds = lessonIds.Distinct().ToList();
-        var matchingLessonCount = await _context.Lessons!
+        return await _context.Lessons!
             .CountAsync(l => distinctLessonIds.Contains(l.LessonId) &&
                              l.CourseId == courseId &&
                              l.IsPublished);
-
-        return matchingLessonCount == distinctLessonIds.Count;
     }
-    public async Task<List<WeeklyAssignment>> GetAssignmentsByCourseIdsAsync(List<int> courseIds)
+    public async Task<List<WeeklyAssignment>> GetAssignmentsByClassIdsAsync(List<int> classIds)
     {
-        if (!courseIds.Any())
+        if (!classIds.Any())
         {
             return new List<WeeklyAssignment>();
         }
@@ -85,7 +85,10 @@ public class AssignmentRepository : IAssignmentRepository
                 .ThenInclude(l => l.Quizzes)
             .Include(a => a.Lesson)
                 .ThenInclude(l => l.MiniGames)
-            .Where(a => a.CourseId.HasValue && courseIds.Contains(a.CourseId.Value))
+            .Include(a => a.Vocabularies)
+            .Include(a => a.Quizzes)
+            .Include(a => a.MiniGames)
+            .Where(a => a.ClassId.HasValue && classIds.Contains(a.ClassId.Value))
             .AsNoTracking()
             .AsSplitQuery()
             .OrderByDescending(a => a.DueDate)
@@ -99,5 +102,34 @@ public class AssignmentRepository : IAssignmentRepository
             .OrderBy(c => c.GradeLevel)
             .ThenBy(c => c.CourseName)
             .ToListAsync();
+    }
+
+    public async Task<WeeklyAssignment?> GetForUpdateAsync(
+        int assignmentId,
+        int classId,
+        int courseId)
+    {
+        return await _context.WeeklyAssignments!
+            .FirstOrDefaultAsync(assignment =>
+                assignment.AssignmentId == assignmentId &&
+                assignment.ClassId == classId &&
+                assignment.CourseId == courseId);
+    }
+
+    public async Task<bool> ExistsPublishedAssignmentAsync(
+        int classId,
+        int courseId,
+        int? lessonId,
+        DateTime weekStartDate,
+        int excludedAssignmentId)
+    {
+        return await _context.WeeklyAssignments!
+            .AnyAsync(candidate =>
+                candidate.AssignmentId != excludedAssignmentId &&
+                candidate.ClassId == classId &&
+                candidate.CourseId == courseId &&
+                candidate.LessonId == lessonId &&
+                candidate.WeekStartDate.Date == weekStartDate.Date &&
+                candidate.IsVisible);
     }
 }

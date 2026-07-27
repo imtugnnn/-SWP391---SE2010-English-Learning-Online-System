@@ -27,17 +27,22 @@ public class VocabularyRepository : IVocabularyRepository
     // Lấy tất cả từ vựng từ các bài học đã published, kèm thông tin lesson/course
     public async Task<List<Vocabulary>> GetAllVocabByStudentAsync(int studentId)
     {
-        // Lấy các lessonId được giao cho học sinh qua WeeklyAssignment
-        var assignedLessonIds = await _db.WeeklyAssignments!
-            .Where(wa => wa.IsVisible && wa.LessonId != null)
-            .Select(wa => wa.LessonId!.Value)
+        var assignedVocabularyIds = await _db.WeeklyAssignmentVocabularies
+            .Where(item =>
+                item.Assignment.IsVisible &&
+                item.Assignment.IncludeVocabulary &&
+                item.Assignment.ClassId.HasValue &&
+                _db.ClassEnrollments!.Any(e =>
+                    e.ClassId == item.Assignment.ClassId.Value &&
+                    e.StudentId == studentId))
+            .Select(item => item.VocabularyId)
             .Distinct()
             .ToListAsync();
 
         return await _db.Vocabularies!
             .Include(v => v.Lesson)
                 .ThenInclude(l => l.Course)
-            .Where(v => assignedLessonIds.Contains(v.LessonId)
+            .Where(v => assignedVocabularyIds.Contains(v.VocabularyId)
                      && v.Lesson.IsPublished)
             .OrderBy(v => v.Lesson.Course.CourseName)
             .ThenBy(v => v.Lesson.OrderIndex)

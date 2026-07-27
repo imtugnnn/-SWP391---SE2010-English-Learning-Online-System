@@ -77,7 +77,7 @@
         </div>
 
         <div class="tab-pane fade" id="lesson-preview-vocabulary" role="tabpanel">
-            @if (Model.Vocabularies.Any())
+            @if (Model.Vocabularies.Count > 0)
             {
                 <div class="lesson-preview__stack">
                     @foreach (var vocabulary in Model.Vocabularies)
@@ -118,7 +118,7 @@
         </div>
 
         <div class="tab-pane fade" id="lesson-preview-quiz" role="tabpanel">
-            @if (Model.Quizzes.Any())
+            @if (Model.Quizzes.Count > 0)
             {
                 <div class="lesson-preview__stack">
                     @for (var index = 0; index < Model.Quizzes.Count; index++)
@@ -131,7 +131,7 @@
                             </div>
                             <p class="fw-semibold">@quiz.Question</p>
 
-                            @if (quiz.Options.Any())
+                            @if (quiz.Options.Count > 0)
                             {
                                 <ol class="lesson-preview-options" type="A">
                                     @foreach (var option in quiz.Options)
@@ -157,7 +157,7 @@
         </div>
 
         <div class="tab-pane fade" id="lesson-preview-games" role="tabpanel">
-            @if (Model.MiniGames.Any())
+            @if (Model.MiniGames.Count > 0)
             {
                 <div class="lesson-preview__stack">
                     @foreach (var game in Model.MiniGames)

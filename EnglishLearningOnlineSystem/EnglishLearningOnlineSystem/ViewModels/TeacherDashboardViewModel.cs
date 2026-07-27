@@ -11,11 +11,26 @@ public class TeacherDashboardViewModel
     public int ActiveAssignments { get; set; }
     public int ExpiredAssignments { get; set; }
     public int StudentsNeedAttention { get; set; }
-    public List<EnglishLearningOnlineSystem.Models.SystemNotification> SystemNotifications { get; set; } = new();
-    public List<EnglishLearningOnlineSystem.Models.Notification> PersonalNotifications { get; set; } = new();
+    public List<TeacherSystemNotificationViewModel> SystemNotifications { get; set; } = new();
+    public List<TeacherPersonalNotificationViewModel> PersonalNotifications { get; set; } = new();
     public int NotificationCount { get; set; }
 
     public List<TeacherDashboardClassViewModel> Classes { get; set; } = new();
+}
+
+public class TeacherSystemNotificationViewModel
+{
+    public string Title { get; set; } = string.Empty;
+    public string Content { get; set; } = string.Empty;
+    public DateTime DisplayTime { get; set; }
+}
+
+public class TeacherPersonalNotificationViewModel
+{
+    public string Type { get; set; } = string.Empty;
+    public string Message { get; set; } = string.Empty;
+    public bool IsRead { get; set; }
+    public DateTime DisplayTime { get; set; }
 }
 
 public class TeacherDashboardClassViewModel

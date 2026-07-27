@@ -328,6 +328,18 @@ else
                             <span class="meta-tag tag-topic">@l.Topic</span>
                         }
                         <span class="meta-tag tag-time">@l.EstimatedMinutes phút</span>
+                        @if (l.VocabularyCount > 0)
+                        {
+                            <span class="meta-tag">@l.VocabularyCount từ mới</span>
+                        }
+                        @if (l.QuizCount > 0)
+                        {
+                            <span class="meta-tag">@l.QuizCount câu quiz</span>
+                        }
+                        @if (l.MiniGameCount > 0)
+                        {
+                            <span class="meta-tag">@l.MiniGameCount mini game</span>
+                        }
                         @if (l.IsOverdue)
                         {
                             <span class="meta-tag tag-overdue">Quá hạn</span>

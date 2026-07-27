@@ -22,6 +22,9 @@ public class AppDbContext : Microsoft.EntityFrameworkCore.DbContext
     public DbSet<ClassEnrollment>? ClassEnrollments { get; set; }
     public DbSet<Lesson>? Lessons { get; set; }
     public DbSet<WeeklyAssignment>? WeeklyAssignments { get; set; }
+    public DbSet<WeeklyAssignmentVocabulary> WeeklyAssignmentVocabularies { get; set; }
+    public DbSet<WeeklyAssignmentQuiz> WeeklyAssignmentQuizzes { get; set; }
+    public DbSet<WeeklyAssignmentMiniGame> WeeklyAssignmentMiniGames { get; set; }
     public DbSet<MiniGame>? MiniGames { get; set; }
     public DbSet<Quiz>? Quizzes { get; set; }
     public DbSet<Vocabulary>? Vocabularies { get; set; }
@@ -175,6 +178,55 @@ public class AppDbContext : Microsoft.EntityFrameworkCore.DbContext
                 .OnDelete(DeleteBehavior.Restrict);
         }
         catch { }
+
+        modelBuilder.Entity<WeeklyAssignment>(eb =>
+        {
+            eb.HasOne(x => x.Class)
+              .WithMany()
+              .HasForeignKey(x => x.ClassId)
+              .OnDelete(DeleteBehavior.Restrict);
+
+            eb.HasIndex(x => new { x.ClassId, x.LessonId, x.WeekStartDate });
+        });
+
+        modelBuilder.Entity<WeeklyAssignmentVocabulary>(eb =>
+        {
+            eb.HasKey(x => new { x.AssignmentId, x.VocabularyId });
+            eb.HasOne(x => x.Assignment)
+              .WithMany(x => x.Vocabularies)
+              .HasForeignKey(x => x.AssignmentId)
+              .OnDelete(DeleteBehavior.Cascade);
+            eb.HasOne(x => x.Vocabulary)
+              .WithMany()
+              .HasForeignKey(x => x.VocabularyId)
+              .OnDelete(DeleteBehavior.Restrict);
+        });
+
+        modelBuilder.Entity<WeeklyAssignmentQuiz>(eb =>
+        {
+            eb.HasKey(x => new { x.AssignmentId, x.QuizId });
+            eb.HasOne(x => x.Assignment)
+              .WithMany(x => x.Quizzes)
+              .HasForeignKey(x => x.AssignmentId)
+              .OnDelete(DeleteBehavior.Cascade);
+            eb.HasOne(x => x.Quiz)
+              .WithMany()
+              .HasForeignKey(x => x.QuizId)
+              .OnDelete(DeleteBehavior.Restrict);
+        });
+
+        modelBuilder.Entity<WeeklyAssignmentMiniGame>(eb =>
+        {
+            eb.HasKey(x => new { x.AssignmentId, x.GameId });
+            eb.HasOne(x => x.Assignment)
+              .WithMany(x => x.MiniGames)
+              .HasForeignKey(x => x.AssignmentId)
+              .OnDelete(DeleteBehavior.Cascade);
+            eb.HasOne(x => x.MiniGame)
+              .WithMany()
+              .HasForeignKey(x => x.GameId)
+              .OnDelete(DeleteBehavior.Restrict);
+        });
 
         try
         {

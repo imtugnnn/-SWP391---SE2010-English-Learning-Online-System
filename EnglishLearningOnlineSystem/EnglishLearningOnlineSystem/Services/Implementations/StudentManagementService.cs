@@ -142,7 +142,9 @@ public class StudentManagementService : IStudentManagementService
     private async Task<List<TeacherSupportStudentItemViewModel>> BuildSupportItemsForClassAsync(Class classEntity)
     {
         var enrollments = await _classRepository.GetActiveStudentsByClassIdAsync(classEntity.ClassId);
-        var assignments = await _classRepository.GetAssignmentsByClassCourseAsync(classEntity.CourseId);
+        var assignments = await _classRepository.GetAssignmentsByClassCourseAsync(
+            classEntity.ClassId,
+            classEntity.CourseId);
         var lessonIds = assignments
             .Where(a => a.LessonId.HasValue)
             .Select(a => a.LessonId!.Value)
