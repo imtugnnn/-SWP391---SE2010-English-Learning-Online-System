@@ -1,3 +1,5 @@
+@* Create by TungDPL *@
+@* Last Update: 7/28/2026 *@
 @model EnglishLearningOnlineSystem.ViewModels.Admin.UserManagementViewModel
 
 @{
@@ -803,7 +805,7 @@
                     
                     const deleteBtn = `<button class="btn-action-circle btn-delete" onclick="deleteUser(${u.id})" title="Xóa"><i class="bi bi-trash"></i></button>`;
                     
-                    tdActions.innerHTML = editBtn + lockBtn + deleteBtn;
+                    tdActions.innerHTML = `<div class="actions-buttons">${editBtn}${lockBtn}${deleteBtn}</div>`;
                 }
                 tr.appendChild(tdActions);
                 

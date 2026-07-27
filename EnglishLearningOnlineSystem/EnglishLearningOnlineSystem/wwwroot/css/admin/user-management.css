@@ -488,8 +488,16 @@
 
 /* Action Buttons */
 .actions-cell {
-    display: flex;
+    text-align: center;
+    vertical-align: middle;
+    white-space: nowrap;
+}
+
+.actions-buttons {
+    display: inline-flex;
+    align-items: center;
     gap: 6px;
+    justify-content: center;
 }
 
 .btn-action-circle {

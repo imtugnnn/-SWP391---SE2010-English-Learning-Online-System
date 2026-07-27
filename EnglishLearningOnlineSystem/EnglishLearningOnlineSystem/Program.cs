@@ -69,6 +69,8 @@ builder.Services.AddScoped<IAdaptiveLearningService, AdaptiveLearningService>();
 
 builder.Services.AddScoped<IClassRepository, ClassRepository>();
 builder.Services.AddScoped<IClassService, ClassService>();
+builder.Services.AddScoped<IAcademicYearRepository, AcademicYearRepository>();
+builder.Services.AddScoped<IAcademicYearService, AcademicYearService>();
 builder.Services.AddScoped<IStudentManagementService, StudentManagementService>();
 builder.Services.AddScoped<IAssignmentRepository, AssignmentRepository>();
 builder.Services.AddScoped<ITeacherAssignmentService, TeacherAssignmentService>();
