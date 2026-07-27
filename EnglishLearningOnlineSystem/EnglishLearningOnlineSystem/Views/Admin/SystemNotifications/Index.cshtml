@@ -1,4 +1,4 @@
-@* Create by TungDPL *@
+﻿@* Create by TungDPL *@
 @* Last Update: 7/23/2026 *@
 @model List<EnglishLearningOnlineSystem.Models.SystemNotification>
 
@@ -166,12 +166,42 @@
                     <th style="width: 40px; text-align: center;">
                         <input type="checkbox" id="selectAllCheckbox" class="form-check-input custom-checkbox" onchange="toggleSelectAll(this)" />
                     </th>
-                    <th style="width: 35%;">Tiêu đề</th>
-                    <th style="width: 15%;">Đối tượng nhận <i class="bi bi-funnel filter-icon"></i></th>
-                    <th style="width: 12%;">Loại người dùng</th>
-                    <th style="width: 12%;">Trạng thái <i class="bi bi-funnel filter-icon"></i></th>
-                    <th style="width: 14%;">Thời gian phát hành</th>
-                    <th style="width: 12%;">Người tạo</th>
+                    <th style="width: 35%;">
+                        <button type="button" class="sort-trigger" onclick="handleSort('title')">
+                            <span>Tiêu đề</span>
+                            <i class="bi bi-arrow-down-up sort-icon" data-sort-indicator="title"></i>
+                        </button>
+                    </th>
+                    <th style="width: 15%;">
+                        <button type="button" class="sort-trigger" onclick="handleSort('recipient')">
+                            <span>Đối tượng nhận</span>
+                            <i class="bi bi-arrow-down-up sort-icon" data-sort-indicator="recipient"></i>
+                        </button>
+                    </th>
+                    <th style="width: 12%;">
+                        <button type="button" class="sort-trigger" onclick="handleSort('userType')">
+                            <span>Loại người dùng</span>
+                            <i class="bi bi-arrow-down-up sort-icon" data-sort-indicator="userType"></i>
+                        </button>
+                    </th>
+                    <th style="width: 12%;">
+                        <button type="button" class="sort-trigger" onclick="handleSort('status')">
+                            <span>Trạng thái</span>
+                            <i class="bi bi-arrow-down-up sort-icon" data-sort-indicator="status"></i>
+                        </button>
+                    </th>
+                    <th style="width: 14%;">
+                        <button type="button" class="sort-trigger" onclick="handleSort('publishTime')">
+                            <span>Thời gian phát hành</span>
+                            <i class="bi bi-arrow-down-up sort-icon" data-sort-indicator="publishTime"></i>
+                        </button>
+                    </th>
+                    <th style="width: 12%;">
+                        <button type="button" class="sort-trigger" onclick="handleSort('creator')">
+                            <span>Người tạo</span>
+                            <i class="bi bi-arrow-down-up sort-icon" data-sort-indicator="creator"></i>
+                        </button>
+                    </th>
                     <th style="width: 10%; text-align: center;">Thao tác</th>
                 </tr>
             </thead>
@@ -347,10 +377,6 @@
                                 <label class="form-check-label" for="editRoleTeacher">Giáo viên</label>
                             </div>
                             <div class="form-check form-check-inline">
-                                <input class="form-check-input recipient-checkbox" type="checkbox" value="4" id="editRoleParent">
-                                <label class="form-check-label" for="editRoleParent">Phụ huynh</label>
-                            </div>
-                            <div class="form-check form-check-inline">
                                 <input class="form-check-input recipient-checkbox" type="checkbox" value="5" id="editRoleContent">
                                 <label class="form-check-label" for="editRoleContent">Quản trị nội dung</label>
                             </div>
@@ -400,6 +426,8 @@
         let filteredList = [...notifications];
         let currentPage = 1;
         let pageSize = 10;
+        let currentSortColumn = 'publishTime';
+        let currentSortDirection = 'desc';
 
         function getFriendlyRecipients(recipient) {
             if (!recipient) return '-';
@@ -603,7 +631,95 @@
             });
 
             currentPage = 1;
+            sortFilteredList();
+            renderSortIndicators();
             renderTable();
+        }
+
+        function handleSort(column) {
+            if (currentSortColumn === column) {
+                currentSortDirection = currentSortDirection === 'asc' ? 'desc' : 'asc';
+            } else {
+                currentSortColumn = column;
+                currentSortDirection = 'asc';
+            }
+
+            sortFilteredList();
+            renderSortIndicators();
+            renderTable();
+        }
+
+        function sortFilteredList() {
+            filteredList.sort((a, b) => {
+                let valA = '';
+                let valB = '';
+
+                switch (currentSortColumn) {
+                    case 'title':
+                        valA = (a.title || '').toLowerCase();
+                        valB = (b.title || '').toLowerCase();
+                        break;
+                    case 'recipient':
+                        valA = getFriendlyRecipients(a.recipient).toLowerCase();
+                        valB = getFriendlyRecipients(b.recipient).toLowerCase();
+                        break;
+                    case 'userType':
+                        valA = (a.userType || '').toLowerCase();
+                        valB = (b.userType || '').toLowerCase();
+                        break;
+                    case 'status':
+                        valA = getStatusSortValue(a.status);
+                        valB = getStatusSortValue(b.status);
+                        break;
+                    case 'publishTime':
+                        valA = getDateSortValue(a.publishTime);
+                        valB = getDateSortValue(b.publishTime);
+                        break;
+                    case 'creator':
+                        valA = (a.creator || '').toLowerCase();
+                        valB = (b.creator || '').toLowerCase();
+                        break;
+                    default:
+                        valA = getDateSortValue(a.publishTime);
+                        valB = getDateSortValue(b.publishTime);
+                        break;
+                }
+
+                if (valA < valB) return currentSortDirection === 'asc' ? -1 : 1;
+                if (valA > valB) return currentSortDirection === 'asc' ? 1 : -1;
+                return 0;
+            });
+        }
+
+        function getDateSortValue(dateStr) {
+            if (!dateStr) return 0;
+            const parsed = new Date(dateStr).getTime();
+            return Number.isNaN(parsed) ? 0 : parsed;
+        }
+
+        function getStatusSortValue(status) {
+            const order = {
+                'Bản nháp': 1,
+                'Đã lên lịch': 2,
+                'Đã phát hành': 3,
+                'Đã hủy': 4
+            };
+
+            return order[status] ?? 99;
+        }
+
+        function renderSortIndicators() {
+            document.querySelectorAll('[data-sort-indicator]').forEach(icon => {
+                const column = icon.getAttribute('data-sort-indicator');
+                icon.classList.remove('bi-arrow-up', 'bi-arrow-down', 'active-sort');
+                icon.classList.add('bi-arrow-down-up');
+
+                if (column === currentSortColumn) {
+                    icon.classList.add('active-sort');
+                    icon.classList.remove('bi-arrow-down-up');
+                    icon.classList.add(currentSortDirection === 'asc' ? 'bi-arrow-up' : 'bi-arrow-down');
+                }
+            });
         }
 
         // Table Rendering
@@ -754,6 +870,8 @@
         function onPageSizeChange(val) {
             pageSize = parseInt(val, 10);
             currentPage = 1;
+            sortFilteredList();
+            renderSortIndicators();
             renderTable();
         }
 

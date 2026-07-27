@@ -20,6 +20,12 @@ namespace EnglishLearningOnlineSystem.Controllers.Admin
 
         public async Task<IActionResult> Index()
         {
+            var userRoleSession = HttpContext.Session.GetString("UserRole");
+            //Nếu người dùng khoông phải là admin, không cho đăng nhập
+            if (userRoleSession != "2")
+            {
+                return RedirectToAction("Login", "Auth");
+            }
             var result = await _systemNotificationService.GetIndexDataAsync();
             if (!result.Succeeded || result.Data == null)
             {

@@ -17,10 +17,12 @@ public class UserService : IUserService
     }
 
     public async Task<UserServiceResult<List<User>>> GetAllAsync()
+        // B1: Service gọi repository để lấy toàn bộ user.
         => UserServiceResult<List<User>>.Ok(await _userRepo.GetAllAsync());
 
     public async Task<UserServiceResult<User>> GetByIdAsync(int id)
     {
+        // B1: Tra cứu user theo id ở tầng repository.
         var user = await _userRepo.GetByIdAsync(id);
         return user == null
             ? UserServiceResult<User>.Fail("User not found.")
@@ -29,6 +31,7 @@ public class UserService : IUserService
 
     public async Task<UserServiceResult<int>> CreateAsync(UserCreateViewModel vm)
     {
+        // B2: Validate trước, rồi mới xuống repository để tạo user.
         if (vm.RoleId <= 0) return UserServiceResult<int>.Fail("Role is required.");
         if (vm.RoleId == 2) return UserServiceResult<int>.Fail("Không được phép tạo tài khoản có vai trò Admin.");
 
@@ -52,12 +55,14 @@ public class UserService : IUserService
             RoleId = vm.RoleId
         };
 
+        // B3: Lưu user xuống database thông qua repository.
         await _userRepo.AddAsync(user);
         return UserServiceResult<int>.Ok(user.Id);
     }
 
     public async Task<UserServiceResult<object>> UpdateAsync(UserEditViewModel vm)
     {
+        // B2: Lấy bản ghi hiện tại rồi kiểm tra rule trước khi cập nhật.
         var existing = await _userRepo.GetByIdAsync(vm.Id);
         if (existing == null) return UserServiceResult<object>.Fail("User not found.");
 
@@ -89,24 +94,28 @@ public class UserService : IUserService
             existing.Password = vm.Password; // TODO: hash
         }
 
+        // B3: Cập nhật thay đổi xuống database.
         await _userRepo.UpdateAsync(existing);
         return UserServiceResult<object>.Ok(null);
     }
 
     public async Task<UserServiceResult<object>> DeleteAsync(int id)
     {
+        // B2: Lấy user hiện tại để kiểm tra có được xóa hay không.
         var existing = await _userRepo.GetByIdAsync(id);
         if (existing == null) return UserServiceResult<object>.Fail("User not found.");
 
         if (existing.RoleId == 2)
             return UserServiceResult<object>.Fail("Không được phép xóa tài khoản Admin.");
 
+        // B3: Xóa user qua repository.
         await _userRepo.DeleteAsync(existing);
         return UserServiceResult<object>.Ok(null);
     }
 
     public async Task<UserServiceResult<UserManagementViewModel>> GetUserManagementDataAsync()
     {
+        // B1: Gom users + stats để controller render cho trang quản lý user.
         var now = DateTime.Now;
         var thisMonthStart = new DateTime(now.Year, now.Month, 1);
         var lastMonthStart = thisMonthStart.AddMonths(-1);

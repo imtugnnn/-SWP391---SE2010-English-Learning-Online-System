@@ -58,15 +58,18 @@ public class MaintenanceModeMiddleware
                 .AsNoTracking()
                 .FirstOrDefaultAsync(s => s.Key == "MaintenanceStartAt");
 
+            // Ưu tiên 1: Kiểm tra xem Admin có bật bảo trì NGAY LẬP TỨC không
             if (enabledSetting != null && string.Equals(enabledSetting.Value, "true", StringComparison.OrdinalIgnoreCase))
             {
                 isMaintenanceActive = true;
             }
+            // Ưu tiên 2: Nếu không bật ngay, kiểm tra xem ĐÃ ĐẾN GIỜ ĐẶT LỊCH chưa
             else if (startAtSetting != null && !string.IsNullOrWhiteSpace(startAtSetting.Value))
             {
                 if (DateTime.TryParse(startAtSetting.Value, out var startAt))
                 {
-                    maintenanceStartAt = startAt;
+                    // maintenanceStartAt = startAt;
+                    //Kiểm tra thời gian
                     if (DateTime.Now >= startAt)
                     {
                         isMaintenanceActive = true;
@@ -92,8 +95,8 @@ public class MaintenanceModeMiddleware
                 if (!isAuthPath && !isMaintenancePage)
                 {
 
-                    context.Response.Redirect("/maintenance");
-                    return;
+                    context.Response.Redirect("/maintenance"); //Chuyển sang trang bảo trì
+                    return; //Dừng xử lý các bước tiếp theo
                 }
             }
         }
@@ -107,6 +110,6 @@ public class MaintenanceModeMiddleware
             }
         }
 
-        await _next(context);
+        await _next(context); //Cho phép request đi tiếp
     }
 }
