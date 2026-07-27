@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
 using EnglishLearningOnlineSystem.Data;
@@ -31,6 +32,15 @@ namespace EnglishLearningOnlineSystem.Services.Implementations
                 });
                 await _context.SaveChangesAsync();
             }
+        }
+
+        public async Task<List<AuditLog>> GetLatestAsync(int count)
+        {
+            return await _context.AuditLogs!
+                .AsNoTracking()
+                .OrderByDescending(al => al.Timestamp)
+                .Take(count)
+                .ToListAsync();
         }
     }
 }
