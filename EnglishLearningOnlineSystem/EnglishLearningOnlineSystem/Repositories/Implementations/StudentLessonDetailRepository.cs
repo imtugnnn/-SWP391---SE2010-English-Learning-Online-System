@@ -16,14 +16,55 @@ public class StudentLessonDetailRepository : IStudentLessonDetailRepository
     }
 
     // Lấy thông tin bài học cùng toàn bộ nội dung liên quan
-    public async Task<Lesson?> GetLessonWithContentAsync(int lessonId)
+    public async Task<Lesson?> GetLessonWithContentAsync(int studentId, int lessonId)
     {
-        return await _db.Lessons!
+        var lesson = await _db.Lessons!
+            .AsNoTracking()
             .Include(l => l.Course)
             .Include(l => l.Vocabularies)
             .Include(l => l.Quizzes)
             .Include(l => l.MiniGames)
             .FirstOrDefaultAsync(l => l.LessonId == lessonId && l.IsPublished);
+
+        if (lesson == null)
+        {
+            return null;
+        }
+
+        var assignment = await _db.WeeklyAssignments!
+            .AsNoTracking()
+            .Include(x => x.Vocabularies)
+            .Include(x => x.Quizzes)
+            .Include(x => x.MiniGames)
+            .Where(x =>
+                x.LessonId == lessonId &&
+                x.IsVisible &&
+                x.ClassId.HasValue &&
+                _db.ClassEnrollments!.Any(e =>
+                    e.ClassId == x.ClassId.Value && e.StudentId == studentId))
+            .OrderByDescending(x => x.WeekStartDate)
+            .FirstOrDefaultAsync();
+
+        if (assignment == null)
+        {
+            return lesson;
+        }
+
+        var vocabularyIds = assignment.Vocabularies.Select(x => x.VocabularyId).ToHashSet();
+        var quizIds = assignment.Quizzes.Select(x => x.QuizId).ToHashSet();
+        var gameIds = assignment.MiniGames.Select(x => x.GameId).ToHashSet();
+
+        lesson.Vocabularies = assignment.IncludeVocabulary
+            ? lesson.Vocabularies.Where(x => vocabularyIds.Contains(x.VocabularyId)).ToList()
+            : new List<Vocabulary>();
+        lesson.Quizzes = assignment.IncludeQuiz
+            ? lesson.Quizzes.Where(x => quizIds.Contains(x.QuizId)).ToList()
+            : new List<Quiz>();
+        lesson.MiniGames = assignment.IncludeMiniGame
+            ? lesson.MiniGames.Where(x => gameIds.Contains(x.GameId)).ToList()
+            : new List<MiniGame>();
+
+        return lesson;
     }
 
     // Lấy kết quả làm bài tốt nhất của học sinh

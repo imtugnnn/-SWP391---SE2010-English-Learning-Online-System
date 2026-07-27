@@ -5,7 +5,7 @@ namespace EnglishLearningOnlineSystem.Repositories.Interfaces;
 // Interface xử lý dữ liệu chi tiết bài học và tiến độ học tập
 public interface IStudentLessonDetailRepository
 {
-    Task<Lesson?> GetLessonWithContentAsync(int lessonId);
+    Task<Lesson?> GetLessonWithContentAsync(int studentId, int lessonId);
 
     Task<Progress?> GetBestProgressAsync(int studentId, int lessonId);
 

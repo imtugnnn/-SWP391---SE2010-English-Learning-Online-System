@@ -32,7 +32,12 @@ public class StudentDashboardRepository : IStudentDashboardRepository
         // FIX: DueDate is DateTime, compare with DateTime.Today
         return await _db.WeeklyAssignments!
             .Include(wa => wa.Lesson)
-            .Where(wa => wa.IsVisible && wa.DueDate >= DateTime.Today)
+            .Where(wa =>
+                wa.IsVisible &&
+                wa.DueDate >= DateTime.Today &&
+                wa.ClassId.HasValue &&
+                _db.ClassEnrollments!.Any(e =>
+                    e.ClassId == wa.ClassId.Value && e.StudentId == studentId))
             .OrderBy(wa => wa.DueDate)
             .Take(10)
             .ToListAsync();

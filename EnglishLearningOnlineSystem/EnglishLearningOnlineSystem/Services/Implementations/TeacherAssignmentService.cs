@@ -1,9 +1,8 @@
 ﻿using EnglishLearningOnlineSystem.Models;
-using EnglishLearningOnlineSystem.Data;
 using EnglishLearningOnlineSystem.Repositories.Interfaces;
 using EnglishLearningOnlineSystem.Services.Interfaces;
+using EnglishLearningOnlineSystem.Services.Results;
 using EnglishLearningOnlineSystem.ViewModels;
-using Microsoft.EntityFrameworkCore;
 using System.Data;
 using System.Text.Json;
 
@@ -13,16 +12,19 @@ public class TeacherAssignmentService : ITeacherAssignmentService
 {
     private readonly IClassRepository _classRepository;
     private readonly IAssignmentRepository _assignmentRepository;
-    private readonly AppDbContext _context;
+    private readonly INotificationRepository _notificationRepository;
+    private readonly IUnitOfWork _unitOfWork;
 
     public TeacherAssignmentService(
         IClassRepository classRepository,
         IAssignmentRepository assignmentRepository,
-        AppDbContext context)
+        INotificationRepository notificationRepository,
+        IUnitOfWork unitOfWork)
     {
         _classRepository = classRepository;
         _assignmentRepository = assignmentRepository;
-        _context = context;
+        _notificationRepository = notificationRepository;
+        _unitOfWork = unitOfWork;
     }
 
     /// <summary>
@@ -80,9 +82,84 @@ public class TeacherAssignmentService : ITeacherAssignmentService
                 XPReward = l.XPReward,
                 VocabularyCount = l.Vocabularies?.Count ?? 0,
                 QuizCount = l.Quizzes?.Count ?? 0,
-                MiniGameCount = l.MiniGames?.Count ?? 0
+                MiniGameCount = l.MiniGames?.Count ?? 0,
+                IncludeVocabulary = (l.Vocabularies?.Count ?? 0) > 0,
+                IncludeQuiz = (l.Quizzes?.Count ?? 0) > 0,
+                IncludeMiniGame = (l.MiniGames?.Count ?? 0) > 0,
+                SelectedVocabularyIds = l.Vocabularies?.Select(v => v.VocabularyId).ToList() ?? new(),
+                SelectedQuizIds = l.Quizzes?.Select(q => q.QuizId).ToList() ?? new(),
+                SelectedMiniGameIds = l.MiniGames?.Select(g => g.GameId).ToList() ?? new(),
+                Vocabularies = l.Vocabularies?
+                    .OrderBy(v => v.Word)
+                    .Select(v => new AssignmentVocabularyOptionViewModel
+                    {
+                        VocabularyId = v.VocabularyId,
+                        Word = v.Word,
+                        Meaning = v.Meaning
+                    }).ToList() ?? new(),
+                Quizzes = l.Quizzes?
+                    .OrderBy(q => q.QuizId)
+                    .Select(q => new AssignmentQuizOptionViewModel
+                    {
+                        QuizId = q.QuizId,
+                        Question = q.Question,
+                        QuizType = q.QuizType ?? "Quiz"
+                    }).ToList() ?? new(),
+                MiniGames = l.MiniGames?
+                    .OrderBy(g => g.Title)
+                    .Select(g => new AssignmentMiniGameOptionViewModel
+                    {
+                        GameId = g.GameId,
+                        Title = g.Title,
+                        GameType = g.GameType ?? "MiniGame"
+                    }).ToList() ?? new()
             }).ToList()
         };
+    }
+
+    /// <summary>
+    /// Luồng hiển thị lại form: nạp lại dữ liệu chuẩn từ database rồi ghép các lựa chọn
+    /// người dùng vừa gửi để giao diện không bị mất trạng thái sau khi có lỗi.
+    /// </summary>
+    public async Task<AssignWeeklyLessonViewModel?> RebuildAssignWeeklyLessonsFormAsync(
+        AssignWeeklyLessonViewModel postedModel,
+        int teacherId)
+    {
+        var formModel = await GetAssignWeeklyLessonsFormAsync(
+            postedModel.ClassId,
+            teacherId,
+            postedModel.SelectedCourseId);
+
+        if (formModel == null)
+        {
+            return null;
+        }
+
+        formModel.WeekStartDate = postedModel.WeekStartDate;
+        formModel.DueDate = postedModel.DueDate;
+        formModel.SelectedLessonIds = postedModel.SelectedLessonIds ?? new List<int>();
+        formModel.SelectedCourseId = postedModel.SelectedCourseId;
+        formModel.Status = postedModel.Status;
+
+        foreach (var postedLesson in postedModel.Lessons ?? new List<AssignLessonItemViewModel>())
+        {
+            var targetLesson = formModel.Lessons
+                .FirstOrDefault(lesson => lesson.LessonId == postedLesson.LessonId);
+
+            if (targetLesson == null)
+            {
+                continue;
+            }
+
+            targetLesson.IncludeVocabulary = postedLesson.IncludeVocabulary;
+            targetLesson.IncludeQuiz = postedLesson.IncludeQuiz;
+            targetLesson.IncludeMiniGame = postedLesson.IncludeMiniGame;
+            targetLesson.SelectedVocabularyIds = postedLesson.SelectedVocabularyIds ?? new();
+            targetLesson.SelectedQuizIds = postedLesson.SelectedQuizIds ?? new();
+            targetLesson.SelectedMiniGameIds = postedLesson.SelectedMiniGameIds ?? new();
+        }
+
+        return formModel;
     }
 
     public async Task<TeacherLessonPreviewViewModel?> GetLessonPreviewAsync(
@@ -174,25 +251,31 @@ public class TeacherAssignmentService : ITeacherAssignmentService
     /// <summary>
     /// Tạo bài giao cho các bài học hợp lệ và gửi thông báo nếu giáo viên phát hành ngay.
     /// </summary>
-    public async Task<bool> AssignWeeklyLessonsAsync(
+    public async Task<TeacherAssignmentResult> AssignWeeklyLessonsAsync(
     AssignWeeklyLessonViewModel model,
     int teacherId)
     {
+        // Luồng 1: kiểm tra quyền giáo viên và các quy tắc nghiệp vụ của form.
         var classEntity = await ValidateTeacherAccessAsync(model.ClassId, teacherId);
 
         if (classEntity == null)
         {
-            return false;
+            return TeacherAssignmentResult.Failure(
+                "Bạn không có quyền giao bài cho lớp này.");
         }
 
         if (!model.SelectedCourseId.HasValue)
         {
-            return false;
+            return await CreateAssignmentFailureAsync(
+                model,
+                teacherId,
+                "Vui lòng chọn chương trình học trước khi giao bài.");
         }
 
-        if (!ValidateAssignmentInput(model))
+        var validationError = GetAssignmentValidationError(model);
+        if (validationError != null)
         {
-            return false;
+            return await CreateAssignmentFailureAsync(model, teacherId, validationError);
         }
 
         var courseId = classEntity.CourseId ?? model.SelectedCourseId.Value;
@@ -200,19 +283,24 @@ public class TeacherAssignmentService : ITeacherAssignmentService
             .Distinct()
             .ToList();
 
-        if (!await _assignmentRepository.ValidateLessonsBelongToCourseAsync(
-                courseId,
-                selectedLessonIds))
+        var matchingLessonCount = await _assignmentRepository.CountPublishedLessonsAsync(
+            courseId,
+            selectedLessonIds);
+        if (matchingLessonCount != selectedLessonIds.Count)
         {
-            return false;
+            return await CreateAssignmentFailureAsync(
+                model,
+                teacherId,
+                "Danh sách bài học không hợp lệ hoặc không thuộc chương trình đã chọn.");
         }
 
-        // Serializable giúp hai request đồng thời không cùng vượt qua bước kiểm tra trùng.
-        using var transaction = await _context.Database.BeginTransactionAsync(
+        // Luồng 2: khóa transaction ở mức Serializable để hai request không tạo bài giao trùng.
+        await using var transaction = await _unitOfWork.BeginTransactionAsync(
             IsolationLevel.Serializable);
 
         // Loại bỏ những bài đã được giao trong cùng tuần để tránh tạo dữ liệu trùng.
         var existingLessonIds = await _assignmentRepository.GetAssignedLessonIdsAsync(
+            model.ClassId,
             courseId,
             selectedLessonIds,
             model.WeekStartDate);
@@ -224,17 +312,54 @@ public class TeacherAssignmentService : ITeacherAssignmentService
         if (!newLessonIds.Any())
         {
             await transaction.RollbackAsync();
-            return false;
+            return await CreateAssignmentFailureAsync(
+                model,
+                teacherId,
+                "Các bài học đã được giao trong tuần này.");
         }
 
-        var assignments = newLessonIds.Select(lessonId => new WeeklyAssignment
+        var availableLessons = await _assignmentRepository.GetPublishedLessonsByCourseIdAsync(courseId);
+        var assignments = new List<WeeklyAssignment>();
+
+        foreach (var lessonId in newLessonIds)
         {
-            CourseId = courseId,
-            LessonId = lessonId,
-            WeekStartDate = model.WeekStartDate,
-            DueDate = model.DueDate,
-            IsVisible = model.Status == AssignmentStatus.Published
-        }).ToList();
+            var availableLesson = availableLessons.FirstOrDefault(x => x.LessonId == lessonId);
+            var selection = model.Lessons.FirstOrDefault(x => x.LessonId == lessonId);
+            if (availableLesson == null || selection == null ||
+                !TryNormalizeSelection(selection, availableLesson))
+            {
+                await transaction.RollbackAsync();
+                return await CreateAssignmentFailureAsync(
+                    model,
+                    teacherId,
+                    "Mỗi bài học được chọn phải có ít nhất một từ vựng, câu quiz hoặc mini game hợp lệ.");
+            }
+
+            var assignment = new WeeklyAssignment
+            {
+                ClassId = model.ClassId,
+                CourseId = courseId,
+                LessonId = lessonId,
+                WeekStartDate = model.WeekStartDate,
+                DueDate = model.DueDate,
+                IsVisible = model.Status == AssignmentStatus.Published,
+                IncludeVocabulary = selection.IncludeVocabulary,
+                IncludeQuiz = selection.IncludeQuiz,
+                IncludeMiniGame = selection.IncludeMiniGame
+            };
+
+            assignment.Vocabularies = selection.SelectedVocabularyIds
+                .Select(id => new WeeklyAssignmentVocabulary { VocabularyId = id })
+                .ToList();
+            assignment.Quizzes = selection.SelectedQuizIds
+                .Select(id => new WeeklyAssignmentQuiz { QuizId = id })
+                .ToList();
+            assignment.MiniGames = selection.SelectedMiniGameIds
+                .Select(id => new WeeklyAssignmentMiniGame { GameId = id })
+                .ToList();
+
+            assignments.Add(assignment);
+        }
 
         // Việc cập nhật khóa học, tạo bài giao và thông báo phải thành công như một đơn vị.
         try
@@ -248,6 +373,7 @@ public class TeacherAssignmentService : ITeacherAssignmentService
 
             await _assignmentRepository.AddWeeklyAssignmentsAsync(assignments);
 
+            // Luồng 3: chỉ tạo thông báo khi giáo viên phát hành, bản nháp chưa gửi thông báo.
             if (model.Status == AssignmentStatus.Published)
             {
                 var students = await _classRepository.GetActiveStudentsByClassIdAsync(model.ClassId);
@@ -260,11 +386,11 @@ public class TeacherAssignmentService : ITeacherAssignmentService
                     CreateAt = DateTime.UtcNow
                 }).ToList();
 
-                await _classRepository.AddNotificationsAsync(notifications);
+                await _notificationRepository.AddRangeAsync(notifications);
             }
-            await _context.SaveChangesAsync();
+            await _unitOfWork.SaveChangesAsync();
             await transaction.CommitAsync();
-            return true;
+            return TeacherAssignmentResult.Success();
         }
         catch
         {
@@ -296,25 +422,82 @@ public class TeacherAssignmentService : ITeacherAssignmentService
     /// <summary>
     /// Kiểm tra các điều kiện nghiệp vụ cơ bản trước khi lưu bài giao.
     /// </summary>
-    private static bool ValidateAssignmentInput(AssignWeeklyLessonViewModel model)
+    private static string? GetAssignmentValidationError(AssignWeeklyLessonViewModel model)
     {
         if (model.SelectedLessonIds == null || !model.SelectedLessonIds.Any())
         {
-            return false;
+            return "Vui lòng chọn ít nhất một bài học.";
+        }
+
+        if (model.Lessons == null || model.Lessons.Count == 0)
+        {
+            return "Không tìm thấy nội dung bài học để giao.";
         }
 
         if (model.DueDate <= model.WeekStartDate)
         {
-            return false;
+            return "Hạn hoàn thành phải lớn hơn ngày bắt đầu.";
         }
 
         if (model.Status != AssignmentStatus.Draft &&
             model.Status != AssignmentStatus.Published)
         {
+            return "Trạng thái bài giao không hợp lệ.";
+        }
+
+        return null;
+    }
+
+    private async Task<TeacherAssignmentResult> CreateAssignmentFailureAsync(
+        AssignWeeklyLessonViewModel model,
+        int teacherId,
+        string errorMessage)
+    {
+        var formModel = await RebuildAssignWeeklyLessonsFormAsync(model, teacherId);
+        return TeacherAssignmentResult.Failure(errorMessage, formModel);
+    }
+
+    private static bool TryNormalizeSelection(
+        AssignLessonItemViewModel selection,
+        Lesson lesson)
+    {
+        var vocabularyIds = (lesson.Vocabularies ?? new List<Vocabulary>())
+            .Select(x => x.VocabularyId)
+            .ToHashSet();
+        var quizIds = (lesson.Quizzes ?? new List<Quiz>())
+            .Select(x => x.QuizId)
+            .ToHashSet();
+        var gameIds = (lesson.MiniGames ?? new List<MiniGame>())
+            .Select(x => x.GameId)
+            .ToHashSet();
+
+        selection.SelectedVocabularyIds = selection.IncludeVocabulary
+            ? selection.SelectedVocabularyIds.Distinct().ToList()
+            : new List<int>();
+        selection.SelectedQuizIds = selection.IncludeQuiz
+            ? selection.SelectedQuizIds.Distinct().ToList()
+            : new List<int>();
+        selection.SelectedMiniGameIds = selection.IncludeMiniGame
+            ? selection.SelectedMiniGameIds.Distinct().ToList()
+            : new List<int>();
+
+        if (selection.SelectedVocabularyIds.Any(id => !vocabularyIds.Contains(id)) ||
+            selection.SelectedQuizIds.Any(id => !quizIds.Contains(id)) ||
+            selection.SelectedMiniGameIds.Any(id => !gameIds.Contains(id)))
+        {
             return false;
         }
 
-        return true;
+        if (selection.IncludeVocabulary && selection.SelectedVocabularyIds.Count == 0 ||
+            selection.IncludeQuiz && selection.SelectedQuizIds.Count == 0 ||
+            selection.IncludeMiniGame && selection.SelectedMiniGameIds.Count == 0)
+        {
+            return false;
+        }
+
+        return selection.IncludeVocabulary ||
+               selection.IncludeQuiz ||
+               selection.IncludeMiniGame;
     }
     /// <summary>
     /// Lấy danh sách bài giao thuộc các lớp của giáo viên, áp dụng bộ lọc và phân trang.
@@ -335,13 +518,12 @@ public class TeacherAssignmentService : ITeacherAssignmentService
             ? classes
             : new List<Class> { selectedClass };
 
-        var courseIds = classesInScope
-            .Where(c => c.CourseId.HasValue)
-            .Select(c => c.CourseId!.Value)
+        var classIds = classesInScope
+            .Select(c => c.ClassId)
             .Distinct()
             .ToList();
 
-        var assignments = await _assignmentRepository.GetAssignmentsByCourseIdsAsync(courseIds);
+        var assignments = await _assignmentRepository.GetAssignmentsByClassIdsAsync(classIds);
 
         var totalAssignments = assignments.Count;
         var draftAssignments = assignments.Count(a => !a.IsVisible);
@@ -391,9 +573,9 @@ public class TeacherAssignmentService : ITeacherAssignmentService
                 Topic = a.Lesson?.Topic ?? "Chưa cập nhật",
                 EstimatedMinutes = a.Lesson?.EstimatedMinutes ?? 0,
                 XPReward = a.Lesson?.XPReward ?? 0,
-                VocabularyCount = a.Lesson?.Vocabularies?.Count ?? 0,
-                QuizCount = a.Lesson?.Quizzes?.Count ?? 0,
-                MiniGameCount = a.Lesson?.MiniGames?.Count ?? 0,
+                VocabularyCount = a.IncludeVocabulary ? a.Vocabularies.Count : 0,
+                QuizCount = a.IncludeQuiz ? a.Quizzes.Count : 0,
+                MiniGameCount = a.IncludeMiniGame ? a.MiniGames.Count : 0,
                 WeekStartDate = a.WeekStartDate,
                 DueDate = a.DueDate,
                 Status = !a.IsVisible
@@ -465,15 +647,16 @@ public class TeacherAssignmentService : ITeacherAssignmentService
             return false;
         }
 
-        using var transaction = await _context.Database.BeginTransactionAsync(
+        // Luồng phát hành: kiểm tra bản nháp và chống trùng trong cùng một transaction.
+        await using var transaction = await _unitOfWork.BeginTransactionAsync(
             IsolationLevel.Serializable);
 
         try
         {
-            var assignment = await _context.WeeklyAssignments!
-                .FirstOrDefaultAsync(a =>
-                    a.AssignmentId == assignmentId &&
-                    a.CourseId == classEntity.CourseId);
+            var assignment = await _assignmentRepository.GetForUpdateAsync(
+                assignmentId,
+                classId,
+                classEntity.CourseId.Value);
 
             if (assignment == null || assignment.IsVisible)
             {
@@ -481,13 +664,13 @@ public class TeacherAssignmentService : ITeacherAssignmentService
                 return false;
             }
 
-            var hasPublishedDuplicate = await _context.WeeklyAssignments!
-                .AnyAsync(a =>
-                    a.AssignmentId != assignment.AssignmentId &&
-                    a.CourseId == assignment.CourseId &&
-                    a.LessonId == assignment.LessonId &&
-                    a.WeekStartDate.Date == assignment.WeekStartDate.Date &&
-                    a.IsVisible);
+            var hasPublishedDuplicate =
+                await _assignmentRepository.ExistsPublishedAssignmentAsync(
+                    assignment.ClassId!.Value,
+                    assignment.CourseId!.Value,
+                    assignment.LessonId,
+                    assignment.WeekStartDate,
+                    assignment.AssignmentId);
 
             if (hasPublishedDuplicate)
             {
@@ -507,8 +690,8 @@ public class TeacherAssignmentService : ITeacherAssignmentService
                 CreateAt = DateTime.UtcNow
             }).ToList();
 
-            await _classRepository.AddNotificationsAsync(notifications);
-            await _context.SaveChangesAsync();
+            await _notificationRepository.AddRangeAsync(notifications);
+            await _unitOfWork.SaveChangesAsync();
             await transaction.CommitAsync();
             return true;
         }

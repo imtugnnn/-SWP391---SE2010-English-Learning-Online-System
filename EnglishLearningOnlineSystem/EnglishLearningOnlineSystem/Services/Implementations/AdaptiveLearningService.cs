@@ -28,7 +28,12 @@ public class AdaptiveLearningService : IAdaptiveLearningService
         var urgentAssignments = await _db.WeeklyAssignments!
             .Include(wa => wa.Lesson!)
             .ThenInclude(l => l.Course!)
-            .Where(wa => wa.IsVisible && wa.DueDate >= DateTime.Today)
+            .Where(wa =>
+                wa.IsVisible &&
+                wa.DueDate >= DateTime.Today &&
+                wa.ClassId.HasValue &&
+                _db.ClassEnrollments!.Any(e =>
+                    e.ClassId == wa.ClassId.Value && e.StudentId == studentId))
             .ToListAsync();
 
         var completedLessonIds = await _db.Progresses!

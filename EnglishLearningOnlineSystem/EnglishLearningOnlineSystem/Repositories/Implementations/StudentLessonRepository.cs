@@ -21,7 +21,15 @@ public class StudentLessonRepository : IStudentLessonRepository
         return await _db.WeeklyAssignments!
             .Include(wa => wa.Lesson)
                 .ThenInclude(l => l.Course)
-            .Where(wa => wa.IsVisible && wa.LessonId != null)
+            .Include(wa => wa.Vocabularies)
+            .Include(wa => wa.Quizzes)
+            .Include(wa => wa.MiniGames)
+            .Where(wa =>
+                wa.IsVisible &&
+                wa.LessonId != null &&
+                wa.ClassId.HasValue &&
+                _db.ClassEnrollments!.Any(e =>
+                    e.ClassId == wa.ClassId.Value && e.StudentId == studentId))
             .OrderBy(wa => wa.DueDate)
             .ToListAsync();
     }

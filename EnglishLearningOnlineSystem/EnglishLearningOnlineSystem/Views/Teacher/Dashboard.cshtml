@@ -299,11 +299,11 @@
 
                     <div>
                         <button type="button" class="btn btn-outline-primary d-flex align-items-center gap-2 px-3 py-2 border-2 rounded-pill shadow-sm" data-bs-toggle="modal" data-bs-target="#notificationModal" style="border-color: #0ea5e9; color: #0369a1;">
-                            <i class="bi bi-bell-fill fs-5 text-warning @(ViewBag.NotificationCount > 0 ? "pulse-icon" : "")"></i>
+                            <i class="bi bi-bell-fill fs-5 text-warning @(Model.NotificationCount > 0 ? "pulse-icon" : "")"></i>
                             <span class="fw-bold">Thông báo hệ thống</span>
-                            @if (ViewBag.NotificationCount > 0)
+                            @if (Model.NotificationCount > 0)
                             {
-                                <span class="badge bg-danger rounded-pill">@ViewBag.NotificationCount</span>
+                                <span class="badge bg-danger rounded-pill">@Model.NotificationCount</span>
                             }
                         </button>
                     </div>
@@ -365,7 +365,7 @@
                 </div>
             </div>
 
-            @if (Model.Classes.Any())
+            @if (Model.Classes.Count > 0)
             {
                 <div class="table-responsive">
                     <table class="table table-hover align-middle">
@@ -453,10 +453,7 @@
                 <div class="tab-content" id="notifTabContent">
                     <!-- Tab Thông báo chung -->
                     <div class="tab-pane fade show active" id="system" role="tabpanel" aria-labelledby="system-tab">
-                        @{
-                            var sysNotifs = ViewBag.SystemNotifications as List<EnglishLearningOnlineSystem.Models.SystemNotification>;
-                        }
-                        @if (sysNotifs == null || !sysNotifs.Any())
+                        @if (Model.SystemNotifications.Count == 0)
                         {
                             <div class="text-center py-5 text-muted">
                                 <i class="bi bi-chat-square-text fs-1 mb-2"></i>
@@ -466,13 +463,13 @@
                         else
                         {
                             <div class="notif-list" style="max-height: 400px; overflow-y: auto; padding-right: 5px;">
-                                @foreach (var notif in sysNotifs)
+                            @foreach (var notif in Model.SystemNotifications)
                                 {
                                     <div class="notif-item p-3 mb-3 border rounded-3 bg-white hover-shadow transition" style="border-color: #e2e8f0;">
                                         <div class="d-flex justify-content-between align-items-center mb-2">
                                             <h6 class="fw-bold text-dark mb-0">@notif.Title</h6>
                                             <span class="text-muted small">
-                                                <i class="bi bi-clock me-1"></i> @(notif.PublishTime.HasValue ? notif.PublishTime.Value.ToString("dd/MM/yyyy HH:mm") : notif.CreatedAt.ToString("dd/MM/yyyy HH:mm"))
+                                                <i class="bi bi-clock me-1"></i> @notif.DisplayTime.ToString("dd/MM/yyyy HH:mm")
                                             </span>
                                         </div>
                                         <p class="mb-0 text-secondary" style="font-size: 0.9rem; white-space: pre-line;">@notif.Content</p>
@@ -484,10 +481,7 @@
 
                     <!-- Tab Thông báo cá nhân -->
                     <div class="tab-pane fade" id="personal" role="tabpanel" aria-labelledby="personal-tab">
-                        @{
-                            var persNotifs = ViewBag.PersonalNotifications as List<EnglishLearningOnlineSystem.Models.Notification>;
-                        }
-                        @if (persNotifs == null || !persNotifs.Any())
+                        @if (Model.PersonalNotifications.Count == 0)
                         {
                             <div class="text-center py-5 text-muted">
                                 <i class="bi bi-envelope-open fs-1 mb-2"></i>
@@ -497,13 +491,13 @@
                         else
                         {
                             <div class="notif-list" style="max-height: 400px; overflow-y: auto; padding-right: 5px;">
-                                @foreach (var notif in persNotifs)
+                            @foreach (var notif in Model.PersonalNotifications)
                                 {
                                     <div class="notif-item p-3 mb-3 border rounded-3 bg-white hover-shadow transition @(notif.IsRead ? "" : "border-primary bg-light-blue")" style="border-color: #e2e8f0;">
                                         <div class="d-flex justify-content-between align-items-center mb-2">
                                             <span class="badge @(notif.Type == "Warning" ? "bg-warning text-dark" : "bg-info")">@notif.Type</span>
                                             <span class="text-muted small">
-                                                <i class="bi bi-clock me-1"></i> @notif.CreateAt.AddHours(7).ToString("dd/MM/yyyy HH:mm")
+                                                <i class="bi bi-clock me-1"></i> @notif.DisplayTime.ToString("dd/MM/yyyy HH:mm")
                                             </span>
                                         </div>
                                         <p class="mb-0 text-secondary" style="font-size: 0.9rem;">@notif.Message</p>

@@ -33,7 +33,7 @@
 
     <div class="teacher-sidebar__section-title">Lớp học</div>
 
-    @if (Model.Classes.Any())
+    @if (Model.Classes.Count > 0)
     {
         foreach (var classItem in Model.Classes)
         {

@@ -10,12 +10,20 @@ public interface IAssignmentRepository
     Task<List<Course>> GetPublishedCoursesAsync();
 
     Task<List<int>> GetAssignedLessonIdsAsync(
+        int classId,
         int courseId,
         List<int> lessonIds,
         DateTime weekStartDate);
 
     Task AddWeeklyAssignmentsAsync(List<WeeklyAssignment> assignments);
-    Task<bool> ValidateLessonsBelongToCourseAsync(int courseId, List<int> lessonIds);
+    Task<int> CountPublishedLessonsAsync(int courseId, List<int> lessonIds);
 
-    Task<List<WeeklyAssignment>> GetAssignmentsByCourseIdsAsync(List<int> courseIds);
+    Task<List<WeeklyAssignment>> GetAssignmentsByClassIdsAsync(List<int> classIds);
+    Task<WeeklyAssignment?> GetForUpdateAsync(int assignmentId, int classId, int courseId);
+    Task<bool> ExistsPublishedAssignmentAsync(
+        int classId,
+        int courseId,
+        int? lessonId,
+        DateTime weekStartDate,
+        int excludedAssignmentId);
 }

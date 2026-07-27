@@ -33,7 +33,7 @@ public class ClassRepository : IClassRepository
             .ToListAsync();
     }
 
-    public async Task<List<WeeklyAssignment>> GetAssignmentsByClassCourseAsync(int? courseId)
+    public async Task<List<WeeklyAssignment>> GetAssignmentsByClassCourseAsync(int classId, int? courseId)
     {
         if (courseId == null)
         {
@@ -42,7 +42,7 @@ public class ClassRepository : IClassRepository
 
         return await _context.WeeklyAssignments!
             .Include(a => a.Lesson)
-            .Where(a => a.CourseId == courseId && a.IsVisible)
+            .Where(a => a.ClassId == classId && a.CourseId == courseId && a.IsVisible)
             .AsNoTracking()
             .OrderByDescending(a => a.WeekStartDate)
             .ToListAsync();

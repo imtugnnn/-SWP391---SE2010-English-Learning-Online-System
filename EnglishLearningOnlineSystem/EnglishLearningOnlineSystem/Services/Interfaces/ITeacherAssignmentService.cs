@@ -12,6 +12,10 @@ public interface ITeacherAssignmentService
     int teacherId,
     int? selectedCourseId = null);
 
+    Task<AssignWeeklyLessonViewModel?> RebuildAssignWeeklyLessonsFormAsync(
+        AssignWeeklyLessonViewModel postedModel,
+        int teacherId);
+
     Task<TeacherLessonPreviewViewModel?> GetLessonPreviewAsync(
         int classId,
         int lessonId,
@@ -21,7 +25,7 @@ public interface ITeacherAssignmentService
     /// <summary>
     /// Tạo các bài giao tuần cho lớp thuộc quyền quản lý của giáo viên.
     /// </summary>
-    Task<bool> AssignWeeklyLessonsAsync(
+    Task<EnglishLearningOnlineSystem.Services.Results.TeacherAssignmentResult> AssignWeeklyLessonsAsync(
         AssignWeeklyLessonViewModel model,
         int teacherId);
     /// <summary>
