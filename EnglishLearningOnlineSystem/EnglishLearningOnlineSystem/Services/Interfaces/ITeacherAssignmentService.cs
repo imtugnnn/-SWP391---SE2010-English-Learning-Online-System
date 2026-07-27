@@ -25,7 +25,7 @@ public interface ITeacherAssignmentService
     /// <summary>
     /// Tạo các bài giao tuần cho lớp thuộc quyền quản lý của giáo viên.
     /// </summary>
-    Task<EnglishLearningOnlineSystem.Services.Results.TeacherAssignmentResult> AssignWeeklyLessonsAsync(
+    Task<TeacherAssignmentResult> AssignWeeklyLessonsAsync(
         AssignWeeklyLessonViewModel model,
         int teacherId);
     /// <summary>
@@ -42,4 +42,28 @@ public interface ITeacherAssignmentService
     /// Phát hành một bài giao đang ở trạng thái bản nháp.
     /// </summary>
     Task<bool> PublishDraftAsync(int assignmentId, int classId, int teacherId);
+}
+
+/// <summary>
+/// Kết quả xử lý luồng giao bài để Controller biết cần chuyển trang
+/// hay hiển thị lại form cùng thông báo lỗi từ Service.
+/// </summary>
+public sealed class TeacherAssignmentResult
+{
+    public bool Succeeded { get; init; }
+    public string? ErrorMessage { get; init; }
+    public AssignWeeklyLessonViewModel? FormModel { get; init; }
+
+    public static TeacherAssignmentResult Success() => new() { Succeeded = true };
+
+    public static TeacherAssignmentResult Failure(
+        string errorMessage,
+        AssignWeeklyLessonViewModel? formModel = null)
+    {
+        return new TeacherAssignmentResult
+        {
+            ErrorMessage = errorMessage,
+            FormModel = formModel
+        };
+    }
 }
