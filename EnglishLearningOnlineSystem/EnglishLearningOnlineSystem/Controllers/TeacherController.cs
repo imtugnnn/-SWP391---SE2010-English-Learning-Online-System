@@ -269,6 +269,32 @@ public class TeacherController : Controller
         return View(viewModel);
     }
 
+    [HttpGet]
+    public async Task<IActionResult> LessonPreview(
+        int classId,
+        int lessonId,
+        int? selectedCourseId)
+    {
+        var teacherId = GetCurrentUserId();
+        if (teacherId == null)
+        {
+            return Unauthorized();
+        }
+
+        var viewModel = await _teacherAssignmentService.GetLessonPreviewAsync(
+            classId,
+            lessonId,
+            teacherId.Value,
+            selectedCourseId);
+
+        if (viewModel == null)
+        {
+            return NotFound();
+        }
+
+        return PartialView("_LessonPreviewContent", viewModel);
+    }
+
     /// <summary>
     /// Kiểm tra dữ liệu và tạo các bài giao tuần ở trạng thái nháp hoặc đã phát hành.
     /// </summary>
@@ -309,7 +335,8 @@ public class TeacherController : Controller
             // Nạp lại danh sách khóa học/bài học để biểu mẫu lỗi vẫn hiển thị đủ dữ liệu.
             var reloadModel = await _teacherAssignmentService.GetAssignWeeklyLessonsFormAsync(
                 model.ClassId,
-                teacherId.Value);
+                teacherId.Value,
+                model.SelectedCourseId);
 
             if (reloadModel == null)
             {

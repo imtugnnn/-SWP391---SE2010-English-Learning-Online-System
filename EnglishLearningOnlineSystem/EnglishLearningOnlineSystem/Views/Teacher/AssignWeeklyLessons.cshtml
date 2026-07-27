@@ -276,7 +276,12 @@
                     </a>
                 </div>
 
-                <form asp-controller="Teacher" asp-action="AssignWeeklyLessons" method="post">
+                <form asp-controller="Teacher"
+                      asp-action="AssignWeeklyLessons"
+                      method="post"
+                      id="weeklyAssignmentForm"
+                      data-class-name="@Model.ClassName"
+                      data-student-count="@Model.ActiveStudentCount">
                     @Html.AntiForgeryToken()
 
                     <input type="hidden" asp-for="ClassId" />
@@ -360,54 +365,109 @@
                     }
                     <div class="section-card mb-4">
                         <div class="section-header">
-                            <h2 class="section-title">Danh sách bài học</h2>
+                            <div>
+                                <h2 class="section-title">Danh sách bài học</h2>
+                                <p class="section-subtitle mb-0">
+                                    Xem nội dung trước khi chọn bài để giao cho học sinh.
+                                </p>
+                            </div>
 
-                            <span class="page-badge mb-0">
-                                <span class="page-badge-dot"></span>
-                                <span id="selectedLessonCount">@Model.SelectedLessonIds.Count</span>/@Model.Lessons.Count bài học đã chọn
-                            </span>
+                            <label class="lesson-select-all">
+                                <input class="form-check-input"
+                                       type="checkbox"
+                                       id="selectAllLessons"
+                                       aria-label="Chọn tất cả bài học" />
+                                Chọn tất cả
+                            </label>
                         </div>
 
                         @if (Model.Lessons.Any())
                         {
-                            <div class="table-responsive">
-                                <table class="table table-hover align-middle">
-                                    <thead>
-                                        <tr>
-                                            <th>
-                                                <input class="form-check-input"
-                                                       type="checkbox"
-                                                       id="selectAllLessons"
-                                                       aria-label="Chọn tất cả bài học" />
-                                            </th>
-                                            <th>Bài học</th>
-                                            <th>Chủ đề</th>
-                                            <th>Thời lượng</th>
-                                            <th>XP</th>
-                                        </tr>
-                                    </thead>
-
-                                    <tbody>
+                            <div class="p-4">
+                                <div class="row g-4 align-items-start">
+                                    <div class="col-xl-8">
+                                        <div class="lesson-selection-list">
                                         @foreach (var lesson in Model.Lessons)
                                         {
-                                            <tr>
-                                                <td>
+                                            var previewUrl = Url.Action(
+                                                "LessonPreview",
+                                                "Teacher",
+                                                new
+                                                {
+                                                    classId = Model.ClassId,
+                                                    lessonId = lesson.LessonId,
+                                                    selectedCourseId = Model.SelectedCourseId
+                                                });
+
+                                            <article class="lesson-selection-card">
+                                                <div class="lesson-selection-card__check">
                                                     <input class="form-check-input lesson-check"
                                                            type="checkbox"
                                                            name="SelectedLessonIds"
                                                            value="@lesson.LessonId"
+                                                           data-title="@lesson.Title"
+                                                           data-duration="@lesson.EstimatedMinutes"
+                                                           data-xp="@lesson.XPReward"
+                                                           data-vocabulary="@lesson.VocabularyCount"
+                                                           data-quiz="@lesson.QuizCount"
+                                                           data-games="@lesson.MiniGameCount"
+                                                           data-preview-url="@previewUrl"
                                                            checked="@(Model.SelectedLessonIds.Contains(lesson.LessonId))" />
-                                                </td>
-                                                <td class="fw-bold">@lesson.Title</td>
-                                                <td>
-                                                    <span class="badge-soft-primary">@lesson.Topic</span>
-                                                </td>
-                                                <td>@lesson.EstimatedMinutes phút</td>
-                                                <td>@lesson.XPReward XP</td>
-                                            </tr>
+                                                </div>
+                                                <div class="lesson-selection-card__body">
+                                                    <div class="d-flex justify-content-between gap-3 flex-wrap">
+                                                        <div>
+                                                            <h3>@lesson.Title</h3>
+                                                            <p>@lesson.Topic</p>
+                                                        </div>
+                                                        <div class="lesson-selection-card__meta">
+                                                            <span>@lesson.EstimatedMinutes phút</span>
+                                                            <span>@lesson.XPReward XP</span>
+                                                        </div>
+                                                    </div>
+
+                                                    <div class="lesson-content-counts">
+                                                        <span>@lesson.VocabularyCount từ vựng</span>
+                                                        <span>@lesson.QuizCount câu quiz</span>
+                                                        <span>@lesson.MiniGameCount mini game</span>
+                                                    </div>
+
+                                                    <button type="button"
+                                                            class="btn-teacher-outline"
+                                                            data-lesson-preview-url="@previewUrl">
+                                                        Xem nội dung
+                                                    </button>
+                                                </div>
+                                            </article>
                                         }
-                                    </tbody>
-                                </table>
+                                        </div>
+                                    </div>
+
+                                    <div class="col-xl-4">
+                                        <aside class="selected-lessons-panel">
+                                            <div class="selected-lessons-panel__header">
+                                                <div>
+                                                    <span>Bài học đã chọn</span>
+                                                    <strong><span id="selectedLessonCount">@Model.SelectedLessonIds.Count</span> bài</strong>
+                                                </div>
+                                            </div>
+
+                                            <div id="selectedLessonsEmpty" class="selected-lessons-empty">
+                                                Chưa chọn bài học nào.
+                                            </div>
+
+                                            <ol id="selectedLessonsList" class="selected-lessons-list"></ol>
+
+                                            <div class="selected-lessons-totals">
+                                                <div><strong id="selectedVocabularyTotal">0</strong><span>Từ vựng</span></div>
+                                                <div><strong id="selectedQuizTotal">0</strong><span>Quiz</span></div>
+                                                <div><strong id="selectedGameTotal">0</strong><span>Mini game</span></div>
+                                                <div><strong id="selectedDurationTotal">0</strong><span>Phút</span></div>
+                                                <div><strong id="selectedXpTotal">0</strong><span>XP</span></div>
+                                            </div>
+                                        </aside>
+                                    </div>
+                                </div>
                             </div>
                         }
                         else
@@ -446,55 +506,15 @@
             </div>
         </div>
 
+        <partial name="_LessonPreviewDrawer" />
+        <partial name="_PublishAssignmentConfirmation" />
     </div>
 </div>
 
 @section Scripts {
     <partial name="_ValidationScriptsPartial" />
-    <script>
-        document.addEventListener("DOMContentLoaded", function () {
-            const statusSelect = document.getElementById("assignmentStatus");
-            const statusHelp = document.getElementById("assignmentStatusHelp");
-            const submitButton = document.getElementById("assignmentSubmitButton");
-            const selectAll = document.getElementById("selectAllLessons");
-            const lessonCheckboxes = Array.from(document.querySelectorAll(".lesson-check"));
-            const selectedCount = document.getElementById("selectedLessonCount");
-
-            const updateStatusPresentation = function () {
-                if (!statusSelect || !submitButton) {
-                    return;
-                }
-
-                const isDraft = statusSelect.value === "Draft";
-                submitButton.textContent = isDraft ? "Lưu bản nháp" : "Giao bài ngay";
-                statusHelp.textContent = isDraft
-                    ? "Bản nháp không hiển thị cho học sinh và không gửi thông báo."
-                    : "Xuất bản ngay sẽ gửi thông báo đến các học sinh đang hoạt động.";
-            };
-
-            const updateLessonSelection = function () {
-                const checkedCount = lessonCheckboxes.filter(item => item.checked).length;
-                if (selectedCount) {
-                    selectedCount.textContent = checkedCount.toString();
-                }
-
-                if (selectAll) {
-                    selectAll.checked = lessonCheckboxes.length > 0 && checkedCount === lessonCheckboxes.length;
-                    selectAll.indeterminate = checkedCount > 0 && checkedCount < lessonCheckboxes.length;
-                }
-            };
-
-            statusSelect?.addEventListener("change", updateStatusPresentation);
-            lessonCheckboxes.forEach(item => item.addEventListener("change", updateLessonSelection));
-            selectAll?.addEventListener("change", function () {
-                lessonCheckboxes.forEach(item => item.checked = selectAll.checked);
-                updateLessonSelection();
-            });
-
-            updateStatusPresentation();
-            updateLessonSelection();
-        });
-    </script>
+    <script src="~/js/teacher/lesson-preview.js" asp-append-version="true"></script>
+    <script src="~/js/teacher/weekly-assignment-selection.js" asp-append-version="true"></script>
 
     @if (!Model.HasCourse)
     {

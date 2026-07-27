@@ -5,6 +5,7 @@ using EnglishLearningOnlineSystem.Services.Interfaces;
 using EnglishLearningOnlineSystem.ViewModels;
 using Microsoft.EntityFrameworkCore;
 using System.Data;
+using System.Text.Json;
 
 namespace EnglishLearningOnlineSystem.Services.Implementations;
 
@@ -48,6 +49,7 @@ public class TeacherAssignmentService : ITeacherAssignmentService
             : new List<Lesson>();
 
         var selectedCourse = courses.FirstOrDefault(c => c.CourseId == courseIdToLoad);
+        var activeStudents = await _classRepository.GetActiveStudentsByClassIdAsync(classEntity.ClassId);
 
         return new AssignWeeklyLessonViewModel
         {
@@ -57,6 +59,7 @@ public class TeacherAssignmentService : ITeacherAssignmentService
             CourseId = classEntity.CourseId,
             SelectedCourseId = courseIdToLoad,
             CourseName = selectedCourse?.CourseName ?? "Chưa chọn chương trình học",
+            ActiveStudentCount = activeStudents.Count,
 
             WeekStartDate = DateTime.Today,
             DueDate = DateTime.Today.AddDays(7),
@@ -74,9 +77,98 @@ public class TeacherAssignmentService : ITeacherAssignmentService
                 Title = l.Title,
                 Topic = l.Topic ?? "Chưa cập nhật",
                 EstimatedMinutes = l.EstimatedMinutes,
-                XPReward = l.XPReward
+                XPReward = l.XPReward,
+                VocabularyCount = l.Vocabularies?.Count ?? 0,
+                QuizCount = l.Quizzes?.Count ?? 0,
+                MiniGameCount = l.MiniGames?.Count ?? 0
             }).ToList()
         };
+    }
+
+    public async Task<TeacherLessonPreviewViewModel?> GetLessonPreviewAsync(
+        int classId,
+        int lessonId,
+        int teacherId,
+        int? selectedCourseId = null)
+    {
+        var classEntity = await ValidateTeacherAccessAsync(classId, teacherId);
+        if (classEntity == null)
+        {
+            return null;
+        }
+
+        var courseId = classEntity.CourseId ?? selectedCourseId;
+        if (!courseId.HasValue)
+        {
+            return null;
+        }
+
+        var lesson = await _assignmentRepository.GetPublishedLessonDetailAsync(
+            courseId.Value,
+            lessonId);
+
+        if (lesson == null)
+        {
+            return null;
+        }
+
+        return new TeacherLessonPreviewViewModel
+        {
+            LessonId = lesson.LessonId,
+            Title = lesson.Title,
+            Topic = lesson.Topic ?? "Chưa cập nhật",
+            EstimatedMinutes = lesson.EstimatedMinutes,
+            XPReward = lesson.XPReward,
+            OrderIndex = lesson.OrderIndex,
+            Vocabularies = (lesson.Vocabularies ?? new List<Vocabulary>())
+                .OrderBy(v => v.Word)
+                .Select(v => new TeacherVocabularyPreviewViewModel
+                {
+                    Word = v.Word,
+                    Meaning = v.Meaning,
+                    ExampleSentence = v.ExampleSentence,
+                    ImageUrl = v.ImageUrl,
+                    AudioUrl = v.AudioUrl
+                }).ToList(),
+            Quizzes = (lesson.Quizzes ?? new List<Quiz>())
+                .OrderBy(q => q.QuizId)
+                .Select(q => new TeacherQuizPreviewViewModel
+                {
+                    Question = q.Question,
+                    QuizType = q.QuizType ?? "Chưa cập nhật",
+                    Options = ParseQuizOptions(q.Options),
+                    CorrectAnswer = q.CorrectAnswer
+                }).ToList(),
+            MiniGames = (lesson.MiniGames ?? new List<MiniGame>())
+                .OrderBy(g => g.Title)
+                .Select(g => new TeacherMiniGamePreviewViewModel
+                {
+                    Title = g.Title,
+                    GameType = g.GameType ?? "Chưa cập nhật",
+                    XPReward = g.XPReward
+                }).ToList()
+        };
+    }
+
+    private static List<string> ParseQuizOptions(string? options)
+    {
+        if (string.IsNullOrWhiteSpace(options))
+        {
+            return new List<string>();
+        }
+
+        try
+        {
+            return JsonSerializer.Deserialize<List<string>>(options) ?? new List<string>();
+        }
+        catch (JsonException)
+        {
+            return options
+                .Split(new[] { '\r', '\n', '|' }, StringSplitOptions.RemoveEmptyEntries)
+                .Select(option => option.Trim())
+                .Where(option => option.Length > 0)
+                .ToList();
+        }
     }
 
     /// <summary>
@@ -294,13 +386,19 @@ public class TeacherAssignmentService : ITeacherAssignmentService
             Assignments = pagedAssignments.Select(a => new TeacherAssignmentItemViewModel
             {
                 AssignmentId = a.AssignmentId,
+                LessonId = a.LessonId ?? 0,
                 LessonTitle = a.Lesson?.Title ?? "Bài học chưa xác định",
                 Topic = a.Lesson?.Topic ?? "Chưa cập nhật",
+                EstimatedMinutes = a.Lesson?.EstimatedMinutes ?? 0,
+                XPReward = a.Lesson?.XPReward ?? 0,
+                VocabularyCount = a.Lesson?.Vocabularies?.Count ?? 0,
+                QuizCount = a.Lesson?.Quizzes?.Count ?? 0,
+                MiniGameCount = a.Lesson?.MiniGames?.Count ?? 0,
                 WeekStartDate = a.WeekStartDate,
                 DueDate = a.DueDate,
                 Status = !a.IsVisible
                     ? "Bản nháp"
-                    : a.DueDate < DateTime.UtcNow ? "Quá hạn" : "Đang hoạt động"
+                    : a.DueDate < DateTime.UtcNow ? "Quá hạn" : "Đã giao"
             }).ToList()
         };
     }

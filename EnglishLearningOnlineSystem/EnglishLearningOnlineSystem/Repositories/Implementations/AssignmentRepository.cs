@@ -17,10 +17,28 @@ public class AssignmentRepository : IAssignmentRepository
     public async Task<List<Lesson>> GetPublishedLessonsByCourseIdAsync(int courseId)
     {
         return await _context.Lessons!
+            .Include(l => l.Vocabularies)
+            .Include(l => l.Quizzes)
+            .Include(l => l.MiniGames)
             .Where(l => l.CourseId == courseId && l.IsPublished)
             .AsNoTracking()
+            .AsSplitQuery()
             .OrderBy(l => l.OrderIndex)
             .ToListAsync();
+    }
+
+    public async Task<Lesson?> GetPublishedLessonDetailAsync(int courseId, int lessonId)
+    {
+        return await _context.Lessons!
+            .Include(l => l.Vocabularies)
+            .Include(l => l.Quizzes)
+            .Include(l => l.MiniGames)
+            .AsNoTracking()
+            .AsSplitQuery()
+            .FirstOrDefaultAsync(l =>
+                l.LessonId == lessonId &&
+                l.CourseId == courseId &&
+                l.IsPublished);
     }
 
     public async Task<List<int>> GetAssignedLessonIdsAsync(
@@ -62,8 +80,14 @@ public class AssignmentRepository : IAssignmentRepository
 
         return await _context.WeeklyAssignments!
             .Include(a => a.Lesson)
+                .ThenInclude(l => l.Vocabularies)
+            .Include(a => a.Lesson)
+                .ThenInclude(l => l.Quizzes)
+            .Include(a => a.Lesson)
+                .ThenInclude(l => l.MiniGames)
             .Where(a => a.CourseId.HasValue && courseIds.Contains(a.CourseId.Value))
             .AsNoTracking()
+            .AsSplitQuery()
             .OrderByDescending(a => a.DueDate)
             .ToListAsync();
     }

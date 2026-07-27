@@ -1,0 +1,54 @@
+<div class="modal fade"
+     id="publishAssignmentConfirmation"
+     tabindex="-1"
+     aria-labelledby="publishAssignmentConfirmationLabel"
+     aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+        <div class="modal-content teacher-confirmation-modal">
+            <div class="modal-header">
+                <div>
+                    <div class="teacher-topbar__eyebrow">Kiểm tra lần cuối</div>
+                    <h2 class="modal-title fs-5" id="publishAssignmentConfirmationLabel">
+                        Xác nhận xuất bản
+                    </h2>
+                </div>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Đóng"></button>
+            </div>
+            <div class="modal-body">
+                <p>
+                    Bạn sắp giao <strong id="confirmationLessonCount">0</strong> bài học cho
+                    <strong id="confirmationStudentCount">0</strong> học sinh lớp
+                    <strong id="confirmationClassName"></strong>.
+                </p>
+
+                <div class="lesson-confirmation-period">
+                    <span>Thời gian</span>
+                    <strong id="confirmationPeriod">—</strong>
+                </div>
+
+                <h3 class="fs-6 mt-4">Danh sách bài học</h3>
+                <ol id="confirmationLessonList" class="lesson-confirmation-list"></ol>
+
+                <div class="lesson-confirmation-totals">
+                    <div><strong id="confirmationVocabularyTotal">0</strong><span>Từ vựng</span></div>
+                    <div><strong id="confirmationQuizTotal">0</strong><span>Câu quiz</span></div>
+                    <div><strong id="confirmationGameTotal">0</strong><span>Mini game</span></div>
+                    <div><strong id="confirmationDurationTotal">0</strong><span>Phút dự kiến</span></div>
+                    <div><strong id="confirmationXpTotal">0</strong><span>XP</span></div>
+                </div>
+
+                <div class="alert alert-info mb-0">
+                    Học sinh sẽ nhận được thông báo ngay sau khi bài học được xuất bản.
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn-teacher-outline" data-bs-dismiss="modal">
+                    Quay lại chỉnh sửa
+                </button>
+                <button type="button" class="btn-teacher" id="confirmPublishAssignment">
+                    Xuất bản và thông báo
+                </button>
+            </div>
+        </div>
+    </div>
+</div>

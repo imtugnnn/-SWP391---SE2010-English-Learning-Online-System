@@ -22,8 +22,14 @@ public class TeacherAssignmentOverviewViewModel
 public class TeacherAssignmentItemViewModel
 {
     public int AssignmentId { get; set; }
+    public int LessonId { get; set; }
     public string LessonTitle { get; set; } = string.Empty;
     public string Topic { get; set; } = string.Empty;
+    public int EstimatedMinutes { get; set; }
+    public int XPReward { get; set; }
+    public int VocabularyCount { get; set; }
+    public int QuizCount { get; set; }
+    public int MiniGameCount { get; set; }
     public DateTime WeekStartDate { get; set; }
     public DateTime DueDate { get; set; }
     public string Status { get; set; } = string.Empty;

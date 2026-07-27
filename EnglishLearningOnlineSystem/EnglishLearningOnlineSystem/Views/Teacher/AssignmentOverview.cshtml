@@ -289,7 +289,7 @@
 
                     <div class="col-md-3">
                         <div class="summary-card">
-                            <div class="summary-label">Đang hoạt động</div>
+                            <div class="summary-label">Đã giao</div>
                             <p class="summary-value">@Model.ActiveAssignments</p>
                         </div>
                     </div>
@@ -320,7 +320,7 @@
                             <select name="status" id="teacher-assignment-status" class="form-select">
                                 <option value="all" selected="@(Model.Status == "all")">Tất cả</option>
                                 <option value="draft" selected="@(Model.Status == "draft")">Bản nháp</option>
-                                <option value="active" selected="@(Model.Status == "active")">Đang hoạt động</option>
+                                <option value="active" selected="@(Model.Status == "active")">Đã giao</option>
                                 <option value="expired" selected="@(Model.Status == "expired")">Quá hạn</option>
                             </select>
                         </div>
@@ -377,11 +377,41 @@
                             @foreach (var item in Model.Assignments)
                             {
                                 <tr>
-                                    <td class="fw-bold">@item.LessonTitle</td>
+                                    <td>
+                                        <button type="button"
+                                                class="lesson-title-button"
+                                                data-lesson-preview-url="@Url.Action(
+                                                    "LessonPreview",
+                                                    "Teacher",
+                                                    new
+                                                    {
+                                                        classId = Model.ClassId,
+                                                        lessonId = item.LessonId
+                                                    })">
+                                            @item.LessonTitle
+                                        </button>
+                                        <div class="lesson-content-counts mt-2">
+                                            <span>@item.VocabularyCount từ</span>
+                                            <span>@item.QuizCount quiz</span>
+                                            <span>@item.MiniGameCount game</span>
+                                        </div>
+                                    </td>
                                     <td>@item.Topic</td>
                                     <td>@item.WeekStartDate.ToString("dd/MM/yyyy")</td>
                                     <td>@item.DueDate.ToString("dd/MM/yyyy")</td>
                                     <td>
+                                        <button type="button"
+                                                class="btn-teacher-outline me-2"
+                                                data-lesson-preview-url="@Url.Action(
+                                                    "LessonPreview",
+                                                    "Teacher",
+                                                    new
+                                                    {
+                                                        classId = Model.ClassId,
+                                                        lessonId = item.LessonId
+                                                    })">
+                                            Xem nội dung
+                                        </button>
                                         @if (item.Status == "Bản nháp")
                                         {
                                             <span class="badge-soft-secondary">@item.Status</span>
@@ -478,5 +508,10 @@
             }
         </div>
 
+        <partial name="_LessonPreviewDrawer" />
     </div>
 </div>
+
+@section Scripts {
+    <script src="~/js/teacher/lesson-preview.js" asp-append-version="true"></script>
+}
