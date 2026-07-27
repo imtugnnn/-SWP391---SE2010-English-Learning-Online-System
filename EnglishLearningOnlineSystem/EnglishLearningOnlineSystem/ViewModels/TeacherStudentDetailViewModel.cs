@@ -10,8 +10,6 @@ public class TeacherStudentDetailViewModel
     public string Nickname { get; set; } = string.Empty;
     public string Email { get; set; } = string.Empty;
     public string AvatarUrl { get; set; } = string.Empty;
-    public bool IsActive { get; set; }
-    public string StatusText { get; set; } = string.Empty;
 
     public int Level { get; set; }
     public int XP { get; set; }

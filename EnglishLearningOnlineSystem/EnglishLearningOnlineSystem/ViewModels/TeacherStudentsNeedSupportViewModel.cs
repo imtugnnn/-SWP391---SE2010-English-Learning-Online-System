@@ -2,6 +2,8 @@ namespace EnglishLearningOnlineSystem.ViewModels;
 
 public class TeacherStudentsNeedSupportViewModel
 {
+    public int ClassId { get; set; }
+    public string ClassName { get; set; } = string.Empty;
     public string ClassFilter { get; set; } = "all";
     public string ReasonFilter { get; set; } = "all";
     public string SortBy { get; set; } = "risk";

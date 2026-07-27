@@ -14,6 +14,7 @@ public class AssignWeeklyLessonViewModel
 
     public string CourseName { get; set; } = string.Empty;
     public bool HasCourse => CourseId.HasValue;
+    public int ActiveStudentCount { get; set; }
 
     [Required(ErrorMessage = "Vui lòng chọn ngày bắt đầu.")]
     public DateTime WeekStartDate { get; set; } = DateTime.Today;
@@ -45,4 +46,7 @@ public class AssignLessonItemViewModel
     public string Topic { get; set; } = string.Empty;
     public int EstimatedMinutes { get; set; }
     public int XPReward { get; set; }
+    public int VocabularyCount { get; set; }
+    public int QuizCount { get; set; }
+    public int MiniGameCount { get; set; }
 }

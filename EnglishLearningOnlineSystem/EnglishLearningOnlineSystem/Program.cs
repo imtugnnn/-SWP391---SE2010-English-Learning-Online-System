@@ -144,7 +144,7 @@ using (var scope = app.Services.CreateScope())
         context.Database.Migrate();
 
         EnglishLearningOnlineSystem.SeedData.DbInitializer
-            .SeedAsync(context)
+            .SeedAsync(context, app.Environment.IsDevelopment())
             .GetAwaiter()
             .GetResult();
 

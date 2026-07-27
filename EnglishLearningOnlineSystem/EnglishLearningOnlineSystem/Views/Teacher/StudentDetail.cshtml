@@ -322,49 +322,35 @@
 
                     <div class="col-md-3">
                         <div class="summary-card">
-                            <div class="info-label">Trạng thái</div>
-                            @if (Model.IsActive)
-                            {
-                                <span class="badge-soft-success">@Model.StatusText</span>
-                            }
-                            else
-                            {
-                                <span class="badge-soft-secondary">@Model.StatusText</span>
-                            }
+                            <div class="info-label">Hoạt động gần nhất</div>
+                            <p class="info-value">
+                                @(Model.LastActiveDate.HasValue
+                                    ? Model.LastActiveDate.Value.ToString("dd/MM/yyyy")
+                                    : "Chưa cập nhật")
+                            </p>
                         </div>
                     </div>
                 </div>
 
                 <div class="row g-3">
-                    <div class="col-md-3">
+                    <div class="col-md-4">
                         <div class="summary-card">
                             <div class="summary-label">Level</div>
                             <p class="summary-value">@Model.Level</p>
                         </div>
                     </div>
 
-                    <div class="col-md-3">
+                    <div class="col-md-4">
                         <div class="summary-card">
                             <div class="summary-label">XP hiện tại</div>
                             <p class="summary-value">@Model.XP</p>
                         </div>
                     </div>
 
-                    <div class="col-md-3">
+                    <div class="col-md-4">
                         <div class="summary-card">
                             <div class="summary-label">Streak</div>
                             <p class="summary-value">@Model.CurrentStreakDays</p>
-                        </div>
-                    </div>
-
-                    <div class="col-md-3">
-                        <div class="summary-card">
-                            <div class="summary-label">Hoạt động gần nhất</div>
-                            <p class="info-value">
-                                @(Model.LastActiveDate.HasValue
-                                                                ? Model.LastActiveDate.Value.ToString("dd/MM/yyyy")
-                                                                : "Chưa cập nhật")
-                            </p>
                         </div>
                     </div>
                 </div>
@@ -418,7 +404,7 @@
 
                     <div class="col-md">
                         <div class="summary-card">
-                            <div class="summary-label">Thời gian học</div>
+                            <div class="summary-label">Thời lượng ước tính đã học</div>
                             <p class="summary-value">@Model.StudyDurationMinutes phút</p>
                         </div>
                     </div>

@@ -248,7 +248,7 @@
                         </div>
 
                         <h1 class="page-title">
-                            Học sinh <span>cần hỗ trợ</span>
+                            Học sinh cần hỗ trợ · <span>@Model.ClassName</span>
                         </h1>
 
                         <p class="page-subtitle">
@@ -257,9 +257,10 @@
                     </div>
 
                     <a asp-controller="Teacher"
-                       asp-action="Dashboard"
+                       asp-action="ClassDetail"
+                       asp-route-classId="@Model.ClassId"
                        class="btn-teacher-outline">
-                        Quay lại Dashboard
+                        Quay lại chi tiết lớp
                     </a>
                 </div>
 
@@ -287,7 +288,7 @@
 
                     <div class="col-md">
                         <div class="summary-card">
-                            <div class="summary-label">Không hoạt động</div>
+                            <div class="summary-label">Ít hoạt động học tập</div>
                             <p class="summary-value">@Model.InactiveCount</p>
                         </div>
                     </div>
@@ -309,32 +310,20 @@
 
             <div class="p-4">
                 <form method="get" asp-controller="Teacher" asp-action="StudentsNeedSupport">
+                    <input type="hidden" name="classId" value="@Model.ClassId" />
                     <div class="row g-3 align-items-end">
-                        <div class="col-md-4">
-                            <label class="form-label" for="teacher-support-class">Lớp</label>
-                            <select name="classFilter" id="teacher-support-class" class="form-select">
-                                <option value="all" selected="@(Model.ClassFilter == "all")">Tất cả lớp</option>
-                                @foreach (var classItem in Model.Classes)
-                                {
-                                    <option value="@classItem.ClassId" selected="@(Model.ClassFilter == classItem.ClassId.ToString())">
-                                        @classItem.ClassName
-                                    </option>
-                                }
-                            </select>
-                        </div>
-
-                        <div class="col-md-3">
+                        <div class="col-md-5">
                             <label class="form-label" for="teacher-support-reason">Lý do</label>
                             <select name="reason" id="teacher-support-reason" class="form-select">
                                 <option value="all" selected="@(Model.ReasonFilter == "all")">Tất cả</option>
                                 <option value="low-score" selected="@(Model.ReasonFilter == "low-score")">Điểm quiz thấp</option>
                                 <option value="overdue" selected="@(Model.ReasonFilter == "overdue")">Bài quá hạn</option>
-                                <option value="inactive" selected="@(Model.ReasonFilter == "inactive")">Không hoạt động</option>
+                                <option value="inactive" selected="@(Model.ReasonFilter == "inactive")">Ít hoạt động học tập</option>
                                 <option value="not-started" selected="@(Model.ReasonFilter == "not-started")">Chưa bắt đầu</option>
                             </select>
                         </div>
 
-                        <div class="col-md-3">
+                        <div class="col-md-5">
                             <label class="form-label" for="teacher-support-sort">Sắp xếp</label>
                             <select name="sortBy" id="teacher-support-sort" class="form-select">
                                 <option value="risk" selected="@(Model.SortBy == "risk")">Mức độ rủi ro</option>
@@ -348,6 +337,7 @@
                             <button type="submit" class="btn-teacher">Lọc</button>
                             <a asp-controller="Teacher"
                                asp-action="StudentsNeedSupport"
+                               asp-route-classId="@Model.ClassId"
                                class="btn-teacher-outline text-center">
                                 Đặt lại
                             </a>
@@ -373,7 +363,6 @@
                         <thead>
                             <tr>
                                 <th>Học sinh</th>
-                                <th>Lớp</th>
                                 <th>Điểm TB</th>
                                 <th>Quá hạn</th>
                                 <th>Chưa bắt đầu</th>
@@ -391,7 +380,6 @@
                                         <strong>@student.StudentName</strong>
                                         <div class="text-muted small">@student.Email</div>
                                     </td>
-                                    <td>@student.ClassName</td>
                                     <td>@student.AverageQuizScoreText</td>
                                     <td>@student.OverdueLessonCount</td>
                                     <td>@student.NotStartedLessonCount</td>
@@ -403,30 +391,20 @@
                                             {
                                                 "Điểm quiz thấp" => "badge-soft-danger",
                                                 "Bài quá hạn" => "badge-soft-warning",
-                                                "Không hoạt động" => "badge-soft-secondary",
+                                                "Ít hoạt động học tập" => "badge-soft-secondary",
                                                 _ => "badge-soft-primary"
                                             };
                                             <span class="@badgeClass">@reason</span>
                                         }
                                     </td>
                                     <td class="text-end">
-                                        <div class="d-flex justify-content-end gap-2 flex-wrap">
-                                            <a asp-controller="Teacher"
-                                               asp-action="StudentDetail"
-                                               asp-route-classId="@student.ClassId"
-                                               asp-route-studentId="@student.StudentId"
-                                               class="btn-teacher-outline">
-                                                Xem chi tiết
-                                            </a>
-
-                                            <a asp-controller="Teacher"
-                                               asp-action="ProvideFeedback"
-                                               asp-route-classId="@student.ClassId"
-                                               asp-route-studentId="@student.StudentId"
-                                               class="btn-teacher">
-                                                Gửi phản hồi
-                                            </a>
-                                        </div>
+                                        <a asp-controller="Teacher"
+                                           asp-action="StudentDetail"
+                                           asp-route-classId="@student.ClassId"
+                                           asp-route-studentId="@student.StudentId"
+                                           class="btn-teacher">
+                                            Xem chi tiết
+                                        </a>
                                     </td>
                                 </tr>
                             }

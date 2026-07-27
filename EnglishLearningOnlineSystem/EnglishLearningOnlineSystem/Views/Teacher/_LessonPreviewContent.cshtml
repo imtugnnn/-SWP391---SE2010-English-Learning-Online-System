@@ -1,0 +1,192 @@
+@model EnglishLearningOnlineSystem.ViewModels.TeacherLessonPreviewViewModel
+
+<div class="lesson-preview">
+    <div class="lesson-preview__header">
+        <span class="badge-soft-primary">Bài @Model.OrderIndex</span>
+        <h3>@Model.Title</h3>
+        <p>@Model.Topic</p>
+
+        <div class="lesson-preview__metrics">
+            <span>@Model.EstimatedMinutes phút</span>
+            <span>@Model.XPReward XP</span>
+            <span>@Model.Vocabularies.Count từ vựng</span>
+            <span>@Model.Quizzes.Count quiz</span>
+            <span>@Model.MiniGames.Count mini game</span>
+        </div>
+    </div>
+
+    <ul class="nav nav-tabs lesson-preview__tabs" role="tablist">
+        <li class="nav-item" role="presentation">
+            <button class="nav-link active"
+                    data-bs-toggle="tab"
+                    data-bs-target="#lesson-preview-overview"
+                    type="button"
+                    role="tab">
+                Tổng quan
+            </button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link"
+                    data-bs-toggle="tab"
+                    data-bs-target="#lesson-preview-vocabulary"
+                    type="button"
+                    role="tab">
+                Từ vựng (@Model.Vocabularies.Count)
+            </button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link"
+                    data-bs-toggle="tab"
+                    data-bs-target="#lesson-preview-quiz"
+                    type="button"
+                    role="tab">
+                Quiz (@Model.Quizzes.Count)
+            </button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link"
+                    data-bs-toggle="tab"
+                    data-bs-target="#lesson-preview-games"
+                    type="button"
+                    role="tab">
+                Mini game (@Model.MiniGames.Count)
+            </button>
+        </li>
+    </ul>
+
+    <div class="tab-content lesson-preview__tab-content">
+        <div class="tab-pane fade show active" id="lesson-preview-overview" role="tabpanel">
+            <dl class="lesson-preview__overview">
+                <div>
+                    <dt>Chủ đề</dt>
+                    <dd>@Model.Topic</dd>
+                </div>
+                <div>
+                    <dt>Thứ tự trong khóa học</dt>
+                    <dd>Bài @Model.OrderIndex</dd>
+                </div>
+                <div>
+                    <dt>Thời lượng ước tính</dt>
+                    <dd>@Model.EstimatedMinutes phút</dd>
+                </div>
+                <div>
+                    <dt>Phần thưởng</dt>
+                    <dd>@Model.XPReward XP</dd>
+                </div>
+            </dl>
+        </div>
+
+        <div class="tab-pane fade" id="lesson-preview-vocabulary" role="tabpanel">
+            @if (Model.Vocabularies.Any())
+            {
+                <div class="lesson-preview__stack">
+                    @foreach (var vocabulary in Model.Vocabularies)
+                    {
+                        <article class="lesson-preview-card">
+                            <div class="d-flex gap-3">
+                                @if (!string.IsNullOrWhiteSpace(vocabulary.ImageUrl))
+                                {
+                                    <img src="@vocabulary.ImageUrl"
+                                         alt="Minh họa cho @vocabulary.Word"
+                                         class="lesson-preview-card__image" />
+                                }
+                                <div class="flex-grow-1">
+                                    <h4>@vocabulary.Word</h4>
+                                    <p class="mb-1">@vocabulary.Meaning</p>
+                                    @if (!string.IsNullOrWhiteSpace(vocabulary.ExampleSentence))
+                                    {
+                                        <p class="text-muted fst-italic mb-2">
+                                            “@vocabulary.ExampleSentence”
+                                        </p>
+                                    }
+                                    @if (!string.IsNullOrWhiteSpace(vocabulary.AudioUrl))
+                                    {
+                                        <audio controls preload="none" class="lesson-preview-card__audio">
+                                            <source src="@vocabulary.AudioUrl" />
+                                        </audio>
+                                    }
+                                </div>
+                            </div>
+                        </article>
+                    }
+                </div>
+            }
+            else
+            {
+                <div class="lesson-preview-state">Bài học chưa có từ vựng.</div>
+            }
+        </div>
+
+        <div class="tab-pane fade" id="lesson-preview-quiz" role="tabpanel">
+            @if (Model.Quizzes.Any())
+            {
+                <div class="lesson-preview__stack">
+                    @for (var index = 0; index < Model.Quizzes.Count; index++)
+                    {
+                        var quiz = Model.Quizzes[index];
+                        <article class="lesson-preview-card">
+                            <div class="d-flex justify-content-between gap-2 mb-2">
+                                <h4>Câu @(index + 1)</h4>
+                                <span class="badge-soft-secondary">@quiz.QuizType</span>
+                            </div>
+                            <p class="fw-semibold">@quiz.Question</p>
+
+                            @if (quiz.Options.Any())
+                            {
+                                <ol class="lesson-preview-options" type="A">
+                                    @foreach (var option in quiz.Options)
+                                    {
+                                        <li class="@(string.Equals(option, quiz.CorrectAnswer, StringComparison.OrdinalIgnoreCase) ? "correct" : null)">
+                                            @option
+                                        </li>
+                                    }
+                                </ol>
+                            }
+
+                            <div class="lesson-preview-answer">
+                                Đáp án đúng: <strong>@quiz.CorrectAnswer</strong>
+                            </div>
+                        </article>
+                    }
+                </div>
+            }
+            else
+            {
+                <div class="lesson-preview-state">Bài học chưa có câu hỏi quiz.</div>
+            }
+        </div>
+
+        <div class="tab-pane fade" id="lesson-preview-games" role="tabpanel">
+            @if (Model.MiniGames.Any())
+            {
+                <div class="lesson-preview__stack">
+                    @foreach (var game in Model.MiniGames)
+                    {
+                        <article class="lesson-preview-card">
+                            <h4>@game.Title</h4>
+                            <p class="mb-1">Loại trò chơi: @game.GameType</p>
+                            <span class="badge-soft-primary">@game.XPReward XP</span>
+                        </article>
+                    }
+                </div>
+            }
+            else
+            {
+                <div class="lesson-preview-state">Bài học chưa có mini game.</div>
+            }
+        </div>
+    </div>
+
+    <div class="lesson-preview__footer">
+        <button type="button"
+                class="btn-teacher-outline"
+                data-bs-dismiss="offcanvas">
+            Đóng
+        </button>
+        <button type="button"
+                class="btn-teacher"
+                data-preview-select-lesson="@Model.LessonId">
+            Chọn bài học này
+        </button>
+    </div>
+</div>
