@@ -29,6 +29,7 @@ builder.Services.AddScoped<IEmailSender, SmtpEmailSender>();
 builder.Services.AddScoped<IPasswordResetService, PasswordResetService>();
 
 builder.Services.AddScoped<IUserService, UserService>();
+builder.Services.AddScoped<IUserImportService, UserImportService>();
 builder.Services.AddScoped<IRoleService, RoleService>();
 builder.Services.AddScoped<IAuditLogService, AuditLogService>();
 builder.Services.AddScoped<ISystemNotificationService, SystemNotificationService>();

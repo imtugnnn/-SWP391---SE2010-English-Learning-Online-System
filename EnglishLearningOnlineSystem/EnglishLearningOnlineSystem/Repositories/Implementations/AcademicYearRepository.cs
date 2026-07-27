@@ -64,6 +64,7 @@ public class AcademicYearRepository : IAcademicYearRepository
     {
         return await _context.Classes!
             .AsNoTracking()
+            .Include(c => c.Course)
             .Include(c => c.Teacher)
             .Include(c => c.Enrollments)
                 .ThenInclude(e => e.Student)
