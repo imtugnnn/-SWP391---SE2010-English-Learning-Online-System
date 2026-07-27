@@ -76,7 +76,7 @@
 /* Dashboard Stats Cards */
 .stats-cards-grid {
     display: grid;
-    grid-template-columns: repeat(6, 1fr);
+    grid-template-columns: repeat(5, 1fr);
     gap: 16px;
     margin-bottom: 24px;
 }
@@ -162,19 +162,29 @@
     border: 1px solid var(--border-color);
     padding: 20px;
     margin-bottom: 24px;
+    overflow-x: auto;
 }
 
 .filter-row-main {
     display: flex;
-    flex-wrap: wrap;
+    flex-wrap: nowrap;
     gap: 12px;
     align-items: flex-end;
+    width: 100%;
 }
 
 .filter-item {
     display: flex;
     flex-direction: column;
     gap: 6px;
+    flex: 1;
+    min-width: 120px;
+}
+
+.filter-item:nth-child(1),
+.filter-item:nth-child(2) {
+    flex: 2;
+    min-width: 180px;
 }
 
 .filter-item label {
@@ -194,6 +204,7 @@
     background-color: #fff;
     outline: none;
     transition: border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
+    width: 100%;
 }
 
 .filter-item input:focus,
@@ -204,7 +215,7 @@
 
 .search-input-wrapper {
     position: relative;
-    width: 250px;
+    width: 100%;
 }
 
 .search-input-wrapper input {
