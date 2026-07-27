@@ -1,5 +1,5 @@
 //Create by TungDPL
-//Last update: 7/21/2026
+//Last update: 7/28/2026
 using Microsoft.AspNetCore.Mvc;
 using EnglishLearningOnlineSystem.Services.Interfaces;
 using EnglishLearningOnlineSystem.ViewModels;
@@ -9,6 +9,7 @@ using EnglishLearningOnlineSystem.Data;
 using Microsoft.EntityFrameworkCore;
 using System.Threading.Tasks;
 using System.Collections.Generic;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace EnglishLearningOnlineSystem.Controllers.Admin;
 
@@ -29,6 +30,8 @@ public class AdminController : Controller
 
     public async Task<IActionResult> Dashboard()
     {
+        var notificationService = HttpContext.RequestServices.GetRequiredService<ISystemNotificationService>();
+        await notificationService.RefreshDueScheduledAsync();
         // Lấy năm học đang hoạt động trước
         var activeAcademicYear = await _context.AcademicYears!
             .AsNoTracking()

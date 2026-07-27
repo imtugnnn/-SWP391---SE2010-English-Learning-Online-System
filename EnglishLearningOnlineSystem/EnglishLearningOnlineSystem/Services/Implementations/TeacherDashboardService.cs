@@ -11,17 +11,20 @@ public class TeacherDashboardService : ITeacherDashboardService
     private readonly IClassRepository _classRepository;
     private readonly IAssignmentRepository _assignmentRepository;
     private readonly IStudentManagementService _studentManagementService;
+    private readonly ISystemNotificationService _systemNotificationService;
     private readonly AppDbContext _context;
 
     public TeacherDashboardService(
         IClassRepository classRepository,
         IAssignmentRepository assignmentRepository,
         IStudentManagementService studentManagementService,
+        ISystemNotificationService systemNotificationService,
         AppDbContext context)
     {
         _classRepository = classRepository;
         _assignmentRepository = assignmentRepository;
         _studentManagementService = studentManagementService;
+        _systemNotificationService = systemNotificationService;
         _context = context;
     }
 
@@ -30,6 +33,7 @@ public class TeacherDashboardService : ITeacherDashboardService
     /// </summary>
     public async Task<TeacherDashboardViewModel> GetTeacherDashboardAsync(int teacherId)
     {
+        await _systemNotificationService.RefreshDueScheduledAsync();
         var classes = await _classRepository.GetClassesByTeacherIdAsync(teacherId);
         var currentAcademicYear = await _context.AcademicYears!
             .Where(year => year.IsActive)

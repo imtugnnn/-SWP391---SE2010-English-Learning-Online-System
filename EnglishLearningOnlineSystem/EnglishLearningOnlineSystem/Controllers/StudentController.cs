@@ -1,3 +1,5 @@
+//Create by DungNM
+//Last Update: 7/28/2026 - TungDPL
 using EnglishLearningOnlineSystem.Data;
 using EnglishLearningOnlineSystem.Services.Interfaces;
 using EnglishLearningOnlineSystem.ViewModels;
@@ -20,6 +22,7 @@ public class StudentController : BaseStudentController
     private readonly IVocabularyService _vocabularyService;
     private readonly IQuizAttemptService _quizService;
     private readonly IFlashcardService _flashcardService;
+    private readonly ISystemNotificationService _systemNotificationService;
     private readonly IWebHostEnvironment _env;
 
     // Khởi tạo các service và truyền DbContext cho BaseStudentController
@@ -33,6 +36,7 @@ public class StudentController : BaseStudentController
         IVocabularyService vocabularyService,
         IQuizAttemptService quizService,
         IFlashcardService flashcardService,
+        ISystemNotificationService systemNotificationService,
         IWebHostEnvironment env)
         : base(db)
     {
@@ -44,6 +48,7 @@ public class StudentController : BaseStudentController
         _vocabularyService = vocabularyService;
         _quizService = quizService;
         _flashcardService = flashcardService;
+        _systemNotificationService = systemNotificationService;
         _env = env;
     }
 
@@ -359,6 +364,7 @@ public class StudentController : BaseStudentController
     [HttpGet("/student/notifications/api")]
     public async Task<IActionResult> GetNotificationsApi()
     {
+        await _systemNotificationService.RefreshDueScheduledAsync();
         var now = DateTime.Now;
         var notifications = await _db.SystemNotifications!
             .AsNoTracking()
