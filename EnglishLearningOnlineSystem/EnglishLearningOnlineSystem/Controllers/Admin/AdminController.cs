@@ -33,6 +33,13 @@ public class AdminController : Controller
 
     public async Task<IActionResult> Dashboard()
     {
+        var userRoleSession = HttpContext.Session.GetString("UserRole");
+        //Nếu người dùng khoông phải là admin, không cho đăng nhập
+        if (userRoleSession != "2")
+        {
+            return RedirectToAction("Login", "Auth");
+        }
+        // B1: Gom số liệu từ service/repository để dựng dashboard admin.
         var userManagementResult = await _userService.GetUserManagementDataAsync();
         var stats = userManagementResult.Data?.Stats ?? new UserStatsViewModel();
 
@@ -75,6 +82,13 @@ public class AdminController : Controller
 
     public async Task<IActionResult> UserManagement()
     {
+        var userRoleSession = HttpContext.Session.GetString("UserRole");
+        //Nếu người dùng khoông phải là admin, không cho đăng nhập
+        if (userRoleSession != "2")
+        {
+            return RedirectToAction("Login", "Auth");
+        }
+        // B1: Load data cho màn quản lý user trước khi render view.
         var result = await _userService.GetUserManagementDataAsync();
         var roles = await _roleService.GetAllAsync();
         var activeYear = (await _academicYearRepository.GetActiveAcademicYearsAsync()).FirstOrDefault();
@@ -90,6 +104,7 @@ public class AdminController : Controller
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> ImportUsersFromExcel(IFormFile importFile)
     {
+        // B2: Endpoint này nhận file từ form JS fetch() rồi đẩy xuống service import.
         var result = await _userImportService.ImportUsersFromExcelAsync(importFile);
 
         return Json(new
@@ -104,6 +119,7 @@ public class AdminController : Controller
     [HttpGet]
     public IActionResult DownloadUserImportTemplate()
     {
+        // B1: Tạo file mẫu Excel để admin tải về.
         var templateBytes = UserExcelImportHelper.CreateTemplate();
         const string fileName = "user-import-template.xlsx";
         return File(

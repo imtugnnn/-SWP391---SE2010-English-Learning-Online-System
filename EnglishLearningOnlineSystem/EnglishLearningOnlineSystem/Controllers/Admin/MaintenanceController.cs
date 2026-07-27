@@ -30,9 +30,11 @@ public class MaintenanceController : Controller
             return RedirectToAction("Login", "Auth");
         }
 
+        //Kiểm tra giá trị của cột MaintenanceModeEnabled - bật tắt thủ công 
         var enabledSetting = await _context.SystemSettings
             .FirstOrDefaultAsync(s => s.Key == "MaintenanceModeEnabled");
         
+        //Kiểm tra giá trị của cột MaintenanceStartAt 
         var startAtSetting = await _context.SystemSettings
             .FirstOrDefaultAsync(s => s.Key == "MaintenanceStartAt");
 
@@ -47,7 +49,9 @@ public class MaintenanceController : Controller
             }
         }
 
+        //Kiểm tra xem hệ thống có đang bảo trì ngay lúc này không
         bool isMaintenanceActive = isEnabled || (startAt.HasValue && DateTime.Now >= startAt.Value);
+        //Kiểm tra xem hệ thống có ĐÃ LÊN LỊCH BẢO TRÌ (đang chờ đến giờ) hay không
         bool isScheduled = startAt.HasValue && startAt.Value > DateTime.Now;
 
         ViewBag.IsEnabled = isEnabled;
