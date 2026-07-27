@@ -1,11 +1,9 @@
 using EnglishLearningOnlineSystem.Services.Interfaces;
 using EnglishLearningOnlineSystem.ViewModels;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
 using EnglishLearningOnlineSystem.Models;
 using System;
 using System.Threading.Tasks;
-using System.Linq;
 
 namespace EnglishLearningOnlineSystem.Controllers;
 
@@ -42,10 +40,6 @@ public class TeacherController : Controller
         }
 
         var viewModel = await _teacherDashboardService.GetTeacherDashboardAsync(teacherId.Value);
-
-        ViewBag.SystemNotifications = viewModel.SystemNotifications;
-        ViewBag.PersonalNotifications = viewModel.PersonalNotifications;
-        ViewBag.NotificationCount = viewModel.NotificationCount;
 
         return View(viewModel);
     }
@@ -309,73 +303,36 @@ public class TeacherController : Controller
             return RedirectToAction("Login", "Auth");
         }
 
-        if (model.SelectedLessonIds == null || !model.SelectedLessonIds.Any())
-        {
-            ModelState.AddModelError(string.Empty, "Vui lòng chọn ít nhất một bài học.");
-        }
-
-        if (!model.SelectedCourseId.HasValue)
-        {
-            ModelState.AddModelError(nameof(model.SelectedCourseId), "Vui lòng chọn chương trình học trước khi giao bài.");
-        }
-
-        if (model.DueDate <= model.WeekStartDate)
-        {
-            ModelState.AddModelError(string.Empty, "Hạn hoàn thành phải lớn hơn ngày bắt đầu.");
-        }
-
-        if (model.Status != AssignmentStatus.Draft &&
-            model.Status != AssignmentStatus.Published)
-        {
-            ModelState.AddModelError(nameof(model.Status), "Trạng thái bài giao không hợp lệ.");
-        }
-
         if (!ModelState.IsValid)
         {
-            // Nạp lại danh sách khóa học/bài học để biểu mẫu lỗi vẫn hiển thị đủ dữ liệu.
-            var reloadModel = await _teacherAssignmentService.GetAssignWeeklyLessonsFormAsync(
-                model.ClassId,
-                teacherId.Value,
-                model.SelectedCourseId);
+            // Luồng ModelState: Controller chỉ điều phối, Service chịu trách nhiệm dựng lại form.
+            var reloadModel = await _teacherAssignmentService
+                .RebuildAssignWeeklyLessonsFormAsync(model, teacherId.Value);
 
             if (reloadModel == null)
             {
                 return NotFound();
             }
 
-            reloadModel.WeekStartDate = model.WeekStartDate;
-            reloadModel.DueDate = model.DueDate;
-            reloadModel.SelectedLessonIds = model.SelectedLessonIds ?? new List<int>();
-            reloadModel.SelectedCourseId = model.SelectedCourseId;
-            reloadModel.Status = model.Status;
-
             return View(reloadModel);
         }
 
-        var success = await _teacherAssignmentService.AssignWeeklyLessonsAsync(
+        // Luồng nghiệp vụ: Service validate, lưu dữ liệu và trả kết quả cho Controller.
+        var result = await _teacherAssignmentService.AssignWeeklyLessonsAsync(
             model,
             teacherId.Value);
 
-        if (!success)
+        if (!result.Succeeded)
         {
-            ModelState.AddModelError(string.Empty, "Không thể giao bài. Có thể các bài học đã được giao trong tuần này.");
+            ModelState.AddModelError(
+                string.Empty,
+                result.ErrorMessage ?? "Không thể giao bài.");
 
-            var reloadModel = await _teacherAssignmentService.GetAssignWeeklyLessonsFormAsync(
-    model.ClassId,
-    teacherId.Value,
-    model.SelectedCourseId);
-
-            if (reloadModel == null)
+            if (result.FormModel == null)
             {
                 return NotFound();
             }
-
-            reloadModel.WeekStartDate = model.WeekStartDate;
-            reloadModel.DueDate = model.DueDate;
-            reloadModel.SelectedLessonIds = model.SelectedLessonIds ?? new List<int>();
-            reloadModel.Status = model.Status;
-
-            return View(reloadModel);
+            return View(result.FormModel);
         }
 
         TempData["SuccessMessage"] = model.Status == AssignmentStatus.Draft

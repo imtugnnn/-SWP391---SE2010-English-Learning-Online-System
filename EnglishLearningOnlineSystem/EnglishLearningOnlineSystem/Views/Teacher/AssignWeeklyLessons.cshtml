@@ -243,6 +243,45 @@
         margin-bottom: 18px;
         font-weight: 700;
     }
+
+    .assignment-content-picker {
+        display: none;
+        border: 1px solid #bae6fd;
+        border-radius: 14px;
+        background: #f8fcff;
+        padding: 14px;
+    }
+
+    .assignment-content-picker.is-open {
+        display: block;
+    }
+
+    .assignment-content-group + .assignment-content-group {
+        border-top: 1px solid #dbeafe;
+        margin-top: 12px;
+        padding-top: 12px;
+    }
+
+    .assignment-content-items {
+        display: grid;
+        gap: 8px;
+        margin: 8px 0 0 24px;
+        max-height: 220px;
+        overflow-y: auto;
+    }
+
+    .assignment-content-items.is-disabled {
+        display: none;
+    }
+
+    .assignment-content-option {
+        align-items: flex-start;
+        display: flex;
+        gap: 8px;
+        color: #334155;
+        cursor: pointer;
+        font-size: .9rem;
+    }
 </style>
 
 <div class="teacher-class-shell">
@@ -381,14 +420,15 @@
                             </label>
                         </div>
 
-                        @if (Model.Lessons.Any())
+                        @if (Model.Lessons.Count > 0)
                         {
                             <div class="p-4">
                                 <div class="row g-4 align-items-start">
                                     <div class="col-xl-8">
                                         <div class="lesson-selection-list">
-                                        @foreach (var lesson in Model.Lessons)
+                                        @for (var lessonIndex = 0; lessonIndex < Model.Lessons.Count; lessonIndex++)
                                         {
+                                            var lesson = Model.Lessons[lessonIndex];
                                             var previewUrl = Url.Action(
                                                 "LessonPreview",
                                                 "Teacher",
@@ -400,6 +440,9 @@
                                                 });
 
                                             <article class="lesson-selection-card">
+                                                <input type="hidden"
+                                                       name="Lessons[@lessonIndex].LessonId"
+                                                       value="@lesson.LessonId" />
                                                 <div class="lesson-selection-card__check">
                                                     <input class="form-check-input lesson-check"
                                                            type="checkbox"
@@ -412,7 +455,7 @@
                                                            data-quiz="@lesson.QuizCount"
                                                            data-games="@lesson.MiniGameCount"
                                                            data-preview-url="@previewUrl"
-                                                           checked="@(Model.SelectedLessonIds.Contains(lesson.LessonId))" />
+                                                           @(Model.SelectedLessonIds.Contains(lesson.LessonId) ? "checked" : null) />
                                                 </div>
                                                 <div class="lesson-selection-card__body">
                                                     <div class="d-flex justify-content-between gap-3 flex-wrap">
@@ -432,11 +475,115 @@
                                                         <span>@lesson.MiniGameCount mini game</span>
                                                     </div>
 
-                                                    <button type="button"
-                                                            class="btn-teacher-outline"
-                                                            data-lesson-preview-url="@previewUrl">
-                                                        Xem nội dung
-                                                    </button>
+                                                    <div class="assignment-content-picker mt-3"
+                                                         data-content-picker="@lesson.LessonId">
+                                                        <div class="fw-bold text-primary mb-2">
+                                                            Chọn nội dung cần giao
+                                                        </div>
+
+                                                        @if (lesson.Vocabularies.Count > 0)
+                                                        {
+                                                            <div class="assignment-content-group">
+                                                                <label class="form-check fw-bold">
+                                                                    <input asp-for="Lessons[lessonIndex].IncludeVocabulary"
+                                                                           class="form-check-input activity-type-check"
+                                                                           data-target="vocabulary-@lesson.LessonId" />
+                                                                    Từ vựng / Flashcard
+                                                                </label>
+                                                                <div id="vocabulary-@lesson.LessonId"
+                                                                     class="assignment-content-items">
+                                                                    <div class="small text-muted mb-2">
+                                                                        Chọn từng từ mới học sinh cần ôn tập:
+                                                                    </div>
+                                                                    @foreach (var vocabulary in lesson.Vocabularies)
+                                                                    {
+                                                                        <label class="assignment-content-option">
+                                                                            <input type="checkbox"
+                                                                                   class="form-check-input content-item-check"
+                                                                                   data-kind="vocabulary"
+                                                                                   name="Lessons[@lessonIndex].SelectedVocabularyIds"
+                                                                                   value="@vocabulary.VocabularyId"
+                                                                                   @(lesson.SelectedVocabularyIds.Contains(vocabulary.VocabularyId) ? "checked" : null) />
+                                                                            <span>
+                                                                                <strong>@vocabulary.Word</strong>
+                                                                                — @vocabulary.Meaning
+                                                                            </span>
+                                                                        </label>
+                                                                    }
+                                                                </div>
+                                                            </div>
+                                                        }
+
+                                                        @if (lesson.Quizzes.Count > 0)
+                                                        {
+                                                            <div class="assignment-content-group">
+                                                                <label class="form-check fw-bold">
+                                                                    <input asp-for="Lessons[lessonIndex].IncludeQuiz"
+                                                                           class="form-check-input activity-type-check"
+                                                                           data-target="quiz-@lesson.LessonId" />
+                                                                    Quiz
+                                                                </label>
+                                                                <div id="quiz-@lesson.LessonId"
+                                                                     class="assignment-content-items">
+                                                                    @foreach (var quiz in lesson.Quizzes)
+                                                                    {
+                                                                        <label class="assignment-content-option">
+                                                                            <input type="checkbox"
+                                                                                   class="form-check-input content-item-check"
+                                                                                   data-kind="quiz"
+                                                                                   name="Lessons[@lessonIndex].SelectedQuizIds"
+                                                                                   value="@quiz.QuizId"
+                                                                                   @(lesson.SelectedQuizIds.Contains(quiz.QuizId) ? "checked" : null) />
+                                                                            <span>
+                                                                                @quiz.Question
+                                                                                <small class="text-muted">(@quiz.QuizType)</small>
+                                                                            </span>
+                                                                        </label>
+                                                                    }
+                                                                </div>
+                                                            </div>
+                                                        }
+
+                                                        @if (lesson.MiniGames.Count > 0)
+                                                        {
+                                                            <div class="assignment-content-group">
+                                                                <label class="form-check fw-bold">
+                                                                    <input asp-for="Lessons[lessonIndex].IncludeMiniGame"
+                                                                           class="form-check-input activity-type-check"
+                                                                           data-target="game-@lesson.LessonId" />
+                                                                    Mini game
+                                                                </label>
+                                                                <div id="game-@lesson.LessonId"
+                                                                     class="assignment-content-items">
+                                                                    @foreach (var game in lesson.MiniGames)
+                                                                    {
+                                                                        <label class="assignment-content-option">
+                                                                            <input type="checkbox"
+                                                                                   class="form-check-input content-item-check"
+                                                                                   data-kind="game"
+                                                                                   name="Lessons[@lessonIndex].SelectedMiniGameIds"
+                                                                                   value="@game.GameId"
+                                                                                   @(lesson.SelectedMiniGameIds.Contains(game.GameId) ? "checked" : null) />
+                                                                            <span>@game.Title <small class="text-muted">(@game.GameType)</small></span>
+                                                                        </label>
+                                                                    }
+                                                                </div>
+                                                            </div>
+                                                        }
+                                                    </div>
+
+                                                    <div class="d-flex gap-2 flex-wrap mt-3">
+                                                        <button type="button"
+                                                                class="btn-teacher-outline"
+                                                                data-toggle-content-picker="@lesson.LessonId">
+                                                            Tùy chọn nội dung
+                                                        </button>
+                                                        <button type="button"
+                                                                class="btn-teacher-outline"
+                                                                data-lesson-preview-url="@previewUrl">
+                                                            Xem nội dung
+                                                        </button>
+                                                    </div>
                                                 </div>
                                             </article>
                                         }
@@ -493,7 +640,7 @@
                             Hủy
                         </a>
 
-                        @if (Model.Lessons.Any())
+                        @if (Model.Lessons.Count > 0)
                         {
                             <button type="submit" class="btn-teacher" id="assignmentSubmitButton">
                                 @(Model.Status == EnglishLearningOnlineSystem.Models.AssignmentStatus.Draft

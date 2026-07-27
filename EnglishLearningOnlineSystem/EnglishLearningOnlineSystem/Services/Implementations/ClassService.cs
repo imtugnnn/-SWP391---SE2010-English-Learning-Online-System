@@ -32,7 +32,9 @@ public class ClassService : IClassService
         }
 
         var enrollments = await _classRepository.GetActiveStudentsByClassIdAsync(classId);
-        var assignments = await _classRepository.GetAssignmentsByClassCourseAsync(classEntity.CourseId);
+        var assignments = await _classRepository.GetAssignmentsByClassCourseAsync(
+            classEntity.ClassId,
+            classEntity.CourseId);
 
         var studentIds = enrollments.Select(e => e.StudentId).ToList();
         var lessonIds = assignments

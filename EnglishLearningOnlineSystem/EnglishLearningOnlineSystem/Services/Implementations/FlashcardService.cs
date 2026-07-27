@@ -26,7 +26,7 @@ public class FlashcardService : IFlashcardService
         var lesson = await _flashcardRepo.GetLessonByIdAsync(lessonId);
         if (lesson == null) return null;
 
-        var vocabularies = await _flashcardRepo.GetVocabularyByLessonAsync(lessonId);
+        var vocabularies = await _flashcardRepo.GetVocabularyByLessonAsync(lessonId, studentId);
         if (!vocabularies.Any()) return null;
 
         if (resetProgress)

@@ -1,8 +1,6 @@
 ﻿using EnglishLearningOnlineSystem.Repositories.Interfaces;
-using EnglishLearningOnlineSystem.Data;
 using EnglishLearningOnlineSystem.Services.Interfaces;
 using EnglishLearningOnlineSystem.ViewModels;
-using Microsoft.EntityFrameworkCore;
 
 namespace EnglishLearningOnlineSystem.Services.Implementations;
 
@@ -10,6 +8,8 @@ public class TeacherDashboardService : ITeacherDashboardService
 {
     private readonly IClassRepository _classRepository;
     private readonly IAssignmentRepository _assignmentRepository;
+    private readonly ITeacherDashboardRepository _teacherDashboardRepository;
+    private readonly INotificationRepository _notificationRepository;
     private readonly IStudentManagementService _studentManagementService;
     private readonly ISystemNotificationService _systemNotificationService;
     private readonly AppDbContext _context;
@@ -18,12 +18,16 @@ public class TeacherDashboardService : ITeacherDashboardService
         IClassRepository classRepository,
         IAssignmentRepository assignmentRepository,
         IStudentManagementService studentManagementService,
+        ITeacherDashboardRepository teacherDashboardRepository,
+        INotificationRepository notificationRepository,
         ISystemNotificationService systemNotificationService,
         AppDbContext context)
     {
         _classRepository = classRepository;
         _assignmentRepository = assignmentRepository;
         _studentManagementService = studentManagementService;
+        _teacherDashboardRepository = teacherDashboardRepository;
+        _notificationRepository = notificationRepository;
         _systemNotificationService = systemNotificationService;
         _context = context;
     }
@@ -35,41 +39,37 @@ public class TeacherDashboardService : ITeacherDashboardService
     {
         await _systemNotificationService.RefreshDueScheduledAsync();
         var classes = await _classRepository.GetClassesByTeacherIdAsync(teacherId);
-        var currentAcademicYear = await _context.AcademicYears!
-            .Where(year => year.IsActive)
-            .Select(year => year.YearLabel)
-            .FirstOrDefaultAsync();
+        // Luồng 1: Repository nạp dữ liệu thô thuộc phạm vi dashboard giáo viên.
+        var currentAcademicYear = await _teacherDashboardRepository.GetActiveAcademicYearLabelAsync();
 
-        var courseIds = classes
-            .Where(c => c.CourseId.HasValue)
-            .Select(c => c.CourseId!.Value)
+        var classIds = classes
+            .Select(c => c.ClassId)
             .Distinct()
             .ToList();
 
-        var assignments = await _assignmentRepository.GetAssignmentsByCourseIdsAsync(courseIds);
-        var systemNotifications = await _context.SystemNotifications!
-            .Where(n => n.Status == "Đã phát hành" &&
-                        (n.UserType == "Tất cả" || n.UserType == "Giáo viên" ||
-                         n.Recipient == "Tất cả người dùng" || n.Recipient == "Giáo viên"))
-            .OrderByDescending(n => n.PublishTime ?? n.CreatedAt)
-            .AsNoTracking()
-            .ToListAsync();
-        var personalNotifications = await _context.Notifications!
-            .Where(n => n.UserId == teacherId)
-            .OrderByDescending(n => n.CreateAt)
-            .AsNoTracking()
-            .ToListAsync();
+        var assignments = await _assignmentRepository.GetAssignmentsByClassIdsAsync(classIds);
+        var publishedNotifications =
+            await _teacherDashboardRepository.GetSystemNotificationsByStatusAsync("Đã phát hành");
+        var systemNotifications = publishedNotifications
+            .Where(notification =>
+                notification.UserType == "Tất cả" ||
+                notification.UserType == "Giáo viên" ||
+                notification.Recipient == "Tất cả người dùng" ||
+                notification.Recipient == "Giáo viên")
+            .ToList();
+        var personalNotifications = await _notificationRepository.GetByUserIdAsync(teacherId);
 
         var totalStudents = 0;
         var classItems = new List<TeacherDashboardClassViewModel>();
 
+        // Luồng 2: Service tổng hợp thống kê và áp dụng quy tắc quá hạn cho từng lớp.
         foreach (var classEntity in classes)
         {
             // Tính thống kê riêng từng lớp để hiển thị trong danh sách lớp của dashboard.
             var enrollments = await _classRepository.GetActiveStudentsByClassIdAsync(classEntity.ClassId);
 
             var classAssignments = assignments
-                .Where(a => a.CourseId == classEntity.CourseId && a.IsVisible)
+                .Where(a => a.ClassId == classEntity.ClassId && a.IsVisible)
                 .ToList();
 
             totalStudents += enrollments.Count;
@@ -88,6 +88,7 @@ public class TeacherDashboardService : ITeacherDashboardService
             });
         }
 
+        // Luồng 3: Ánh xạ Entity sang ViewModel để View chỉ hiển thị dữ liệu.
         return new TeacherDashboardViewModel
         {
             TeacherName = classes.FirstOrDefault()?.Teacher?.Username ?? "Giáo viên",
@@ -99,8 +100,21 @@ public class TeacherDashboardService : ITeacherDashboardService
             ActiveAssignments = assignments.Count(a => a.IsVisible && a.DueDate >= DateTime.UtcNow),
             ExpiredAssignments = assignments.Count(a => a.IsVisible && a.DueDate < DateTime.UtcNow),
             StudentsNeedAttention = await _studentManagementService.CountStudentsNeedSupportAsync(teacherId),
-            SystemNotifications = systemNotifications,
-            PersonalNotifications = personalNotifications,
+            SystemNotifications = systemNotifications.Select(notification =>
+                new TeacherSystemNotificationViewModel
+                {
+                    Title = notification.Title,
+                    Content = notification.Content,
+                    DisplayTime = notification.PublishTime ?? notification.CreatedAt
+                }).ToList(),
+            PersonalNotifications = personalNotifications.Select(notification =>
+                new TeacherPersonalNotificationViewModel
+                {
+                    Type = notification.Type,
+                    Message = notification.Message,
+                    IsRead = notification.IsRead,
+                    DisplayTime = notification.CreateAt.AddHours(7)
+                }).ToList(),
             NotificationCount = systemNotifications.Count + personalNotifications.Count(n => !n.IsRead),
 
             Classes = classItems

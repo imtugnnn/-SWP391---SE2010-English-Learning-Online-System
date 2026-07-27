@@ -23,6 +23,9 @@ public class AssignedLessonItem
     public int XPReward { get; set; }
 
     public int EstimatedMinutes { get; set; }
+    public int VocabularyCount { get; set; }
+    public int QuizCount { get; set; }
+    public int MiniGameCount { get; set; }
 
     public DateTime WeekStartDate { get; set; }
 

@@ -24,16 +24,30 @@
         function selectedLessons() {
             return lessonCheckboxes
                 .filter(checkbox => checkbox.checked)
-                .map(checkbox => ({
-                    id: checkbox.value,
-                    title: checkbox.dataset.title || "",
-                    duration: Number(checkbox.dataset.duration || 0),
-                    xp: Number(checkbox.dataset.xp || 0),
-                    vocabulary: Number(checkbox.dataset.vocabulary || 0),
-                    quiz: Number(checkbox.dataset.quiz || 0),
-                    games: Number(checkbox.dataset.games || 0),
-                    previewUrl: checkbox.dataset.previewUrl || ""
-                }));
+                .map(checkbox => {
+                    const picker = form.querySelector(`[data-content-picker="${checkbox.value}"]`);
+                    const countSelected = kind => {
+                        if (!picker) {
+                            return 0;
+                        }
+
+                        return Array.from(picker.querySelectorAll(`.content-item-check[data-kind="${kind}"]:checked`))
+                            .filter(item => item.closest(".assignment-content-group")
+                                ?.querySelector(".activity-type-check")?.checked)
+                            .length;
+                    };
+
+                    return {
+                        id: checkbox.value,
+                        title: checkbox.dataset.title || "",
+                        duration: Number(checkbox.dataset.duration || 0),
+                        xp: Number(checkbox.dataset.xp || 0),
+                        vocabulary: countSelected("vocabulary"),
+                        quiz: countSelected("quiz"),
+                        games: countSelected("game"),
+                        previewUrl: checkbox.dataset.previewUrl || ""
+                    };
+                });
         }
 
         function totals(lessons) {
@@ -133,6 +147,19 @@
         }
 
         lessonCheckboxes.forEach(checkbox => checkbox.addEventListener("change", renderSelection));
+        form.querySelectorAll(".content-item-check").forEach(checkbox =>
+            checkbox.addEventListener("change", renderSelection));
+
+        form.querySelectorAll(".activity-type-check").forEach(checkbox => {
+            const updateGroup = function () {
+                const target = document.getElementById(checkbox.dataset.target || "");
+                target?.classList.toggle("is-disabled", !checkbox.checked);
+                renderSelection();
+            };
+
+            checkbox.addEventListener("change", updateGroup);
+            updateGroup();
+        });
         statusSelect?.addEventListener("change", updateStatusPresentation);
 
         selectAll?.addEventListener("change", function () {
@@ -143,6 +170,17 @@
         });
 
         document.addEventListener("click", function (event) {
+            const toggleButton = event.target.closest("[data-toggle-content-picker]");
+            if (toggleButton) {
+                const picker = form.querySelector(
+                    `[data-content-picker="${toggleButton.dataset.toggleContentPicker}"]`);
+                picker?.classList.toggle("is-open");
+                toggleButton.textContent = picker?.classList.contains("is-open")
+                    ? "Ẩn tùy chọn"
+                    : "Tùy chọn nội dung";
+                return;
+            }
+
             const removeButton = event.target.closest("[data-remove-selected-lesson]");
             if (!removeButton) {
                 return;
@@ -156,6 +194,16 @@
         });
 
         form.addEventListener("submit", function (event) {
+            const invalidLesson = selectedLessons().find(lesson =>
+                lesson.vocabulary + lesson.quiz + lesson.games === 0);
+            if (invalidLesson) {
+                event.preventDefault();
+                const picker = form.querySelector(`[data-content-picker="${invalidLesson.id}"]`);
+                picker?.classList.add("is-open");
+                window.alert(`Vui lòng chọn ít nhất một nội dung cho bài "${invalidLesson.title}".`);
+                return;
+            }
+
             if (statusSelect?.value !== "Published" || publishConfirmed) {
                 return;
             }

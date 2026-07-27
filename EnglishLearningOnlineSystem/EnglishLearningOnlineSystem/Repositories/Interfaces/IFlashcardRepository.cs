@@ -4,7 +4,7 @@ namespace EnglishLearningOnlineSystem.Repositories.Interfaces;
 
 public interface IFlashcardRepository
 {
-    Task<List<Vocabulary>> GetVocabularyByLessonAsync(int lessonId);
+    Task<List<Vocabulary>> GetVocabularyByLessonAsync(int lessonId, int studentId);
     Task<Lesson?> GetLessonByIdAsync(int lessonId);
     Task<FlashcardSession> CreateSessionAsync(FlashcardSession session);
     Task<FlashcardSession?> GetSessionAsync(int sessionId, int studentId);

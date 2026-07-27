@@ -26,8 +26,8 @@ public class QuizAttemptService : IQuizAttemptService
         var lesson = await _quizRepo.GetLessonByIdAsync(lessonId);
         if (lesson == null) return null;
 
-        var quizzes = await _quizRepo.GetQuizzesByLessonIdAsync(lessonId);
-        var assignment = await _quizRepo.GetAssignmentForLessonAsync(lessonId);
+        var quizzes = await _quizRepo.GetQuizzesByLessonIdAsync(lessonId, studentId);
+        var assignment = await _quizRepo.GetAssignmentForLessonAsync(lessonId, studentId);
         
         bool isOverdue = assignment != null && assignment.DueDate.Date < DateTime.Today;
 
@@ -52,7 +52,7 @@ public class QuizAttemptService : IQuizAttemptService
         var lesson = await _quizRepo.GetLessonByIdAsync(submitData.LessonId);
         if (lesson == null) return null;
 
-        var quizzes = await _quizRepo.GetQuizzesByLessonIdAsync(submitData.LessonId);
+        var quizzes = await _quizRepo.GetQuizzesByLessonIdAsync(submitData.LessonId, studentId);
         if (!quizzes.Any()) return null;
 
         int totalQuestions = quizzes.Count;

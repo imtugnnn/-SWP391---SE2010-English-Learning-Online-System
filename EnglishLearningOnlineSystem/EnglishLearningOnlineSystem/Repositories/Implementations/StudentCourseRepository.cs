@@ -54,7 +54,9 @@ public class StudentCourseRepository : IStudentCourseRepository
             return new List<int>();
 
         return await _db.Classes!
-            .Where(c => c.CourseId.HasValue)
+            .Where(c =>
+                c.CourseId.HasValue &&
+                c.Enrollments.Any(e => e.StudentId == studentId))
             .Select(c => c.CourseId!.Value)
             .Distinct()
             .ToListAsync();
