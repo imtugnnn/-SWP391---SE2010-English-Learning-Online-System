@@ -52,39 +52,6 @@ namespace EnglishLearningOnlineSystem.Migrations
                     b.ToTable("AcademicYears");
                 });
 
-            modelBuilder.Entity("EnglishLearningOnlineSystem.Models.AuditLog", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<string>("Action")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<DateTime>("Timestamp")
-                        .HasColumnType("datetime2");
-
-                    b.Property<int?>("UserId")
-                        .HasColumnType("int");
-
-                    b.Property<string>("UserRole")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("Username")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("UserId");
-
-                    b.ToTable("AuditLogs");
-                });
-
             modelBuilder.Entity("EnglishLearningOnlineSystem.Models.Badge", b =>
                 {
                     b.Property<int>("BadgeId")
@@ -1001,15 +968,6 @@ namespace EnglishLearningOnlineSystem.Migrations
                     b.HasIndex("StudentId");
 
                     b.ToTable("XpTransactions");
-                });
-
-            modelBuilder.Entity("EnglishLearningOnlineSystem.Models.AuditLog", b =>
-                {
-                    b.HasOne("EnglishLearningOnlineSystem.Models.User", "User")
-                        .WithMany()
-                        .HasForeignKey("UserId");
-
-                    b.Navigation("User");
                 });
 
             modelBuilder.Entity("EnglishLearningOnlineSystem.Models.Class", b =>

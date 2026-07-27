@@ -42,7 +42,6 @@ public class AppDbContext : Microsoft.EntityFrameworkCore.DbContext
     public DbSet<QuizAttemptAnswer> QuizAttemptAnswers { get; set; }
     public DbSet<FlashcardSession> FlashcardSessions { get; set; }
     public DbSet<FlashcardCardResult> FlashcardCardResults { get; set; }
-    public DbSet<AuditLog> AuditLogs { get; set; }
     public DbSet<SystemSetting> SystemSettings { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)

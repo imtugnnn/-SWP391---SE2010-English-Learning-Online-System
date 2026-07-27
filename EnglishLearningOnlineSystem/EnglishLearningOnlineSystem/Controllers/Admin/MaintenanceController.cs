@@ -6,7 +6,6 @@ using EnglishLearningOnlineSystem.Data;
 using EnglishLearningOnlineSystem.Models;
 using Microsoft.EntityFrameworkCore;
 using System;
-using System.Linq;
 using System.Threading.Tasks;
 
 namespace EnglishLearningOnlineSystem.Controllers.Admin;
@@ -51,17 +50,10 @@ public class MaintenanceController : Controller
         bool isMaintenanceActive = isEnabled || (startAt.HasValue && DateTime.Now >= startAt.Value);
         bool isScheduled = startAt.HasValue && startAt.Value > DateTime.Now;
 
-        var logs = await _context.AuditLogs
-            .Where(l => l.Action.Contains("bảo trì") || l.Action.Contains("Maintenance"))
-            .OrderByDescending(l => l.Timestamp)
-            .Take(10)
-            .ToListAsync();
-
         ViewBag.IsEnabled = isEnabled;
         ViewBag.StartAt = startAt;
         ViewBag.IsScheduled = isScheduled;
         ViewBag.IsMaintenanceActive = isMaintenanceActive;
-        ViewBag.AuditLogs = logs;
 
         return View("~/Views/Admin/Maintenance/Index.cshtml");
     }
@@ -126,9 +118,6 @@ public class MaintenanceController : Controller
 
         _context.SystemNotifications!.Add(notification);
 
-        // Ghi AuditLog
-        await LogActivityAsync(currentAdminId, $"Lên lịch bảo trì hệ thống từ lúc {startAt:dd/MM/yyyy HH:mm} và phát thông báo");
-
         await _context.SaveChangesAsync();
 
         TempData["Message"] = $"Lên lịch bảo trì thành công từ lúc {startAt:dd/MM/yyyy HH:mm}. Hệ thống đã tự động tạo thông báo gửi tới người dùng.";
@@ -153,8 +142,6 @@ public class MaintenanceController : Controller
             _context.SystemSettings.Update(startAtSetting);
         }
 
-        var currentAdminId = GetCurrentUserId() ?? 1;
-        await LogActivityAsync(currentAdminId, "Hủy lịch bảo trì hệ thống");
         await _context.SaveChangesAsync();
 
         TempData["Message"] = "Đã hủy lịch bảo trì hệ thống thành công.";
@@ -194,15 +181,12 @@ public class MaintenanceController : Controller
             _context.SystemSettings.Update(startAtSetting);
         }
 
-        var currentAdminId = GetCurrentUserId() ?? 1;
         if (enable)
         {
-            await LogActivityAsync(currentAdminId, "Bắt đầu bảo trì hệ thống ngay lập tức");
             TempData["Message"] = "Hệ thống đã chuyển sang chế độ bảo trì.";
         }
         else
         {
-            await LogActivityAsync(currentAdminId, "Kết thúc bảo trì hệ thống, khôi phục hoạt động bình thường");
             TempData["Message"] = "Đã tắt chế độ bảo trì. Hệ thống hoạt động bình thường.";
         }
 
@@ -242,21 +226,5 @@ public class MaintenanceController : Controller
     {
         var raw = HttpContext.Session.GetString("UserId");
         return int.TryParse(raw, out var id) ? id : null;
-    }
-
-    private async Task LogActivityAsync(int userId, string action)
-    {
-        var user = await _context.Users.Include(u => u.Role).FirstOrDefaultAsync(u => u.Id == userId);
-        if (user != null)
-        {
-            _context.AuditLogs.Add(new AuditLog
-            {
-                UserId = userId,
-                Username = user.Username,
-                UserRole = user.Role?.Name ?? "Admin",
-                Action = action,
-                Timestamp = DateTime.UtcNow
-            });
-        }
     }
 }
