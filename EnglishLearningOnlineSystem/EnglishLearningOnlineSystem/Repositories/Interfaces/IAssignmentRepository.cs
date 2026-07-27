@@ -5,6 +5,7 @@ namespace EnglishLearningOnlineSystem.Repositories.Interfaces;
 public interface IAssignmentRepository
 {
     Task<List<Lesson>> GetPublishedLessonsByCourseIdAsync(int courseId);
+    Task<Lesson?> GetPublishedLessonDetailAsync(int courseId, int lessonId);
 
     Task<List<Course>> GetPublishedCoursesAsync();
 

@@ -36,14 +36,13 @@ public class StudentManagementService : IStudentManagementService
             return null;
         }
 
-        var enrollments = await _classRepository.GetStudentsByClassIdAsync(classId);
+        var enrollments = await _classRepository.GetActiveStudentsByClassIdAsync(classId);
 
         var totalStudents = enrollments.Count;
-        var activeStudents = enrollments.Count(e => e.Student.IsActive);
-        var inactiveStudents = enrollments.Count(e => !e.Student.IsActive);
+        var activeStudents = totalStudents;
+        const int inactiveStudents = 0;
 
         var filteredEnrollments = ApplySearch(enrollments, keyword);
-        filteredEnrollments = ApplyStatusFilter(filteredEnrollments, status);
         filteredEnrollments = ApplySorting(filteredEnrollments, sortBy);
 
         page = NormalizePage(page);
@@ -62,7 +61,7 @@ public class StudentManagementService : IStudentManagementService
             classEntity,
             pagedEnrollments,
             keyword,
-            status,
+            "active",
             sortBy,
             page,
             PageSize,
@@ -84,6 +83,9 @@ public class StudentManagementService : IStudentManagementService
     {
         var classes = await _classRepository.GetClassesByTeacherIdAsync(teacherId);
         var selectedClassId = ParseClassFilter(classFilter);
+        var selectedClass = selectedClassId.HasValue
+            ? classes.FirstOrDefault(c => c.ClassId == selectedClassId.Value && !c.IsDeleted)
+            : null;
         var classesToScan = classes
             .Where(c => !c.IsDeleted && (!selectedClassId.HasValue || c.ClassId == selectedClassId.Value))
             .OrderBy(c => c.ClassName)
@@ -102,6 +104,8 @@ public class StudentManagementService : IStudentManagementService
 
         return new TeacherStudentsNeedSupportViewModel
         {
+            ClassId = selectedClass?.ClassId ?? 0,
+            ClassName = selectedClass?.ClassName ?? string.Empty,
             ClassFilter = selectedClassId?.ToString() ?? "all",
             ReasonFilter = normalizedReason,
             SortBy = NormalizeSupportSort(sortBy),
@@ -137,7 +141,7 @@ public class StudentManagementService : IStudentManagementService
     /// </summary>
     private async Task<List<TeacherSupportStudentItemViewModel>> BuildSupportItemsForClassAsync(Class classEntity)
     {
-        var enrollments = await _classRepository.GetStudentsByClassIdAsync(classEntity.ClassId);
+        var enrollments = await _classRepository.GetActiveStudentsByClassIdAsync(classEntity.ClassId);
         var assignments = await _classRepository.GetAssignmentsByClassCourseAsync(classEntity.CourseId);
         var lessonIds = assignments
             .Where(a => a.LessonId.HasValue)
@@ -181,14 +185,13 @@ public class StudentManagementService : IStudentManagementService
             var overdueCount = overdueLessonIds.Count(id => !completedLessonIds.Contains(id));
             var notStartedCount = lessonIds.Count(id => !startedLessonIds.Contains(id));
             var hasLowScore = avgScore.HasValue && avgScore.Value < LowQuizScoreThreshold;
-            var isInactive = !enrollment.Student.IsActive ||
-                !lastActiveDate.HasValue ||
+            var isInactive = !lastActiveDate.HasValue ||
                 lastActiveDate.Value.Date < DateTime.UtcNow.Date.AddDays(-InactiveDaysThreshold);
 
             var reasons = new List<string>();
             if (hasLowScore) reasons.Add("Điểm quiz thấp");
             if (overdueCount > 0) reasons.Add("Bài quá hạn");
-            if (isInactive) reasons.Add("Không hoạt động");
+            if (isInactive) reasons.Add("Ít hoạt động học tập");
             if (notStartedCount > 0) reasons.Add("Chưa bắt đầu");
 
             if (!reasons.Any())
@@ -336,21 +339,6 @@ public class StudentManagementService : IStudentManagementService
             .ToList();
     }
 
-    // Lọc học sinh theo trạng thái tài khoản đang hoạt động hoặc ngừng hoạt động.
-    private static List<ClassEnrollment> ApplyStatusFilter(
-        List<ClassEnrollment> enrollments,
-        string? status)
-    {
-        var normalizedStatus = NormalizeStatus(status);
-
-        return normalizedStatus switch
-        {
-            "active" => enrollments.Where(e => e.Student.IsActive).ToList(),
-            "inactive" => enrollments.Where(e => !e.Student.IsActive).ToList(),
-            _ => enrollments
-        };
-    }
-
     // Sắp xếp danh sách ghi danh theo tiêu chí giáo viên lựa chọn.
     private static List<ClassEnrollment> ApplySorting(
         List<ClassEnrollment> enrollments,
@@ -362,7 +350,6 @@ public class StudentManagementService : IStudentManagementService
         {
             "email" => enrollments.OrderBy(e => e.Student.Email).ToList(),
             "date" => enrollments.OrderByDescending(e => e.EnrolledAt).ToList(),
-            "status" => enrollments.OrderByDescending(e => e.Student.IsActive).ToList(),
             _ => enrollments.OrderBy(e => e.Student.Username).ToList()
         };
     }
@@ -495,7 +482,7 @@ public class StudentManagementService : IStudentManagementService
     // Xác nhận học sinh có bản ghi ghi danh trong lớp trước khi đọc hoặc ghi dữ liệu.
     private async Task<bool> ValidateStudentBelongsToClassAsync(int classId, int studentId)
     {
-        var enrollments = await _classRepository.GetStudentsByClassIdAsync(classId);
+        var enrollments = await _classRepository.GetActiveStudentsByClassIdAsync(classId);
 
         return enrollments.Any(e => e.StudentId == studentId);
     }
@@ -526,8 +513,6 @@ public class StudentManagementService : IStudentManagementService
             AvatarUrl = string.IsNullOrWhiteSpace(studentProfile.AvatarUrl)
                 ? "/images/default-avatar.png"
                 : studentProfile.AvatarUrl,
-            IsActive = studentProfile.User.IsActive,
-            StatusText = studentProfile.User.IsActive ? "Đang hoạt động" : "Không hoạt động",
 
             Level = studentProfile.Level,
             XP = studentProfile.XP,

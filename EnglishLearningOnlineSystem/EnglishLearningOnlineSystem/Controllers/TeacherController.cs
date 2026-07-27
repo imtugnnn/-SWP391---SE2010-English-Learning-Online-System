@@ -126,7 +126,7 @@ public class TeacherController : Controller
     /// Tổng hợp các học sinh cần giáo viên hỗ trợ theo lớp, nguyên nhân và cách sắp xếp.
     /// </summary>
     public async Task<IActionResult> StudentsNeedSupport(
-        string? classFilter,
+        int classId,
         string? reason,
         string? sortBy)
     {
@@ -137,9 +137,15 @@ public class TeacherController : Controller
             return RedirectToAction("Login", "Auth");
         }
 
+        var classDetail = await _classService.GetTeacherClassDetailAsync(classId, teacherId.Value);
+        if (classDetail == null)
+        {
+            return NotFound();
+        }
+
         var viewModel = await _studentManagementService.GetStudentsNeedSupportAsync(
             teacherId.Value,
-            classFilter,
+            classId.ToString(),
             reason,
             sortBy);
 
@@ -263,6 +269,32 @@ public class TeacherController : Controller
         return View(viewModel);
     }
 
+    [HttpGet]
+    public async Task<IActionResult> LessonPreview(
+        int classId,
+        int lessonId,
+        int? selectedCourseId)
+    {
+        var teacherId = GetCurrentUserId();
+        if (teacherId == null)
+        {
+            return Unauthorized();
+        }
+
+        var viewModel = await _teacherAssignmentService.GetLessonPreviewAsync(
+            classId,
+            lessonId,
+            teacherId.Value,
+            selectedCourseId);
+
+        if (viewModel == null)
+        {
+            return NotFound();
+        }
+
+        return PartialView("_LessonPreviewContent", viewModel);
+    }
+
     /// <summary>
     /// Kiểm tra dữ liệu và tạo các bài giao tuần ở trạng thái nháp hoặc đã phát hành.
     /// </summary>
@@ -303,7 +335,8 @@ public class TeacherController : Controller
             // Nạp lại danh sách khóa học/bài học để biểu mẫu lỗi vẫn hiển thị đủ dữ liệu.
             var reloadModel = await _teacherAssignmentService.GetAssignWeeklyLessonsFormAsync(
                 model.ClassId,
-                teacherId.Value);
+                teacherId.Value,
+                model.SelectedCourseId);
 
             if (reloadModel == null)
             {
@@ -351,14 +384,14 @@ public class TeacherController : Controller
 
         return model.Status == AssignmentStatus.Draft
             ? RedirectToAction(nameof(AssignmentOverview), new { classId = model.ClassId, status = "draft" })
-            : RedirectToAction(nameof(ClassDetail), new { classId = model.ClassId });
+            : RedirectToAction(nameof(AssignmentOverview), new { classId = model.ClassId });
     }
 
     /// <summary>
     /// Hiển thị toàn bộ bài giao của giáo viên, có hỗ trợ lọc theo lớp/trạng thái và phân trang.
     /// </summary>
     public async Task<IActionResult> AssignmentOverview(
-    int? classId,
+    int classId,
     string? status,
     string? sortBy,
     int page = 1)
@@ -368,6 +401,12 @@ public class TeacherController : Controller
         if (teacherId == null)
         {
             return RedirectToAction("Login", "Auth");
+        }
+
+        var classDetail = await _classService.GetTeacherClassDetailAsync(classId, teacherId.Value);
+        if (classDetail == null)
+        {
+            return NotFound();
         }
 
         var viewModel = await _teacherAssignmentService.GetAssignmentOverviewAsync(

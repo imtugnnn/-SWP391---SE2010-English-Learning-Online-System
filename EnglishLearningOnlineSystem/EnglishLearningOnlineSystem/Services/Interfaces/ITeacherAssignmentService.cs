@@ -12,6 +12,12 @@ public interface ITeacherAssignmentService
     int teacherId,
     int? selectedCourseId = null);
 
+    Task<TeacherLessonPreviewViewModel?> GetLessonPreviewAsync(
+        int classId,
+        int lessonId,
+        int teacherId,
+        int? selectedCourseId = null);
+
     /// <summary>
     /// Tạo các bài giao tuần cho lớp thuộc quyền quản lý của giáo viên.
     /// </summary>

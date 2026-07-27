@@ -323,25 +323,17 @@
 
                 <div class="row g-3">
                     <div class="col-md-3">
-                        <a asp-controller="Teacher"
-                           asp-action="ManageStudentList"
-                           asp-route-classId="@Model.ClassId"
-                           class="summary-card metric-card">
+                        <div class="summary-card metric-static">
                             <div class="summary-label">Tổng học sinh</div>
                             <p class="summary-value">@Model.StudentCount</p>
-                            <span class="metric-link-hint">Xem danh sách →</span>
-                        </a>
+                        </div>
                     </div>
 
                     <div class="col-md-3">
-                        <a asp-controller="Teacher"
-                           asp-action="AssignmentOverview"
-                           asp-route-classId="@Model.ClassId"
-                           class="summary-card metric-card">
+                        <div class="summary-card metric-static">
                             <div class="summary-label">Bài đã giao</div>
                             <p class="summary-value">@Model.AssignmentCount</p>
-                            <span class="metric-link-hint">Xem bài giao →</span>
-                        </a>
+                        </div>
                     </div>
 
                     <div class="col-md-3">
@@ -352,16 +344,10 @@
                     </div>
 
                     <div class="col-md-3">
-                        <a asp-controller="Teacher"
-                           asp-action="StudentsNeedSupport"
-                           asp-route-classFilter="@Model.ClassId"
-                           asp-route-reason="overdue"
-                           asp-route-sortBy="overdue"
-                           class="summary-card metric-card">
+                        <div class="summary-card metric-static">
                             <div class="summary-label">Chậm tiến độ</div>
                             <p class="summary-value">@Model.StudentsBehindSchedule</p>
-                            <span class="metric-link-hint">Xem học sinh →</span>
-                        </a>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -371,12 +357,20 @@
             <div class="section-header">
                 <h2 class="section-title">Danh sách học sinh</h2>
 
-                <a asp-controller="Teacher"
-                   asp-action="ManageStudentList"
-                   asp-route-classId="@Model.ClassId"
-                   class="btn-teacher">
-                    Xem danh sách học sinh
-                </a>
+                <div class="d-flex gap-2 flex-wrap">
+                    <a asp-controller="Teacher"
+                       asp-action="StudentsNeedSupport"
+                       asp-route-classId="@Model.ClassId"
+                       class="btn-teacher-outline">
+                        Học sinh cần hỗ trợ
+                    </a>
+                    <a asp-controller="Teacher"
+                       asp-action="ManageStudentList"
+                       asp-route-classId="@Model.ClassId"
+                       class="btn-teacher">
+                        Xem danh sách học sinh
+                    </a>
+                </div>
             </div>
 
             @if (Model.Students.Any())
@@ -388,7 +382,6 @@
                                 <th>Tên học sinh</th>
                                 <th>Email</th>
                                 <th>Trạng thái</th>
-                                <th class="text-end">Thao tác</th>
                             </tr>
                         </thead>
 
@@ -400,15 +393,6 @@
                                     <td>@student.Email</td>
                                     <td>
                                         <span class="badge-soft-success">@student.EnrollmentStatus</span>
-                                    </td>
-                                    <td class="text-end">
-                                        <a asp-controller="Teacher"
-                                           asp-action="StudentDetail"
-                                           asp-route-studentId="@student.StudentId"
-                                           asp-route-classId="@Model.ClassId"
-                                           class="btn-teacher-outline">
-                                            Xem chi tiết
-                                        </a>
                                     </td>
                                 </tr>
                             }
@@ -432,7 +416,7 @@
                    asp-action="AssignmentOverview"
                    asp-route-classId="@Model.ClassId"
                    class="btn-teacher">
-                    Xem tổng quan bài giao
+                    Quản lý bài giao tuần
                 </a>
             </div>
 

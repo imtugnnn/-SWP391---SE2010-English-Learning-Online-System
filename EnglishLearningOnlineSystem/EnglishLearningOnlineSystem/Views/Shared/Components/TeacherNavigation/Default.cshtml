@@ -1,0 +1,134 @@
+@model EnglishLearningOnlineSystem.ViewModels.TeacherNavigationViewModel
+@{
+    var isDashboard = Model.CurrentAction == "Dashboard";
+    var studentActions = new[] { "ManageStudentList", "StudentDetail" };
+    var supportActions = new[] { "StudentsNeedSupport", "ProvideFeedback" };
+    var assignmentActions = new[] { "AssignmentOverview", "AssignWeeklyLessons", "PublishDraft" };
+}
+
+<div class="teacher-sidebar__profile">
+    <span class="teacher-sidebar__avatar" aria-hidden="true">
+        @(string.IsNullOrWhiteSpace(Model.TeacherName)
+            ? "T"
+            : Model.TeacherName[..1].ToUpperInvariant())
+    </span>
+    <span class="teacher-sidebar__profile-copy">
+        <strong title="@Model.TeacherName">@Model.TeacherName</strong>
+        <small>Quản lý lớp học</small>
+    </span>
+</div>
+
+<nav class="teacher-sidebar__nav" aria-label="Điều hướng giáo viên">
+    <a asp-controller="Teacher"
+       asp-action="Dashboard"
+       class="teacher-sidebar__item @(isDashboard ? "active" : null)"
+       aria-current="@(isDashboard ? "page" : null)"
+       title="Tổng quan">
+        <svg class="teacher-sidebar__icon" viewBox="0 0 24 24" aria-hidden="true">
+            <path d="M3 11.5 12 4l9 7.5" />
+            <path d="M5.5 10.5V20h13v-9.5M9.5 20v-6h5v6" />
+        </svg>
+        <span class="teacher-sidebar__label">Tổng quan</span>
+    </a>
+
+    <div class="teacher-sidebar__section-title">Lớp học</div>
+
+    @if (Model.Classes.Any())
+    {
+        foreach (var classItem in Model.Classes)
+        {
+            var isSelected = Model.SelectedClassId == classItem.ClassId;
+            var isClassOverview = isSelected && Model.CurrentAction == "ClassDetail";
+            var isStudents = isSelected && studentActions.Contains(Model.CurrentAction);
+            var isSupport = isSelected && supportActions.Contains(Model.CurrentAction);
+            var isAssignments = isSelected && assignmentActions.Contains(Model.CurrentAction);
+
+            <details class="teacher-sidebar__class-group @(isSelected ? "selected" : null)"
+                     open="@isSelected">
+                <summary class="teacher-sidebar__class-summary"
+                         title="@classItem.ClassName">
+                    <svg class="teacher-sidebar__class-icon" viewBox="0 0 24 24" aria-hidden="true">
+                        <path d="M3 10.5 12 5l9 5.5-9 5.5-9-5.5Z" />
+                        <path d="M6.5 12.7V17c2.8 2 8.2 2 11 0v-4.3M21 11v6" />
+                    </svg>
+                    <span class="teacher-sidebar__class-copy">
+                        <strong>@classItem.ClassName</strong>
+                        @if (!string.IsNullOrWhiteSpace(classItem.GradeLevel))
+                        {
+                            <small>Khối @classItem.GradeLevel</small>
+                        }
+                    </span>
+                    <svg class="teacher-sidebar__class-chevron"
+                         viewBox="0 0 24 24"
+                         aria-hidden="true">
+                        <path d="m8 10 4 4 4-4" />
+                    </svg>
+                </summary>
+
+                <div class="teacher-sidebar__subnav">
+                    <a asp-controller="Teacher"
+                       asp-action="ClassDetail"
+                       asp-route-classId="@classItem.ClassId"
+                       class="teacher-sidebar__subitem @(isClassOverview ? "active" : null)"
+                       aria-current="@(isClassOverview ? "page" : null)"
+                       title="Tổng quan lớp">
+                        <svg viewBox="0 0 24 24" aria-hidden="true">
+                            <rect x="4" y="4" width="16" height="16" rx="3" />
+                            <path d="M8 9h8M8 13h5M8 17h3" />
+                        </svg>
+                        <span class="teacher-sidebar__subitem-label">Tổng quan lớp</span>
+                    </a>
+
+                    <a asp-controller="Teacher"
+                       asp-action="ManageStudentList"
+                       asp-route-classId="@classItem.ClassId"
+                       class="teacher-sidebar__subitem @(isStudents ? "active" : null)"
+                       aria-current="@(isStudents ? "page" : null)"
+                       title="Danh sách học sinh">
+                        <svg viewBox="0 0 24 24" aria-hidden="true">
+                            <circle cx="9" cy="8" r="3" />
+                            <path d="M3.5 19c.5-4 2.2-6 5.5-6s5 2 5.5 6M16 6.5a3 3 0 0 1 0 5.8M16 14c2.7.3 4.1 2 4.5 5" />
+                        </svg>
+                        <span class="teacher-sidebar__subitem-label">Danh sách học sinh</span>
+                    </a>
+
+                    <a asp-controller="Teacher"
+                       asp-action="StudentsNeedSupport"
+                       asp-route-classId="@classItem.ClassId"
+                       class="teacher-sidebar__subitem @(isSupport ? "active" : null)"
+                       aria-current="@(isSupport ? "page" : null)"
+                       title="Học sinh cần hỗ trợ">
+                        <svg viewBox="0 0 24 24" aria-hidden="true">
+                            <path d="M12 21s8-4.5 8-11a4.5 4.5 0 0 0-8-2.7A4.5 4.5 0 0 0 4 10c0 6.5 8 11 8 11Z" />
+                            <path d="M12 9v4M12 16h.01" />
+                        </svg>
+                        <span class="teacher-sidebar__subitem-label">Học sinh cần hỗ trợ</span>
+                    </a>
+
+                    <a asp-controller="Teacher"
+                       asp-action="AssignmentOverview"
+                       asp-route-classId="@classItem.ClassId"
+                       class="teacher-sidebar__subitem @(isAssignments ? "active" : null)"
+                       aria-current="@(isAssignments ? "page" : null)"
+                       title="Bài tập tuần">
+                        <svg viewBox="0 0 24 24" aria-hidden="true">
+                            <rect x="5" y="4" width="14" height="17" rx="2" />
+                            <path d="M9 4.5V3h6v1.5M8.5 10h7M8.5 14h7M8.5 18h4" />
+                        </svg>
+                        <span class="teacher-sidebar__subitem-label">Bài tập tuần</span>
+                    </a>
+                </div>
+            </details>
+        }
+    }
+    else
+    {
+        <a asp-controller="Teacher"
+           asp-action="Dashboard"
+           asp-fragment="teacher-classes"
+           class="teacher-sidebar__empty"
+           title="Xem lớp học">
+            Chưa có lớp được phân công
+        </a>
+    }
+</nav>

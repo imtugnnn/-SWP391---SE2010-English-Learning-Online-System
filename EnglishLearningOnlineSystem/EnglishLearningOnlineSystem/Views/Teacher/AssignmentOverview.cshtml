@@ -248,7 +248,7 @@
                         </div>
 
                         <h1 class="page-title">
-                            Tổng quan <span>bài đã giao</span>
+                            Bài giao tuần · <span>@Model.ClassName</span>
                         </h1>
 
                         <p class="page-subtitle">
@@ -256,23 +256,20 @@
                         </p>
                     </div>
 
-                    @if (Model.ClassId.HasValue)
-                    {
+                    <div class="d-flex gap-2 flex-wrap">
                         <a asp-controller="Teacher"
                            asp-action="ClassDetail"
                            asp-route-classId="@Model.ClassId"
                            class="btn-teacher-outline">
                             Quay lại chi tiết lớp
                         </a>
-                    }
-                    else
-                    {
                         <a asp-controller="Teacher"
-                           asp-action="Dashboard"
-                           class="btn-teacher-outline">
-                            Quay lại Dashboard
+                           asp-action="AssignWeeklyLessons"
+                           asp-route-classId="@Model.ClassId"
+                           class="btn-teacher">
+                            Giao bài tuần mới
                         </a>
-                    }
+                    </div>
                 </div>
 
                 <div class="row g-3">
@@ -292,7 +289,7 @@
 
                     <div class="col-md-3">
                         <div class="summary-card">
-                            <div class="summary-label">Đang hoạt động</div>
+                            <div class="summary-label">Đã giao</div>
                             <p class="summary-value">@Model.ActiveAssignments</p>
                         </div>
                     </div>
@@ -323,7 +320,7 @@
                             <select name="status" id="teacher-assignment-status" class="form-select">
                                 <option value="all" selected="@(Model.Status == "all")">Tất cả</option>
                                 <option value="draft" selected="@(Model.Status == "draft")">Bản nháp</option>
-                                <option value="active" selected="@(Model.Status == "active")">Đang hoạt động</option>
+                                <option value="active" selected="@(Model.Status == "active")">Đã giao</option>
                                 <option value="expired" selected="@(Model.Status == "expired")">Quá hạn</option>
                             </select>
                         </div>
@@ -380,11 +377,41 @@
                             @foreach (var item in Model.Assignments)
                             {
                                 <tr>
-                                    <td class="fw-bold">@item.LessonTitle</td>
+                                    <td>
+                                        <button type="button"
+                                                class="lesson-title-button"
+                                                data-lesson-preview-url="@Url.Action(
+                                                    "LessonPreview",
+                                                    "Teacher",
+                                                    new
+                                                    {
+                                                        classId = Model.ClassId,
+                                                        lessonId = item.LessonId
+                                                    })">
+                                            @item.LessonTitle
+                                        </button>
+                                        <div class="lesson-content-counts mt-2">
+                                            <span>@item.VocabularyCount từ</span>
+                                            <span>@item.QuizCount quiz</span>
+                                            <span>@item.MiniGameCount game</span>
+                                        </div>
+                                    </td>
                                     <td>@item.Topic</td>
                                     <td>@item.WeekStartDate.ToString("dd/MM/yyyy")</td>
                                     <td>@item.DueDate.ToString("dd/MM/yyyy")</td>
                                     <td>
+                                        <button type="button"
+                                                class="btn-teacher-outline me-2"
+                                                data-lesson-preview-url="@Url.Action(
+                                                    "LessonPreview",
+                                                    "Teacher",
+                                                    new
+                                                    {
+                                                        classId = Model.ClassId,
+                                                        lessonId = item.LessonId
+                                                    })">
+                                            Xem nội dung
+                                        </button>
                                         @if (item.Status == "Bản nháp")
                                         {
                                             <span class="badge-soft-secondary">@item.Status</span>
@@ -399,14 +426,14 @@
                                         }
                                     </td>
                                     <td>
-                                        @if (item.Status == "Bản nháp" && Model.ClassId.HasValue)
+                                        @if (item.Status == "Bản nháp")
                                         {
                                             <form asp-controller="Teacher"
                                                   asp-action="PublishDraft"
                                                   method="post"
                                                   class="d-inline">
                                                 <input type="hidden" name="assignmentId" value="@item.AssignmentId" />
-                                                <input type="hidden" name="classId" value="@Model.ClassId.Value" />
+                                                <input type="hidden" name="classId" value="@Model.ClassId" />
                                                 <button type="submit"
                                                         class="btn-teacher"
                                                         onclick="return confirm('Bạn có chắc muốn xuất bản bài giao này?');">
@@ -481,5 +508,10 @@
             }
         </div>
 
+        <partial name="_LessonPreviewDrawer" />
     </div>
 </div>
+
+@section Scripts {
+    <script src="~/js/teacher/lesson-preview.js" asp-append-version="true"></script>
+}
