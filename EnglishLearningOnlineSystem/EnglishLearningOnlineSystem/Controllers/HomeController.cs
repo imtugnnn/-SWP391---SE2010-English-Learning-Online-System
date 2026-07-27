@@ -3,6 +3,7 @@ using EnglishLearningOnlineSystem.ViewModels;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Diagnostics;
 using Microsoft.Extensions.Logging;
+using Microsoft.AspNetCore.Http;
 
 namespace EnglishLearningOnlineSystem.Controllers;
 
@@ -17,7 +18,22 @@ public class HomeController : Controller
 
     public IActionResult Index()
     {
-        return View();
+        var userIdStr = HttpContext.Session.GetString("UserId");
+        var userRoleStr = HttpContext.Session.GetString("UserRole");
+
+        if (int.TryParse(userIdStr, out _) && int.TryParse(userRoleStr, out var roleId))
+        {
+            return roleId switch
+            {
+                1 => RedirectToAction("Dashboard", "Student"),
+                2 => RedirectToAction("Dashboard", "Admin"),
+                3 => RedirectToAction("Dashboard", "Teacher"),
+                5 => RedirectToAction("Index", "Courses"),
+                _ => RedirectToAction("Homepage", "Home")
+            };
+        }
+
+        return RedirectToAction("Login", "Auth");
     }
 
     [HttpGet("/homepage")]
