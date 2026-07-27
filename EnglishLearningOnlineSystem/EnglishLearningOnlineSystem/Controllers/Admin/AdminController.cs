@@ -10,6 +10,8 @@ using Microsoft.EntityFrameworkCore;
 using System.Threading.Tasks;
 using System.Collections.Generic;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.AspNetCore.Http;
+using EnglishLearningOnlineSystem.Helpers.Admin.Users;
 
 namespace EnglishLearningOnlineSystem.Controllers.Admin;
 
@@ -235,6 +237,236 @@ public class AdminController : Controller
         }
 
         return Json(new { success = true });
+    }
+
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> ImportUsersFromExcel(IFormFile importFile)
+    {
+        if (importFile == null || importFile.Length == 0)
+        {
+            return Json(new { success = false, message = "Vui lòng chọn tệp Excel." });
+        }
+
+        var extension = Path.GetExtension(importFile.FileName).ToLowerInvariant();
+        if (extension != ".xlsx")
+        {
+            return Json(new { success = false, message = "Chỉ hỗ trợ định dạng tệp .xlsx." });
+        }
+
+        var activeYear = await _context.AcademicYears!
+            .AsNoTracking()
+            .FirstOrDefaultAsync(y => y.IsActive);
+
+        var classQuery = _context.Classes!
+            .AsNoTracking()
+            .Where(c => !c.IsDeleted);
+
+        if (activeYear != null)
+        {
+            classQuery = classQuery.Where(c => c.AcademicYearId == activeYear.AcademicYearId);
+        }
+
+        var availableClasses = await classQuery.ToListAsync();
+        if (availableClasses.Count == 0)
+        {
+            return Json(new { success = false, message = "Không tìm thấy lớp học phù hợp để gán cho học sinh." });
+        }
+
+        var existingUsers = await _context.Users
+            .AsNoTracking()
+            .Select(u => new { u.Username, u.Email })
+            .ToListAsync();
+
+        var existingUsernames = new HashSet<string>(existingUsers.Select(u => u.Username), StringComparer.Ordinal);
+        var existingEmails = new HashSet<string>(existingUsers.Select(u => u.Email), StringComparer.OrdinalIgnoreCase);
+        var fileUsernames = new HashSet<string>(StringComparer.Ordinal);
+        var fileEmails = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+
+        List<ExcelUserImportRow> rows;
+        await using (var stream = importFile.OpenReadStream())
+        {
+            rows = UserExcelImportHelper.ReadRows(stream);
+        }
+
+        if (rows.Count == 0)
+        {
+            return Json(new { success = false, message = "File Excel không có dữ liệu hợp lệ." });
+        }
+
+        var validationErrors = new List<string>();
+        var preparedRows = new List<(ExcelUserImportRow Row, Class ClassEntity)>();
+
+        foreach (var row in rows)
+        {
+            var username = row.Username.Trim();
+            var email = row.Email.Trim();
+            var className = row.ClassName.Trim();
+
+            if (string.IsNullOrWhiteSpace(username))
+            {
+                validationErrors.Add($"Dòng {row.RowNumber}: username không được để trống.");
+                continue;
+            }
+
+            if (string.IsNullOrWhiteSpace(email))
+            {
+                validationErrors.Add($"Dòng {row.RowNumber}: email không được để trống.");
+                continue;
+            }
+
+            if (!email.Contains('@'))
+            {
+                validationErrors.Add($"Dòng {row.RowNumber}: email không hợp lệ.");
+                continue;
+            }
+
+            if (!row.BirthDate.HasValue)
+            {
+                validationErrors.Add($"Dòng {row.RowNumber}: ngày sinh không hợp lệ hoặc bị thiếu.");
+                continue;
+            }
+
+            if (string.IsNullOrWhiteSpace(className))
+            {
+                validationErrors.Add($"Dòng {row.RowNumber}: lớp không được để trống.");
+                continue;
+            }
+
+            if (!IsStudentOldEnough(row.BirthDate.Value))
+            {
+                validationErrors.Add($"Dòng {row.RowNumber}: học sinh phải lớn hơn 6 tuổi.");
+                continue;
+            }
+
+            var matchedClass = availableClasses.FirstOrDefault(c => string.Equals(c.ClassName.Trim(), className, StringComparison.OrdinalIgnoreCase));
+            if (matchedClass == null)
+            {
+                validationErrors.Add($"Dòng {row.RowNumber}: không tìm thấy lớp '{className}' trong năm học hiện tại.");
+                continue;
+            }
+
+            if (existingUsernames.Contains(username) || fileUsernames.Contains(username))
+            {
+                validationErrors.Add($"Dòng {row.RowNumber}: username '{username}' đã tồn tại.");
+                continue;
+            }
+
+            if (existingEmails.Contains(email) || fileEmails.Contains(email))
+            {
+                validationErrors.Add($"Dòng {row.RowNumber}: email '{email}' đã tồn tại.");
+                continue;
+            }
+
+            fileUsernames.Add(username);
+            fileEmails.Add(email);
+            preparedRows.Add((row with { Username = username, Email = email, ClassName = className }, matchedClass));
+        }
+
+        if (validationErrors.Count > 0)
+        {
+            return Json(new
+            {
+                success = false,
+                message = "Không thể import do file có dữ liệu không hợp lệ.",
+                errors = validationErrors
+            });
+        }
+
+        await using var transaction = await _context.Database.BeginTransactionAsync();
+        try
+        {
+            var createdUsers = new List<User>();
+            foreach (var item in preparedRows)
+            {
+                var birthDate = item.Row.BirthDate.GetValueOrDefault().Date;
+                var user = new User
+                {
+                    Username = item.Row.Username,
+                    Email = item.Row.Email,
+                    Password = "123456",
+                    BirthDate = birthDate,
+                    IsActive = true,
+                    RoleId = 1
+                };
+
+                _context.Users.Add(user);
+                createdUsers.Add(user);
+            }
+
+            await _context.SaveChangesAsync();
+
+            foreach (var item in preparedRows.Select((value, index) => new { value, index }))
+            {
+                var user = createdUsers[item.index];
+
+                _context.StudentProfiles!.Add(new StudentProfile
+                {
+                    StudentId = user.Id,
+                    Nickname = user.Username,
+                    AvatarUrl = "/images/default-avatar.png",
+                    Level = 1,
+                    XP = 0,
+                    CurrentStreakDays = 0,
+                    LastActiveDate = null
+                });
+
+                _context.ClassEnrollments!.Add(new ClassEnrollment
+                {
+                    ClassId = item.value.ClassEntity.ClassId,
+                    StudentId = user.Id,
+                    EnrolledAt = DateTime.UtcNow
+                });
+            }
+
+            await _context.SaveChangesAsync();
+            await transaction.CommitAsync();
+
+            var adminId = GetCurrentUserId();
+            if (adminId.HasValue)
+            {
+                await _auditLogService.LogActivityAsync(adminId.Value, $"Import Excel tạo {preparedRows.Count} học sinh mới");
+            }
+
+            return Json(new
+            {
+                success = true,
+                importedCount = preparedRows.Count,
+                message = $"Đã import thành công {preparedRows.Count} học sinh."
+            });
+        }
+        catch (Exception ex)
+        {
+            await transaction.RollbackAsync();
+            return Json(new
+            {
+                success = false,
+                message = $"Đã xảy ra lỗi khi import Excel: {ex.Message}"
+            });
+        }
+    }
+
+    [HttpGet]
+    public IActionResult DownloadUserImportTemplate()
+    {
+        var templateBytes = UserExcelImportHelper.CreateTemplate();
+        const string fileName = "user-import-template.xlsx";
+        return File(
+            templateBytes,
+            "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+            fileName);
+    }
+
+    private static bool IsStudentOldEnough(DateTime birthDate)
+    {
+        var today = DateTime.Today;
+        var age = today.Year - birthDate.Year;
+        if (birthDate.Date > today.AddYears(-age))
+        {
+            age--;
+        }
+
+        return age > 6;
     }
 
     private int? GetCurrentUserId()
