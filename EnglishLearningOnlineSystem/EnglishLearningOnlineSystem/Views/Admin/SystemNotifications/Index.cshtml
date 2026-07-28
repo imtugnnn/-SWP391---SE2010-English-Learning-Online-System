@@ -3,15 +3,15 @@
 @model List<EnglishLearningOnlineSystem.Models.SystemNotification>
 
 @{
-    ViewData["Title"] = "ThÃ´ng bÃ¡o há»‡ thá»‘ng";
+    ViewData["Title"] = "Thông báo hệ thống";
     Layout = "~/Views/Shared/Admin/_AdminLayout.cshtml";
 
     // Dynamic stats computation from the model
     var totalCount = Model.Count;
-    var publishedCount = Model.Count(n => n.Status == "ÄÃ£ phÃ¡t hÃ nh");
-    var scheduledCount = Model.Count(n => n.Status == "ÄÃ£ lÃªn lá»‹ch");
-    var draftCount = Model.Count(n => n.Status == "Báº£n nhÃ¡p");
-    var canceledCount = Model.Count(n => n.Status == "ÄÃ£ há»§y");
+    var publishedCount = Model.Count(n => n.Status == "Đã phát hành");
+    var scheduledCount = Model.Count(n => n.Status == "Đã lên lịch");
+    var draftCount = Model.Count(n => n.Status == "Bản nháp");
+    var canceledCount = Model.Count(n => n.Status == "Đã hủy");
 }
 
 @section Styles {
@@ -23,12 +23,12 @@
     <!-- Header Section -->
     <div class="page-header">
         <div class="header-title-section">
-            <h2>ThÃ´ng bÃ¡o há»‡ thá»‘ng</h2>
-            <p>Táº¡o, quáº£n lÃ½ vÃ  phÃ¡t hÃ nh thÃ´ng bÃ¡o tá»›i ngÆ°á»i dÃ¹ng</p>
+            <h2>Thông báo hệ thống</h2>
+            <p>Tạo, quản lý và phát hành thông báo tới người dùng</p>
         </div>
         <button class="btn-add-notification" data-bs-toggle="modal" data-bs-target="#createNotificationModal">
             <i class="bi bi-plus-lg"></i>
-            Táº¡o thÃ´ng bÃ¡o má»›i
+            Tạo thông báo mới
         </button>
     </div>
 
@@ -38,8 +38,8 @@
         <div class="stat-card card-total" onclick="filterByStatus('')">
             <div class="stat-info">
                 <span class="stat-number">@totalCount</span>
-                <span class="stat-label">Tá»•ng thÃ´ng bÃ¡o</span>
-                <span class="stat-link">Xem táº¥t cáº£</span>
+                <span class="stat-label">Tổng thông báo</span>
+                <span class="stat-link">Xem tất cả</span>
             </div>
             <div class="stat-icon-wrapper">
                 <i class="bi bi-send-fill"></i>
@@ -47,11 +47,11 @@
         </div>
 
         <!-- Card 2: Published -->
-        <div class="stat-card card-published" onclick="filterByStatus('ÄÃ£ phÃ¡t hÃ nh')">
+        <div class="stat-card card-published" onclick="filterByStatus('Đã phát hành')">
             <div class="stat-info">
                 <span class="stat-number">@publishedCount</span>
-                <span class="stat-label">ÄÃ£ phÃ¡t hÃ nh</span>
-                <span class="stat-link">Xem chi tiáº¿t</span>
+                <span class="stat-label">Đã phát hành</span>
+                <span class="stat-link">Xem chi tiết</span>
             </div>
             <div class="stat-icon-wrapper">
                 <i class="bi bi-check-circle-fill"></i>
@@ -59,11 +59,11 @@
         </div>
 
         <!-- Card 3: Scheduled -->
-        <div class="stat-card card-scheduled" onclick="filterByStatus('ÄÃ£ lÃªn lá»‹ch')">
+        <div class="stat-card card-scheduled" onclick="filterByStatus('Đã lên lịch')">
             <div class="stat-info">
                 <span class="stat-number">@scheduledCount</span>
-                <span class="stat-label">ÄÃ£ lÃªn lá»‹ch</span>
-                <span class="stat-link">Xem chi tiáº¿t</span>
+                <span class="stat-label">Đã lên lịch</span>
+                <span class="stat-link">Xem chi tiết</span>
             </div>
             <div class="stat-icon-wrapper">
                 <i class="bi bi-clock-fill"></i>
@@ -71,11 +71,11 @@
         </div>
 
         <!-- Card 4: Draft -->
-        <div class="stat-card card-draft" onclick="filterByStatus('Báº£n nhÃ¡p')">
+        <div class="stat-card card-draft" onclick="filterByStatus('Bản nháp')">
             <div class="stat-info">
                 <span class="stat-number">@draftCount</span>
-                <span class="stat-label">Báº£n nhÃ¡p</span>
-                <span class="stat-link">Xem chi tiáº¿t</span>
+                <span class="stat-label">Bản nháp</span>
+                <span class="stat-link">Xem chi tiết</span>
             </div>
             <div class="stat-icon-wrapper">
                 <i class="bi bi-archive-fill"></i>
@@ -83,11 +83,11 @@
         </div>
 
         <!-- Card 5: Canceled -->
-        <div class="stat-card card-canceled" onclick="filterByStatus('ÄÃ£ há»§y')">
+        <div class="stat-card card-canceled" onclick="filterByStatus('Đã hủy')">
             <div class="stat-info">
                 <span class="stat-number">@canceledCount</span>
-                <span class="stat-label">ÄÃ£ há»§y</span>
-                <span class="stat-link">Xem chi tiáº¿t</span>
+                <span class="stat-label">Đã hủy</span>
+                <span class="stat-link">Xem chi tiết</span>
             </div>
             <div class="stat-icon-wrapper">
                 <i class="bi bi-trash-fill"></i>
@@ -99,28 +99,28 @@
     <div class="filter-bar">
         <div class="filter-grid" style="grid-template-columns: 2.5fr 1.2fr 1.5fr 1.8fr auto;">
             <div class="filter-item">
-                <label>TÃ¬m kiáº¿m</label>
+                <label>Tìm kiếm</label>
                 <div class="search-wrapper">
-                    <input type="text" id="searchTitleInput" class="filter-input" placeholder="TÃ¬m theo tiÃªu Ä‘á» hoáº·c ná»™i dung..." oninput="onFilterChange()" />
+                    <input type="text" id="searchTitleInput" class="filter-input" placeholder="Tìm theo tiêu đề hoặc nội dung..." oninput="onFilterChange()" />
                     <i class="bi bi-search search-icon-inside"></i>
                 </div>
             </div>
 
             <div class="filter-item">
-                <label>Tráº¡ng thÃ¡i</label>
+                <label>Trạng thái</label>
                 <select id="statusFilter" class="filter-input form-select" onchange="onFilterChange()">
-                    <option value="">Táº¥t cáº£</option>
-                    <option value="ÄÃ£ phÃ¡t hÃ nh">ÄÃ£ phÃ¡t hÃ nh</option>
-                    <option value="ÄÃ£ lÃªn lá»‹ch">ÄÃ£ lÃªn lá»‹ch</option>
-                    <option value="Báº£n nhÃ¡p">Báº£n nhÃ¡p</option>
-                    <option value="ÄÃ£ há»§y">ÄÃ£ há»§y</option>
+                    <option value="">Tất cả</option>
+                    <option value="Đã phát hành">Đã phát hành</option>
+                    <option value="Đã lên lịch">Đã lên lịch</option>
+                    <option value="Bản nháp">Bản nháp</option>
+                    <option value="Đã hủy">Đã hủy</option>
                 </select>
             </div>
 
             <div class="filter-item">
-                <label>Äá»‘i tÆ°á»£ng nháº­n</label>
+                <label>Đối tượng nhận</label>
                 <select id="recipientFilter" class="filter-input form-select" onchange="onFilterChange()">
-                    <option value="">Táº¥t cáº£</option>
+                    <option value="">Tất cả</option>
                     @if (ViewBag.Roles != null)
                     {
                         @foreach (var role in ViewBag.Roles as List<EnglishLearningOnlineSystem.Models.Role>)
@@ -132,17 +132,17 @@
             </div>
 
             <div class="filter-item">
-                <label>Thá»i gian</label>
+                <label>Thời gian</label>
                 <select id="timeRangeFilter" class="filter-input form-select" onchange="onFilterChange()">
-                    <option value="">Táº¥t cáº£ thá»i gian</option>
-                    <option value="today">HÃ´m nay</option>
-                    <option value="week">Tuáº§n nÃ y</option>
-                    <option value="month">ThÃ¡ng nÃ y</option>
+                    <option value="">Tất cả thời gian</option>
+                    <option value="today">Hôm nay</option>
+                    <option value="week">Tuần này</option>
+                    <option value="month">Tháng này</option>
                 </select>
             </div>
 
             <button class="btn-filter-action btn-reset-filters" onclick="resetAllFilters()">
-                <i class="bi bi-arrow-counterclockwise"></i> LÃ m má»›i
+                <i class="bi bi-arrow-counterclockwise"></i> Làm mới
             </button>
         </div>
     </div>
@@ -157,35 +157,35 @@
                     </th>
                     <th style="width: 38%;">
                         <button type="button" class="sort-trigger" onclick="handleSort('title')">
-                            <span>TiÃªu Ä‘á»</span>
+                            <span>Tiêu đề</span>
                             <i class="bi bi-arrow-down-up sort-icon" data-sort-indicator="title"></i>
                         </button>
                     </th>
                     <th style="width: 18%;">
                         <button type="button" class="sort-trigger" onclick="handleSort('recipient')">
-                            <span>Äá»‘i tÆ°á»£ng nháº­n</span>
+                            <span>Đối tượng nhận</span>
                             <i class="bi bi-arrow-down-up sort-icon" data-sort-indicator="recipient"></i>
                         </button>
                     </th>
                     <th style="width: 14%;">
                         <button type="button" class="sort-trigger" onclick="handleSort('status')">
-                            <span>Tráº¡ng thÃ¡i</span>
+                            <span>Trạng thái</span>
                             <i class="bi bi-arrow-down-up sort-icon" data-sort-indicator="status"></i>
                         </button>
                     </th>
                     <th style="width: 16%;">
                         <button type="button" class="sort-trigger" onclick="handleSort('publishTime')">
-                            <span>Thá»i gian phÃ¡t hÃ nh</span>
+                            <span>Thời gian phát hành</span>
                             <i class="bi bi-arrow-down-up sort-icon" data-sort-indicator="publishTime"></i>
                         </button>
                     </th>
                     <th style="width: 14%;">
                         <button type="button" class="sort-trigger" onclick="handleSort('creator')">
-                            <span>NgÆ°á»i táº¡o</span>
+                            <span>Người tạo</span>
                             <i class="bi bi-arrow-down-up sort-icon" data-sort-indicator="creator"></i>
                         </button>
                     </th>
-                    <th style="width: 10%; text-align: center;">Thao tÃ¡c</th>
+                    <th style="width: 10%; text-align: center;">Thao tác</th>
                 </tr>
             </thead>
             <tbody id="notifications-table-body">
@@ -197,18 +197,18 @@
     <!-- Pagination Row -->
     <div class="pagination-footer">
         <div class="page-size-selector">
-            <span>Hiá»ƒn thá»‹</span>
+            <span>Hiển thị</span>
             <select id="pageSizeSelect" onchange="onPageSizeChange(this.value)">
                 <option value="10">10</option>
                 <option value="20">20</option>
                 <option value="50">50</option>
             </select>
-            <span>má»¥c má»—i trang</span>
+            <span>mục mỗi trang</span>
         </div>
 
         <div class="pagination-nav">
             <span class="pagination-info" id="paginationInfoText">
-                1-10 cá»§a 24
+                1-10 của 24
             </span>
             <div class="pagination-buttons" id="paginationButtons">
                 <!-- Rendered dynamically by JavaScript -->
@@ -222,41 +222,41 @@
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content custom-modal">
             <div class="modal-header">
-                <h5 class="modal-title">Chi tiáº¿t thÃ´ng bÃ¡o há»‡ thá»‘ng</h5>
+                <h5 class="modal-title">Chi tiết thông báo hệ thống</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body">
                 <div class="detail-item">
-                    <span class="detail-label">TiÃªu Ä‘á»</span>
+                    <span class="detail-label">Tiêu đề</span>
                     <div class="detail-val" id="detailTitle" style="font-weight: 700;">-</div>
                 </div>
                 <div class="detail-item">
-                    <span class="detail-label">Ná»™i dung chi tiáº¿t</span>
+                    <span class="detail-label">Nội dung chi tiết</span>
                     <div class="detail-val" id="detailContent" style="white-space: pre-line; background-color: #f8fafc; padding: 12px; border-radius: 8px; border: 1px solid #e2e8f0;">-</div>
                 </div>
                 <div class="detail-item">
-                    <span class="detail-label">Äá»‘i tÆ°á»£ng nháº­n</span>
+                    <span class="detail-label">Đối tượng nhận</span>
                     <div class="detail-val" id="detailRecipient">-</div>
                 </div>
                 <div class="detail-item">
-                    <span class="detail-label">Tráº¡ng thÃ¡i</span>
+                    <span class="detail-label">Trạng thái</span>
                     <div class="detail-val" id="detailStatus">-</div>
                 </div>
                 <div class="detail-item">
-                    <span class="detail-label">Thá»i gian phÃ¡t hÃ nh</span>
+                    <span class="detail-label">Thời gian phát hành</span>
                     <div class="detail-val" id="detailPublishTime">-</div>
                 </div>
                 <div class="detail-item">
-                    <span class="detail-label">NgÆ°á»i táº¡o</span>
+                    <span class="detail-label">Người tạo</span>
                     <div class="detail-val" id="detailCreator">-</div>
                 </div>
                 <div class="detail-item">
-                    <span class="detail-label">Thá»i gian táº¡o</span>
+                    <span class="detail-label">Thời gian tạo</span>
                     <div class="detail-val" id="detailCreatedAt">-</div>
                 </div>
             </div>
             <div class="modal-footer">
-                <button type="button" class="btn-modal-cancel" data-bs-dismiss="modal" style="width: 100%;">ÄÃ³ng</button>
+                <button type="button" class="btn-modal-cancel" data-bs-dismiss="modal" style="width: 100%;">Đóng</button>
             </div>
         </div>
     </div>
@@ -267,34 +267,34 @@
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content custom-modal">
             <div class="modal-header">
-                <h5 class="modal-title">Táº¡o thÃ´ng bÃ¡o há»‡ thá»‘ng má»›i</h5>
+                <h5 class="modal-title">Tạo thông báo hệ thống mới</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <form id="createNotificationForm" onsubmit="submitCreateNotification(event)">
                 @Html.AntiForgeryToken()
                 <div class="modal-body">
                     <div class="mb-3">
-                        <label class="form-label">TiÃªu Ä‘á» *</label>
-                        <input type="text" class="form-control" name="title" id="createTitle" required placeholder="Nháº­p tiÃªu Ä‘á» thÃ´ng bÃ¡o..." />
+                        <label class="form-label">Tiêu đề *</label>
+                        <input type="text" class="form-control" name="title" id="createTitle" required placeholder="Nhập tiêu đề thông báo..." />
                     </div>
                     <div class="mb-3">
-                        <label class="form-label">Ná»™i dung chi tiáº¿t *</label>
-                        <textarea class="form-control" name="content" id="createContent" rows="4" required placeholder="Nháº­p ná»™i dung thÃ´ng bÃ¡o..."></textarea>
+                        <label class="form-label">Nội dung chi tiết *</label>
+                        <textarea class="form-control" name="content" id="createContent" rows="4" required placeholder="Nhập nội dung thông báo..."></textarea>
                     </div>
                     <div class="mb-3">
-                        <label class="form-label d-block">Äá»‘i tÆ°á»£ng nháº­n *</label>
+                        <label class="form-label d-block">Đối tượng nhận *</label>
                         <div class="p-2 border rounded" style="background-color: #f8fafc;">
                             <div class="form-check form-check-inline">
                                 <input class="form-check-input recipient-checkbox" type="checkbox" value="1" id="createRoleStudent">
-                                <label class="form-check-label" for="createRoleStudent">Há»c sinh</label>
+                                <label class="form-check-label" for="createRoleStudent">Học sinh</label>
                             </div>
                             <div class="form-check form-check-inline">
                                 <input class="form-check-input recipient-checkbox" type="checkbox" value="3" id="createRoleTeacher">
-                                <label class="form-check-label" for="createRoleTeacher">GiÃ¡o viÃªn</label>
+                                <label class="form-check-label" for="createRoleTeacher">Giáo viên</label>
                             </div>
                             <div class="form-check form-check-inline">
                                 <input class="form-check-input recipient-checkbox" type="checkbox" value="5" id="createRoleContent">
-                                <label class="form-check-label" for="createRoleContent">Quáº£n trá»‹ ná»™i dung</label>
+                                <label class="form-check-label" for="createRoleContent">Quản trị nội dung</label>
                             </div>
                             <div class="form-check form-check-inline">
                                 <input class="form-check-input recipient-checkbox" type="checkbox" value="2" id="createRoleAdmin">
@@ -303,22 +303,22 @@
                         </div>
                     </div>
                     <div class="mb-3">
-                        <label class="form-label">Tráº¡ng thÃ¡i *</label>
+                        <label class="form-label">Trạng thái *</label>
                         <select class="form-select" name="status" id="createStatus" required onchange="onStatusChange('create')">
-                            <option value="Báº£n nhÃ¡p">Báº£n nhÃ¡p</option>
-                            <option value="ÄÃ£ lÃªn lá»‹ch">ÄÃ£ lÃªn lá»‹ch</option>
-                            <option value="ÄÃ£ phÃ¡t hÃ nh">ÄÃ£ phÃ¡t hÃ nh</option>
+                            <option value="Bản nháp">Bản nháp</option>
+                            <option value="Đã lên lịch">Đã lên lịch</option>
+                            <option value="Đã phát hành">Đã phát hành</option>
                         </select>
                     </div>
                     <div class="mb-3" id="createPublishTimeContainer" style="display:none;">
-                        <label class="form-label">Thá»i gian phÃ¡t hÃ nh *</label>
+                        <label class="form-label">Thời gian phát hành *</label>
                         <input type="datetime-local" class="form-control" name="publishTime" id="createPublishTime" />
                         <div class="validation-error-msg" id="create-error-publishTime" style="display:none;"></div>
                     </div>
                 </div>
                 <div class="modal-footer">
-                    <button type="button" class="btn-modal-cancel" data-bs-dismiss="modal">Há»§y</button>
-                    <button type="submit" class="btn-modal-submit">Táº¡o má»›i</button>
+                    <button type="button" class="btn-modal-cancel" data-bs-dismiss="modal">Hủy</button>
+                    <button type="submit" class="btn-modal-submit">Tạo mới</button>
                 </div>
             </form>
         </div>
@@ -330,7 +330,7 @@
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content custom-modal">
             <div class="modal-header">
-                <h5 class="modal-title">Cáº­p nháº­t thÃ´ng bÃ¡o há»‡ thá»‘ng</h5>
+                <h5 class="modal-title">Cập nhật thông báo hệ thống</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <form id="editNotificationForm" onsubmit="submitEditNotification(event)">
@@ -338,27 +338,27 @@
                 <input type="hidden" name="id" id="editNotificationId" />
                 <div class="modal-body">
                     <div class="mb-3">
-                        <label class="form-label">TiÃªu Ä‘á» *</label>
+                        <label class="form-label">Tiêu đề *</label>
                         <input type="text" class="form-control" name="title" id="editTitle" required />
                     </div>
                     <div class="mb-3">
-                        <label class="form-label">Ná»™i dung chi tiáº¿t *</label>
+                        <label class="form-label">Nội dung chi tiết *</label>
                         <textarea class="form-control" name="content" id="editContent" rows="4" required></textarea>
                     </div>
                     <div class="mb-3">
-                        <label class="form-label d-block">Äá»‘i tÆ°á»£ng nháº­n *</label>
+                        <label class="form-label d-block">Đối tượng nhận *</label>
                         <div class="p-2 border rounded" style="background-color: #f8fafc;">
                             <div class="form-check form-check-inline">
                                 <input class="form-check-input recipient-checkbox" type="checkbox" value="1" id="editRoleStudent">
-                                <label class="form-check-label" for="editRoleStudent">Há»c sinh</label>
+                                <label class="form-check-label" for="editRoleStudent">Học sinh</label>
                             </div>
                             <div class="form-check form-check-inline">
                                 <input class="form-check-input recipient-checkbox" type="checkbox" value="3" id="editRoleTeacher">
-                                <label class="form-check-label" for="editRoleTeacher">GiÃ¡o viÃªn</label>
+                                <label class="form-check-label" for="editRoleTeacher">Giáo viên</label>
                             </div>
                             <div class="form-check form-check-inline">
                                 <input class="form-check-input recipient-checkbox" type="checkbox" value="5" id="editRoleContent">
-                                <label class="form-check-label" for="editRoleContent">Quáº£n trá»‹ ná»™i dung</label>
+                                <label class="form-check-label" for="editRoleContent">Quản trị nội dung</label>
                             </div>
                             <div class="form-check form-check-inline">
                                 <input class="form-check-input recipient-checkbox" type="checkbox" value="2" id="editRoleAdmin">
@@ -367,22 +367,22 @@
                         </div>
                     </div>
                     <div class="mb-3">
-                        <label class="form-label">Tráº¡ng thÃ¡i *</label>
+                        <label class="form-label">Trạng thái *</label>
                         <select class="form-select" name="status" id="editStatus" required onchange="onStatusChange('edit')">
-                            <option value="Báº£n nhÃ¡p">Báº£n nhÃ¡p</option>
-                            <option value="ÄÃ£ lÃªn lá»‹ch">ÄÃ£ lÃªn lá»‹ch</option>
-                            <option value="ÄÃ£ phÃ¡t hÃ nh">ÄÃ£ phÃ¡t hÃ nh</option>
+                            <option value="Bản nháp">Bản nháp</option>
+                            <option value="Đã lên lịch">Đã lên lịch</option>
+                            <option value="Đã phát hành">Đã phát hành</option>
                         </select>
                     </div>
                     <div class="mb-3" id="editPublishTimeContainer" style="display:none;">
-                        <label class="form-label">Thá»i gian phÃ¡t hÃ nh *</label>
+                        <label class="form-label">Thời gian phát hành *</label>
                         <input type="datetime-local" class="form-control" name="publishTime" id="editPublishTime" />
                         <div class="validation-error-msg" id="edit-error-publishTime" style="display:none;"></div>
                     </div>
                 </div>
                 <div class="modal-footer">
-                    <button type="button" class="btn-modal-cancel" data-bs-dismiss="modal">Há»§y</button>
-                    <button type="submit" class="btn-modal-submit" id="editSubmitButton">LÆ°u thay Ä‘á»•i</button>
+                    <button type="button" class="btn-modal-cancel" data-bs-dismiss="modal">Hủy</button>
+                    <button type="submit" class="btn-modal-submit" id="editSubmitButton">Lưu thay đổi</button>
                 </div>
             </form>
         </div>
@@ -412,13 +412,13 @@
 
         function getFriendlyRecipients(recipient) {
             if (!recipient) return '-';
-            if (recipient === 'Táº¥t cáº£ ngÆ°á»i dÃ¹ng' || recipient === '1,2,3,4,5') return 'Táº¥t cáº£ ngÆ°á»i dÃ¹ng';
+            if (recipient === 'Tất cả người dùng' || recipient === '1,2,3,4,5') return 'Tất cả người dùng';
             const textMap = {
-                "1": "Há»c sinh",
+                "1": "Học sinh",
                 "2": "Admin",
-                "3": "GiÃ¡o viÃªn",
-                "4": "Phá»¥ huynh",
-                "5": "Quáº£n trá»‹ ná»™i dung"
+                "3": "Giáo viên",
+                "4": "Phụ huynh",
+                "5": "Quản trị nội dung"
             };
             return recipient.split(',')
                 .map(r => {
@@ -488,22 +488,22 @@
         }
 
         function validateScheduledPublishTime(mode, status, publishTimeValue) {
-            if (status !== 'ÄÃ£ lÃªn lá»‹ch') {
+            if (status !== 'Đã lên lịch') {
                 return { isValid: true, message: '' };
             }
 
             if (!publishTimeValue) {
-                return { isValid: false, message: 'Vui lÃ²ng chá»n thá»i gian phÃ¡t hÃ nh lá»›n hÆ¡n thá»i gian hiá»‡n táº¡i.' };
+                return { isValid: false, message: 'Vui lòng chọn thời gian phát hành lớn hơn thời gian hiện tại.' };
             }
 
             const publishDate = new Date(publishTimeValue);
             if (Number.isNaN(publishDate.getTime())) {
-                return { isValid: false, message: 'Thá»i gian phÃ¡t hÃ nh khÃ´ng há»£p lá»‡.' };
+                return { isValid: false, message: 'Thời gian phát hành không hợp lệ.' };
             }
 
             const now = new Date();
             if (publishDate <= now) {
-                return { isValid: false, message: 'Thá»i gian phÃ¡t hÃ nh pháº£i lá»›n hÆ¡n thá»i gian hiá»‡n táº¡i.' };
+                return { isValid: false, message: 'Thời gian phát hành phải lớn hơn thời gian hiện tại.' };
             }
 
             return { isValid: true, message: '' };
@@ -512,8 +512,8 @@
         // JS logic to compute Recipient and UserType badge based on checkboxes
         const ALL_RECIPIENT_VALUES = ["1", "2", "3", "4", "5"];
         const SINGLE_ROLE_LABELS = {
-            "1": "Há»c sinh",
-            "3": "GiÃ¡o viÃªn"
+            "1": "Học sinh",
+            "3": "Giáo viên"
         };
 
         function computeRecipientAndUserType(mode) {
@@ -532,23 +532,23 @@
             if (selectedValues.length === ALL_RECIPIENT_VALUES.length) {
                 return {
                     recipient: ALL_RECIPIENT_VALUES.join(","),
-                    userType: "Táº¥t cáº£"
+                    userType: "Tất cả"
                 };
             }
 
             return {
                 recipient: selectedValues.join(","),
                 userType: selectedValues.length === 1
-                    ? (SINGLE_ROLE_LABELS[selectedValues[0]] || "Nhiá»u vai trÃ²")
-                    : "Nhiá»u vai trÃ²"
+                    ? (SINGLE_ROLE_LABELS[selectedValues[0]] || "Nhiều vai trò")
+                    : "Nhiều vai trò"
             };
         }
 
-        // Lock inputs if 'ÄÃ£ phÃ¡t hÃ nh' is selected, also handle draft time visibility
+        // Lock inputs if 'Đã phát hành' is selected, also handle draft time visibility
         function onStatusChange(mode) {
             const statusSelect = document.getElementById(mode === 'create' ? 'createStatus' : 'editStatus');
             const status = statusSelect.value;
-            const isPublished = status === 'ÄÃ£ phÃ¡t hÃ nh';
+            const isPublished = status === 'Đã phát hành';
 
             // Elements to lock/unlock
             const titleInput = document.getElementById(mode === 'create' ? 'createTitle' : 'editTitle');
@@ -577,7 +577,7 @@
 
             // Toggle publish time container (hide for Drafts)
             const publishTimeContainer = document.getElementById(mode === 'create' ? 'createPublishTimeContainer' : 'editPublishTimeContainer');
-            if (status === 'Báº£n nhÃ¡p') {
+            if (status === 'Bản nháp') {
                 publishTimeContainer.style.display = 'none';
                 publishTimeInput.removeAttribute('required');
             } else {
@@ -619,14 +619,14 @@
                 let matchRecipient = true;
                 if (recipient) {
                     const textMap = {
-                        "1": "Há»c sinh",
+                        "1": "Học sinh",
                         "2": "Admin",
-                        "3": "GiÃ¡o viÃªn",
-                        "4": "Phá»¥ huynh",
-                        "5": "Quáº£n trá»‹ ná»™i dung"
+                        "3": "Giáo viên",
+                        "4": "Phụ huynh",
+                        "5": "Quản trị nội dung"
                     };
                     const roleName = textMap[recipient] || '';
-                    const isAllUsers = n.recipient === 'Táº¥t cáº£ ngÆ°á»i dÃ¹ng' || n.recipient === '1,2,3,4,5';
+                    const isAllUsers = n.recipient === 'Tất cả người dùng' || n.recipient === '1,2,3,4,5';
                     const parts = n.recipient.split(',').map(r => r.trim());
                     const hasRoleIdOrName = parts.includes(recipient) || (roleName && parts.includes(roleName));
                     matchRecipient = isAllUsers || hasRoleIdOrName;
@@ -718,10 +718,10 @@
 
         function getStatusSortValue(status) {
             const order = {
-                'Báº£n nhÃ¡p': 1,
-                'ÄÃ£ lÃªn lá»‹ch': 2,
-                'ÄÃ£ phÃ¡t hÃ nh': 3,
-                'ÄÃ£ há»§y': 4
+                'Bản nháp': 1,
+                'Đã lên lịch': 2,
+                'Đã phát hành': 3,
+                'Đã hủy': 4
             };
 
             return order[status] ?? 99;
@@ -755,10 +755,10 @@
             // Render pagination footer info
             const total = filteredList.length;
             document.getElementById('paginationInfoText').innerText = 
-                total === 0 ? '0-0 cá»§a 0' : `${startIndex + 1}-${endIndex} cá»§a ${total}`;
+                total === 0 ? '0-0 của 0' : `${startIndex + 1}-${endIndex} của ${total}`;
 
             if (pageItems.length === 0) {
-                tbody.innerHTML = `<tr><td colspan="7" class="text-center py-4 text-muted">KhÃ´ng tÃ¬m tháº¥y thÃ´ng bÃ¡o nÃ o phÃ¹ há»£p.</td></tr>`;
+                tbody.innerHTML = `<tr><td colspan="7" class="text-center py-4 text-muted">Không tìm thấy thông báo nào phù hợp.</td></tr>`;
                 renderPagination();
                 return;
             }
@@ -790,13 +790,13 @@
                 const tdStatus = document.createElement('td');
                 let statusClass = 'status-draft';
                 let statusIcon = 'bi-archive-fill';
-                if (n.status === 'ÄÃ£ phÃ¡t hÃ nh') {
+                if (n.status === 'Đã phát hành') {
                     statusClass = 'status-published';
                     statusIcon = 'bi-check-circle-fill';
-                } else if (n.status === 'ÄÃ£ lÃªn lá»‹ch') {
+                } else if (n.status === 'Đã lên lịch') {
                     statusClass = 'status-scheduled';
                     statusIcon = 'bi-clock-fill';
-                } else if (n.status === 'ÄÃ£ há»§y') {
+                } else if (n.status === 'Đã hủy') {
                     statusClass = 'status-canceled';
                     statusIcon = 'bi-x-circle-fill';
                 }
@@ -817,11 +817,11 @@
                 const tdActions = document.createElement('td');
                 tdActions.style.textAlign = 'center';
                 
-                const viewBtn = `<button class="btn-action btn-action-view" onclick="openDetailsModal(${n.id})" title="Xem chi tiáº¿t"><i class="bi bi-eye"></i></button>`;
-                const editBtn = `<button class="btn-action btn-action-edit" onclick="openEditModal(${n.id})" title="Chá»‰nh sá»­a"><i class="bi bi-pencil"></i></button>`;
+                const viewBtn = `<button class="btn-action btn-action-view" onclick="openDetailsModal(${n.id})" title="Xem chi tiết"><i class="bi bi-eye"></i></button>`;
+                const editBtn = `<button class="btn-action btn-action-edit" onclick="openEditModal(${n.id})" title="Chỉnh sửa"><i class="bi bi-pencil"></i></button>`;
                 
-                // Chỉ khóa nút xóa cho thông báo đã hủy
-                const deleteBtn = `<button class="btn-action btn-action-delete" onclick="deleteNotification(${n.id})" title="Hủy thông báo" ${(n.status === 'Đã hủy') ? 'disabled style="opacity: 0.5; cursor: not-allowed;"' : ''}><i class="bi bi-trash"></i></button>`;
+                // Ch? kh�a n�t x�a cho th�ng b�o d� h?y
+                const deleteBtn = `<button class="btn-action btn-action-delete" onclick="deleteNotification(${n.id})" title="H?y th�ng b�o" ${(n.status === '�� h?y') ? 'disabled style="opacity: 0.5; cursor: not-allowed;"' : ''}><i class="bi bi-trash"></i></button>`;
                 tdActions.innerHTML = `<div class="actions-cell justify-content-center">${viewBtn} ${editBtn} ${deleteBtn}</div>`;
                 tr.appendChild(tdActions);
 
@@ -942,13 +942,13 @@
                 checkboxes.forEach(cb => {
                     const val = cb.value;
                     const textMap = {
-                        "1": "Há»c sinh",
+                        "1": "Học sinh",
                         "2": "Admin",
-                        "3": "GiÃ¡o viÃªn",
-                        "4": "Phá»¥ huynh",
-                        "5": "Quáº£n trá»‹ ná»™i dung"
+                        "3": "Giáo viên",
+                        "4": "Phụ huynh",
+                        "5": "Quản trị nội dung"
                     };
-                    if (recipientsList.includes(val) || (textMap[val] && recipientsList.includes(textMap[val])) || (n.recipient === 'Táº¥t cáº£ ngÆ°á»i dÃ¹ng')) {
+                    if (recipientsList.includes(val) || (textMap[val] && recipientsList.includes(textMap[val])) || (n.recipient === 'Tất cả người dùng')) {
                         cb.checked = true;
                     }
                 });
@@ -968,18 +968,18 @@
             onStatusChange('edit');
 
             // Handle read-only locks for already published/canceled notifications
-            if (n.status === 'ÄÃ£ phÃ¡t hÃ nh') {
+            if (n.status === 'Đã phát hành') {
                 document.getElementById('editStatus').setAttribute('disabled', 'disabled');
                 document.getElementById('editSubmitButton').setAttribute('disabled', 'disabled');
-                document.getElementById('editSubmitButton').innerText = 'KhÃ´ng thá»ƒ chá»‰nh sá»­a (ÄÃ£ phÃ¡t hÃ nh)';
-            } else if (n.status === 'ÄÃ£ há»§y') {
+                document.getElementById('editSubmitButton').innerText = 'Không thể chỉnh sửa (Đã phát hành)';
+            } else if (n.status === 'Đã hủy') {
                 document.getElementById('editStatus').setAttribute('disabled', 'disabled');
                 document.getElementById('editSubmitButton').setAttribute('disabled', 'disabled');
-                document.getElementById('editSubmitButton').innerText = 'KhÃ´ng thá»ƒ chá»‰nh sá»­a (ÄÃ£ há»§y)';
+                document.getElementById('editSubmitButton').innerText = 'Không thể chỉnh sửa (Đã hủy)';
             } else {
                 document.getElementById('editStatus').removeAttribute('disabled');
                 document.getElementById('editSubmitButton').removeAttribute('disabled');
-                document.getElementById('editSubmitButton').innerText = 'LÆ°u thay Ä‘á»•i';
+                document.getElementById('editSubmitButton').innerText = 'Lưu thay đổi';
             }
 
             const modal = new bootstrap.Modal(document.getElementById('editNotificationModal'));
@@ -998,7 +998,7 @@
             const { recipient, userType } = computeRecipientAndUserType('create');
 
             if (!recipient) {
-                alert("Vui lÃ²ng chá»n Ã­t nháº¥t má»™t Ä‘á»‘i tÆ°á»£ng nháº­n.");
+                alert("Vui lòng chọn ít nhất một đối tượng nhận.");
                 return;
             }
 
@@ -1015,7 +1015,7 @@
                 recipient: recipient,
                 userType: userType,
                 status: form.status.value,
-                publishTime: form.status.value === 'Báº£n nhÃ¡p' ? null : publishTimeVal
+                publishTime: form.status.value === 'Bản nháp' ? null : publishTimeVal
             };
 
             fetch('/SystemNotifications/Create', {
@@ -1038,7 +1038,7 @@
             })
             .catch(err => {
                 console.error(err);
-                alert("Lá»—i káº¿t ná»‘i mÃ¡y chá»§.");
+                alert("Lỗi kết nối máy chủ.");
             });
         }
 
@@ -1053,7 +1053,7 @@
             const { recipient, userType } = computeRecipientAndUserType('edit');
 
             if (!recipient) {
-                alert("Vui lÃ²ng chá»n Ã­t nháº¥t má»™t Ä‘á»‘i tÆ°á»£ng nháº­n.");
+                alert("Vui lòng chọn ít nhất một đối tượng nhận.");
                 return;
             }
 
@@ -1075,7 +1075,7 @@
                 recipient: recipient,
                 userType: userType,
                 status: statusVal,
-                publishTime: statusVal === 'Báº£n nhÃ¡p' ? null : publishTimeVal
+                publishTime: statusVal === 'Bản nháp' ? null : publishTimeVal
             };
 
             fetch('/SystemNotifications/Edit', {
@@ -1097,18 +1097,18 @@
             })
             .catch(err => {
                 console.error(err);
-                alert("Lá»—i káº¿t ná»‘i mÃ¡y chá»§.");
+                alert("Lỗi kết nối máy chủ.");
             });
         }
 
         function deleteNotification(id) {
             const n = notifications.find(x => x.id === id);
             if (!n) return;
-            if (n.status === 'ÄÃ£ há»§y') {
-                alert("ThÃ´ng bÃ¡o nÃ y Ä‘Ã£ Ä‘Æ°á»£c há»§y trÆ°á»›c Ä‘Ã³.");
+            if (n.status === 'Đã hủy') {
+                alert("Thông báo này đã được hủy trước đó.");
                 return;
             }
-            if (!confirm("Báº¡n cÃ³ cháº¯c cháº¯n muá»‘n há»§y thÃ´ng bÃ¡o nÃ y khÃ´ng? Tráº¡ng thÃ¡i sáº½ chuyá»ƒn thÃ nh 'ÄÃ£ há»§y'.")) return;
+            if (!confirm("Bạn có chắc chắn muốn hủy thông báo này không? Trạng thái sẽ chuyển thành 'Đã hủy'.")) return;
 
             fetch(`/SystemNotifications/Delete?id=${id}`, {
                 method: 'POST'
@@ -1123,7 +1123,7 @@
             })
             .catch(err => {
                 console.error(err);
-                alert("Lá»—i káº¿t ná»‘i mÃ¡y chá»§.");
+                alert("Lỗi kết nối máy chủ.");
             });
         }
 
@@ -1139,3 +1139,4 @@
         }
     </script>
 }
+
