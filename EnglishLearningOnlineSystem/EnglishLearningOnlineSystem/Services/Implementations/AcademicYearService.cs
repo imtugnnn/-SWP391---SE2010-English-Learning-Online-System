@@ -145,6 +145,8 @@ public class AcademicYearService : IAcademicYearService
 
     public async Task<AcademicYearEditResult> AddClassAsync(int id, AcademicYearEditViewModel vm, int? adminId)
     {
+        vm.NewClass ??= new AddClassViewModel();
+
         var academicYear = await _academicYearRepository.GetAcademicYearByIdAsync(id);
         if (academicYear == null)
         {
@@ -152,31 +154,46 @@ public class AcademicYearService : IAcademicYearService
         }
 
         var result = new AcademicYearEditResult();
-        var teacher = (await _academicYearRepository.GetTeachersAsync())
-            .FirstOrDefault(t => t.Id == vm.NewClass.TeacherId);
+        var classInput = vm.NewClass;
+        var className = classInput.ClassName?.Trim() ?? string.Empty;
+        var gradeLevel = classInput.GradeLevel?.Trim() ?? string.Empty;
 
-        if (teacher == null || teacher.Role?.Name != "Teacher")
+        var teacher = (await _academicYearRepository.GetTeachersAsync())
+            .FirstOrDefault(t => t.Id == classInput.TeacherId);
+
+        if (classInput.TeacherId == null)
+        {
+            result.Errors.Add(new AcademicYearValidationError("NewClass.TeacherId", "Vui lòng chọn giáo viên chủ nhiệm."));
+        }
+        else if (teacher == null || teacher.Role?.Name != "Teacher")
         {
             result.Errors.Add(new AcademicYearValidationError("NewClass.TeacherId", "Vui lòng chọn một giáo viên chủ nhiệm hợp lệ."));
         }
 
-        if (vm.NewClass.ClassName.Contains('\n') || vm.NewClass.ClassName.Contains('\r'))
+        if (string.IsNullOrWhiteSpace(className))
+        {
+            result.Errors.Add(new AcademicYearValidationError("NewClass.ClassName", "Vui lòng nhập tên lớp học."));
+        }
+        else if (className.Contains('\n') || className.Contains('\r'))
         {
             result.Errors.Add(new AcademicYearValidationError("NewClass.ClassName", "Tên lớp học không được chứa ký tự xuống dòng."));
         }
 
-        if (vm.NewClass.GradeLevel.Contains('\n') || vm.NewClass.GradeLevel.Contains('\r'))
+        if (string.IsNullOrWhiteSpace(gradeLevel))
+        {
+            result.Errors.Add(new AcademicYearValidationError("NewClass.GradeLevel", "Vui lòng nhập khối lớp."));
+        }
+        else if (gradeLevel.Contains('\n') || gradeLevel.Contains('\r'))
         {
             result.Errors.Add(new AcademicYearValidationError("NewClass.GradeLevel", "Khối lớp không được chứa ký tự xuống dòng."));
         }
 
-        var className = vm.NewClass.ClassName.Trim();
-        if (await _academicYearRepository.ClassNameExistsAsync(id, className))
+        if (!string.IsNullOrWhiteSpace(className) && await _academicYearRepository.ClassNameExistsAsync(id, className))
         {
             result.Errors.Add(new AcademicYearValidationError("NewClass.ClassName", "Tên lớp học phải là duy nhất trong cùng một năm học."));
         }
 
-        var parsedEmails = ParseEmails(vm.NewClass.StudentEmails, preserveOrder: true);
+        var parsedEmails = ParseEmails(classInput.StudentEmails, preserveOrder: true);
         var duplicateEmails = parsedEmails
             .GroupBy(email => email, StringComparer.OrdinalIgnoreCase)
             .Where(group => group.Count() > 1)
@@ -220,26 +237,26 @@ public class AcademicYearService : IAcademicYearService
 
         if (result.Errors.Count > 0)
         {
-            result.ViewModel = (await GetEditViewModelAsync(id, vm.SelectedClassId, vm.NewClass)).ViewModel;
+            result.ViewModel = (await GetEditViewModelAsync(id, vm.SelectedClassId, classInput)).ViewModel;
             return result;
         }
 
-        var newClass = new Class
+        var newClassEntity = new Class
         {
             AcademicYearId = academicYear.AcademicYearId,
             ClassName = className,
-            GradeLevel = vm.NewClass.GradeLevel.Trim(),
+            GradeLevel = gradeLevel,
             TeacherId = teacher!.Id
         };
 
-        await _academicYearRepository.AddClassAsync(newClass);
+        await _academicYearRepository.AddClassAsync(newClassEntity);
         await _academicYearRepository.SaveChangesAsync();
 
         var enrollments = students
             .Where(s => s.Role?.Name == "Student")
             .Select(s => new ClassEnrollment
             {
-                ClassId = newClass.ClassId,
+                ClassId = newClassEntity.ClassId,
                 StudentId = s.Id
             })
             .ToList();
@@ -255,6 +272,8 @@ public class AcademicYearService : IAcademicYearService
 
     public async Task<AcademicYearEditResult> LoadStudentsFromExcelAsync(int id, AcademicYearEditViewModel vm)
     {
+        vm.NewClass ??= new AddClassViewModel();
+
         var academicYear = await _academicYearRepository.GetAcademicYearByIdAsync(id);
         if (academicYear == null)
         {
@@ -281,9 +300,16 @@ public class AcademicYearService : IAcademicYearService
         }
 
         List<ExcelStudentImportRow> rows;
-        await using (var stream = vm.ImportFile!.OpenReadStream())
+        try
         {
+            await using var stream = vm.ImportFile!.OpenReadStream();
             rows = AcademicYearExcelHelper.ReadRows(stream);
+        }
+        catch (Exception)
+        {
+            result.Errors.Add(new AcademicYearValidationError(string.Empty, "Không thể đọc tệp Excel. Vui lòng kiểm tra lại định dạng file .xlsx và thử lại."));
+            result.ViewModel = (await GetEditViewModelAsync(id, vm.SelectedClassId, vm.NewClass)).ViewModel;
+            return result;
         }
 
         if (rows.Count == 0)
@@ -293,7 +319,10 @@ public class AcademicYearService : IAcademicYearService
             return result;
         }
 
-        var excelEmails = rows.Select(r => r.StudentEmail.Trim()).ToList();
+        var excelEmails = rows
+            .Select(r => r.StudentEmail.Trim())
+            .Distinct(StringComparer.OrdinalIgnoreCase)
+            .ToList();
         var usersInExcel = await _academicYearRepository.GetUsersByEmailsAsync(excelEmails);
 
         var emails = new List<string>();
@@ -421,94 +450,97 @@ public class AcademicYearService : IAcademicYearService
         }
 
         var parsedEmails = ParseEmails(studentEmails, preserveOrder: true);
-        var duplicateEmailsInInput = parsedEmails
-            .GroupBy(email => email, StringComparer.OrdinalIgnoreCase)
-            .Where(group => group.Count() > 1)
-            .Select(group => group.Key)
-            .ToList();
-
-        var emails = parsedEmails
-            .Distinct(StringComparer.OrdinalIgnoreCase)
-            .ToList();
-
-        if (emails.Count == 0)
+        if (parsedEmails.Count == 0)
         {
             return new AcademicYearActionResult { ErrorMessage = "Vui lòng nhập ít nhất một email học sinh." };
         }
 
-        if (duplicateEmailsInInput.Count > 0)
-        {
-            return new AcademicYearActionResult
-            {
-                ErrorMessage = $"Không được phép trùng lặp email nhập vào: {string.Join(", ", duplicateEmailsInInput)}."
-            };
-        }
-
-        var students = await _academicYearRepository.GetUsersByEmailsAsync(emails);
-        var missingEmails = emails
-            .Except(students.Select(s => s.Email), StringComparer.OrdinalIgnoreCase)
+        var distinctEmails = parsedEmails
+            .Distinct(StringComparer.OrdinalIgnoreCase)
             .ToList();
 
-        var invalidStudents = students
-            .Where(s => s.Role?.Name != "Student")
-            .Select(s => s.Email)
+        var students = await _academicYearRepository.GetUsersByEmailsAsync(distinctEmails);
+        var existingEnrollments = classEntity.Enrollments
+            .Select(e => e.Student?.Email)
+            .Where(email => !string.IsNullOrWhiteSpace(email))
             .ToList();
 
-        if (missingEmails.Count > 0)
+        var seenInputEmails = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+        var emailsToAdd = new List<User>();
+        var errors = new List<string>();
+
+        foreach (var email in parsedEmails)
+        {
+            if (!seenInputEmails.Add(email))
+            {
+                errors.Add($"Email '{email}' bị trùng trong danh sách nhập vào, dòng sau đã bị bỏ qua.");
+                continue;
+            }
+
+            var student = students.FirstOrDefault(s => string.Equals(s.Email, email, StringComparison.OrdinalIgnoreCase));
+            if (student == null)
+            {
+                errors.Add($"Email '{email}' không tồn tại trên hệ thống.");
+                continue;
+            }
+
+            if (student.Role?.Name != "Student")
+            {
+                errors.Add($"Tài khoản '{email}' không phải là học sinh.");
+                continue;
+            }
+
+            if (existingEnrollments.Any(existingEmail => string.Equals(existingEmail, email, StringComparison.OrdinalIgnoreCase)))
+            {
+                errors.Add($"Học sinh '{email}' đã có sẵn trong lớp này.");
+                continue;
+            }
+
+            var otherClassEnrollment = await _academicYearRepository.GetOtherClassEnrollmentsByEmailsAsync(id, classId, new[] { email });
+            if (otherClassEnrollment.Count > 0)
+            {
+                var otherClassName = otherClassEnrollment[0].Class?.ClassName ?? "lớp khác";
+                errors.Add($"Học sinh '{email}' đang ở {otherClassName}, không thể thêm vào lớp này.");
+                continue;
+            }
+
+            emailsToAdd.Add(student);
+            existingEnrollments.Add(student.Email);
+        }
+
+        if (emailsToAdd.Count > 0)
+        {
+            var newEnrollments = emailsToAdd
+                .Select(s => new ClassEnrollment
+                {
+                    ClassId = classId,
+                    StudentId = s.Id
+                })
+                .ToList();
+
+            await _academicYearRepository.AddClassEnrollmentsAsync(newEnrollments);
+            await _academicYearRepository.SaveChangesAsync();
+        }
+
+        if (emailsToAdd.Count == 0)
         {
             return new AcademicYearActionResult
             {
-                ErrorMessage = $"Email học sinh không tồn tại trên hệ thống: {string.Join(", ", missingEmails)}."
+                ErrorMessage = errors.Count > 0
+                    ? string.Join(" ", errors)
+                    : "Không có học sinh hợp lệ để thêm vào lớp."
             };
         }
-
-        if (invalidStudents.Count > 0)
-        {
-            return new AcademicYearActionResult
-            {
-                ErrorMessage = $"Các tài khoản này không phải là học sinh: {string.Join(", ", invalidStudents)}."
-            };
-        }
-
-        var existingEnrollments = classEntity.Enrollments.Select(e => e.Student.Email).ToList();
-        var alreadyEnrolled = students
-            .Where(s => existingEnrollments.Any(email => string.Equals(email, s.Email, StringComparison.OrdinalIgnoreCase)))
-            .Select(s => s.Email)
-            .ToList();
-
-        if (alreadyEnrolled.Count > 0)
-        {
-            return new AcademicYearActionResult
-            {
-                ErrorMessage = $"Học sinh đã có sẵn trong lớp này: {string.Join(", ", alreadyEnrolled)}."
-            };
-        }
-
-        var otherClassEnrollments = await _academicYearRepository.GetOtherClassEnrollmentsByEmailsAsync(id, classId, emails);
-        if (otherClassEnrollments.Count > 0)
-        {
-            var details = otherClassEnrollments.Select(e => $"{e.Student.Email} (đang ở lớp {e.Class.ClassName})");
-            return new AcademicYearActionResult
-            {
-                ErrorMessage = $"Các học sinh này đã được phân công vào lớp khác trong năm học này: {string.Join(", ", details)}."
-            };
-        }
-
-        var newEnrollments = students
-            .Select(s => new ClassEnrollment
-            {
-                ClassId = classId,
-                StudentId = s.Id
-            })
-            .ToList();
-
-        await _academicYearRepository.AddClassEnrollmentsAsync(newEnrollments);
-        await _academicYearRepository.SaveChangesAsync();
 
         return new AcademicYearActionResult
         {
-            Success = true,
-            SuccessMessage = $"Đã thêm thành công {newEnrollments.Count} học sinh vào lớp '{classEntity.ClassName}'."
+            Success = errors.Count == 0,
+            SuccessMessage = errors.Count == 0
+                ? $"Đã thêm thành công {emailsToAdd.Count} học sinh vào lớp '{classEntity.ClassName}'."
+                : $"Đã thêm thành công {emailsToAdd.Count} học sinh vào lớp '{classEntity.ClassName}', nhưng một số email bị lỗi: {string.Join(" ", errors)}",
+            ErrorMessage = errors.Count > 0
+                ? $"Đã thêm thành công {emailsToAdd.Count} học sinh vào lớp '{classEntity.ClassName}', nhưng một số email bị lỗi: {string.Join(" ", errors)}"
+                : null
         };
     }
 

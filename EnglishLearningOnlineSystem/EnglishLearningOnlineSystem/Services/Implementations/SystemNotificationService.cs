@@ -65,6 +65,12 @@ public class SystemNotificationService : ISystemNotificationService
             return SystemNotificationServiceResult<object>.Fail("Dữ liệu không hợp lệ.");
         }
 
+        var timeValidation = ValidatePublishTime(vm.Status, vm.PublishTime);
+        if (!timeValidation.isValid)
+        {
+            return SystemNotificationServiceResult<object>.Fail(timeValidation.errorMessage);
+        }
+
         var notification = new SystemNotification
         {
             Title = vm.Title,
@@ -100,6 +106,12 @@ public class SystemNotificationService : ISystemNotificationService
             return SystemNotificationServiceResult<object>.Fail("Thông báo đã phát hành không thể chỉnh sửa.");
         }
 
+        var timeValidation = ValidatePublishTime(vm.Status, vm.PublishTime);
+        if (!timeValidation.isValid)
+        {
+            return SystemNotificationServiceResult<object>.Fail(timeValidation.errorMessage);
+        }
+
         notification.Title = vm.Title;
         notification.Content = vm.Content;
         notification.Recipient = vm.Recipient;
@@ -113,17 +125,32 @@ public class SystemNotificationService : ISystemNotificationService
         return SystemNotificationServiceResult<object>.Ok(null);
     }
 
+    private static (bool isValid, string errorMessage) ValidatePublishTime(string? status, DateTime? publishTime)
+    {
+        if (!string.Equals(status, "Đã lên lịch", StringComparison.Ordinal))
+        {
+            return (true, string.Empty);
+        }
+
+        if (!publishTime.HasValue)
+        {
+            return (false, "Vui lòng chọn thời gian phát hành lớn hơn thời gian hiện tại.");
+        }
+
+        if (publishTime.Value <= DateTime.Now)
+        {
+            return (false, "Thời gian phát hành phải lớn hơn thời gian hiện tại.");
+        }
+
+        return (true, string.Empty);
+    }
+
     public async Task<SystemNotificationServiceResult<object>> DeleteAsync(int id, int? currentAdminId)
     {
         var notification = await _notificationRepository.GetByIdAsync(id);
         if (notification == null)
         {
             return SystemNotificationServiceResult<object>.Fail("Không tìm thấy thông báo.");
-        }
-
-        if (notification.Status == "Đã phát hành")
-        {
-            return SystemNotificationServiceResult<object>.Fail("Không thể hủy thông báo đã phát hành.");
         }
 
         notification.Status = "Đã hủy";

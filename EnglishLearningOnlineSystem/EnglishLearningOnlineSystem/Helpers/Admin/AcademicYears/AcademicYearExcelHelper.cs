@@ -14,6 +14,7 @@ public sealed record ExcelStudentImportRow(
 public static class AcademicYearExcelHelper
 {
     private static readonly XNamespace MainNs = "http://schemas.openxmlformats.org/spreadsheetml/2006/main";
+    private static readonly XNamespace RelNs = "http://schemas.openxmlformats.org/package/2006/relationships";
 
     public static byte[] CreateTemplate()
     {
@@ -36,7 +37,7 @@ public static class AcademicYearExcelHelper
         using var archive = new ZipArchive(xlsxStream, ZipArchiveMode.Read, leaveOpen: true);
 
         var sharedStrings = ReadSharedStrings(archive);
-        var sheet = archive.GetEntry("xl/worksheets/sheet1.xml");
+        var sheet = GetFirstWorksheetEntry(archive);
         if (sheet == null)
         {
             throw new InvalidOperationException("Cannot find worksheet in Excel file.");
@@ -65,6 +66,78 @@ public static class AcademicYearExcelHelper
         }
 
         return rows;
+    }
+
+    private static ZipArchiveEntry? GetFirstWorksheetEntry(ZipArchive archive)
+    {
+        var directSheet = archive.GetEntry("xl/worksheets/sheet1.xml");
+        if (directSheet != null)
+        {
+            return directSheet;
+        }
+
+        var workbookEntry = archive.GetEntry("xl/workbook.xml");
+        var relsEntry = archive.GetEntry("xl/_rels/workbook.xml.rels");
+        if (workbookEntry == null || relsEntry == null)
+        {
+            return null;
+        }
+
+        using var workbookStream = workbookEntry.Open();
+        using var relsStream = relsEntry.Open();
+        var workbookDoc = XDocument.Load(workbookStream);
+        var relsDoc = XDocument.Load(relsStream);
+
+        var firstSheet = workbookDoc.Root?
+            .Element(MainNs + "sheets")?
+            .Elements(MainNs + "sheet")
+            .FirstOrDefault();
+
+        if (firstSheet == null)
+        {
+            return null;
+        }
+
+        var relId = (string?)firstSheet.Attribute(XName.Get("id", "http://schemas.openxmlformats.org/officeDocument/2006/relationships"));
+        if (string.IsNullOrWhiteSpace(relId))
+        {
+            return null;
+        }
+
+        var target = relsDoc.Root?
+            .Elements(RelNs + "Relationship")
+            .FirstOrDefault(rel => string.Equals((string?)rel.Attribute("Id"), relId, StringComparison.OrdinalIgnoreCase))
+            ?.Attribute("Target")?.Value;
+
+        if (string.IsNullOrWhiteSpace(target))
+        {
+            return null;
+        }
+
+        var normalizedTarget = target.Trim().TrimStart('/');
+        var candidatePaths = new[]
+        {
+            normalizedTarget,
+            normalizedTarget.StartsWith("xl/", StringComparison.OrdinalIgnoreCase)
+                ? normalizedTarget
+                : $"xl/{normalizedTarget}",
+            normalizedTarget.StartsWith("worksheets/", StringComparison.OrdinalIgnoreCase)
+                ? $"xl/{normalizedTarget}"
+                : string.Empty
+        }
+        .Where(path => !string.IsNullOrWhiteSpace(path))
+        .Distinct(StringComparer.OrdinalIgnoreCase);
+
+        foreach (var candidate in candidatePaths)
+        {
+            var worksheetEntry = archive.GetEntry(candidate);
+            if (worksheetEntry != null)
+            {
+                return worksheetEntry;
+            }
+        }
+
+        return null;
     }
 
     private static List<string> ReadSharedStrings(ZipArchive archive)

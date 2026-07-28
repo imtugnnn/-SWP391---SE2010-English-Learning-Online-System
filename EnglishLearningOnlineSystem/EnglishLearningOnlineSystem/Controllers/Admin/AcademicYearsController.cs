@@ -76,6 +76,13 @@ public class AcademicYearsController : Controller
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> AddClass(int id, AcademicYearEditViewModel vm)
     {
+        if (!ModelState.IsValid)
+        {
+            var reloadVm = (await _academicYearService.GetEditViewModelAsync(id, vm.SelectedClassId, vm.NewClass)).ViewModel;
+            ViewBag.TeacherId = await _academicYearService.GetTeacherSelectListAsync(reloadVm?.NewClass.TeacherId);
+            return View("~/Views/Admin/AcademicYears/Edit.cshtml", reloadVm ?? vm);
+        }
+
         var result = await _academicYearService.AddClassAsync(id, vm, GetCurrentUserId());
         if (result.NotFound)
         {
@@ -122,12 +129,14 @@ public class AcademicYearsController : Controller
 
         if (!result.Success)
         {
+            ModelState.Remove("NewClass.StudentEmails");
             ApplyValidationErrors(result.Errors);
             var reloadVm = result.ViewModel ?? vm;
             ViewBag.TeacherId = await _academicYearService.GetTeacherSelectListAsync(reloadVm.NewClass.TeacherId);
             return View("~/Views/Admin/AcademicYears/Edit.cshtml", reloadVm);
         }
 
+        ModelState.Remove("NewClass.StudentEmails");
         ViewBag.TeacherId = await _academicYearService.GetTeacherSelectListAsync(result.ViewModel?.NewClass.TeacherId);
         return View("~/Views/Admin/AcademicYears/Edit.cshtml", result.ViewModel ?? vm);
     }

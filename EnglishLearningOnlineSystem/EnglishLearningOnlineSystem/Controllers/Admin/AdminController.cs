@@ -33,13 +33,11 @@ public class AdminController : Controller
 
     public async Task<IActionResult> Dashboard()
     {
-        var userRoleSession = HttpContext.Session.GetString("UserRole");
-        //Nếu người dùng khoông phải là admin, không cho đăng nhập
-        if (userRoleSession != "2")
+        if (!IsAdminSession())
         {
             return RedirectToAction("Login", "Auth");
         }
-        // B1: Gom số liệu từ service/repository để dựng dashboard admin.
+
         var userManagementResult = await _userService.GetUserManagementDataAsync();
         var stats = userManagementResult.Data?.Stats ?? new UserStatsViewModel();
 
@@ -82,13 +80,11 @@ public class AdminController : Controller
 
     public async Task<IActionResult> UserManagement()
     {
-        var userRoleSession = HttpContext.Session.GetString("UserRole");
-        //Nếu người dùng khoông phải là admin, không cho đăng nhập
-        if (userRoleSession != "2")
+        if (!IsAdminSession())
         {
             return RedirectToAction("Login", "Auth");
         }
-        // B1: Load data cho màn quản lý user trước khi render view.
+
         var result = await _userService.GetUserManagementDataAsync();
         var roles = await _roleService.GetAllAsync();
         var activeYear = (await _academicYearRepository.GetActiveAcademicYearsAsync()).FirstOrDefault();
@@ -101,10 +97,93 @@ public class AdminController : Controller
     }
 
     [HttpPost]
+    public async Task<IActionResult> CreateUser([FromBody] UserCreateViewModel vm)
+    {
+        if (!IsAdminSession())
+        {
+            return Json(new { success = false, message = "Bạn không có quyền thực hiện thao tác này." });
+        }
+
+        if (vm == null || !ModelState.IsValid)
+        {
+            return Json(new { success = false, message = "Dữ liệu không hợp lệ." });
+        }
+
+        var result = await _userService.CreateAsync(vm);
+        return result.Succeeded
+            ? Json(new { success = true })
+            : Json(new { success = false, message = result.ErrorMessage });
+    }
+
+    [HttpPost]
+    public async Task<IActionResult> EditUser([FromBody] UserEditViewModel vm)
+    {
+        if (!IsAdminSession())
+        {
+            return Json(new { success = false, message = "Bạn không có quyền thực hiện thao tác này." });
+        }
+
+        if (vm == null || !ModelState.IsValid)
+        {
+            return Json(new { success = false, message = "Dữ liệu không hợp lệ." });
+        }
+
+        var result = await _userService.UpdateAsync(vm);
+        return result.Succeeded
+            ? Json(new { success = true })
+            : Json(new { success = false, message = result.ErrorMessage });
+    }
+
+    [HttpPost]
+    public async Task<IActionResult> ToggleUserStatus(int id)
+    {
+        if (!IsAdminSession())
+        {
+            return Json(new { success = false, message = "Bạn không có quyền thực hiện thao tác này." });
+        }
+
+        var userResult = await _userService.GetByIdAsync(id);
+        if (!userResult.Succeeded || userResult.Data == null)
+        {
+            return Json(new { success = false, message = userResult.ErrorMessage ?? "Không tìm thấy người dùng." });
+        }
+
+        var user = userResult.Data;
+        var updateVm = new UserEditViewModel
+        {
+            Id = user.Id,
+            Username = user.Username,
+            Email = user.Email,
+            Password = null,
+            BirthDate = user.BirthDate,
+            IsActive = !user.IsActive,
+            RoleId = user.RoleId
+        };
+
+        var updateResult = await _userService.UpdateAsync(updateVm);
+        return updateResult.Succeeded
+            ? Json(new { success = true, isActive = updateVm.IsActive })
+            : Json(new { success = false, message = updateResult.ErrorMessage });
+    }
+
+    [HttpPost]
+    public async Task<IActionResult> DeleteUser(int id)
+    {
+        if (!IsAdminSession())
+        {
+            return Json(new { success = false, message = "Bạn không có quyền thực hiện thao tác này." });
+        }
+
+        var result = await _userService.DeleteAsync(id);
+        return result.Succeeded
+            ? Json(new { success = true })
+            : Json(new { success = false, message = result.ErrorMessage });
+    }
+
+    [HttpPost]
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> ImportUsersFromExcel(IFormFile importFile)
     {
-        // B2: Endpoint này nhận file từ form JS fetch() rồi đẩy xuống service import.
         var result = await _userImportService.ImportUsersFromExcelAsync(importFile);
 
         return Json(new
@@ -119,12 +198,16 @@ public class AdminController : Controller
     [HttpGet]
     public IActionResult DownloadUserImportTemplate()
     {
-        // B1: Tạo file mẫu Excel để admin tải về.
         var templateBytes = UserExcelImportHelper.CreateTemplate();
         const string fileName = "user-import-template.xlsx";
         return File(
             templateBytes,
             "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
             fileName);
+    }
+
+    private bool IsAdminSession()
+    {
+        return HttpContext.Session.GetString("UserRole") == "2";
     }
 }

@@ -141,11 +141,35 @@ public class AcademicYearRepository : IAcademicYearRepository
 
     public async Task<List<User>> GetUsersByEmailsAsync(IEnumerable<string> emails)
     {
-        return await _context.Users
-            .AsNoTracking()
-            .Include(u => u.Role)
-            .Where(u => emails.Contains(u.Email))
-            .ToListAsync();
+        var normalizedEmails = emails
+            .Where(email => !string.IsNullOrWhiteSpace(email))
+            .Select(email => email.Trim())
+            .Distinct(StringComparer.OrdinalIgnoreCase)
+            .ToList();
+
+        if (normalizedEmails.Count == 0)
+        {
+            return new List<User>();
+        }
+
+        const int batchSize = 1000;
+        var results = new List<User>();
+
+        foreach (var batch in normalizedEmails.Chunk(batchSize))
+        {
+            var batchResults = await _context.Users
+                .AsNoTracking()
+                .Include(u => u.Role)
+                .Where(u => batch.Contains(u.Email))
+                .ToListAsync();
+
+            results.AddRange(batchResults);
+        }
+
+        return results
+            .GroupBy(user => user.Email, StringComparer.OrdinalIgnoreCase)
+            .Select(group => group.First())
+            .ToList();
     }
 
     public async Task<List<ClassEnrollment>> GetClassEnrollmentsAsync(int classId)
