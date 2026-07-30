@@ -22,6 +22,7 @@
         System
     </div>
 
+    @* Form này POST về /login để AuthController.Login xử lý *@
     <form asp-action="Login" method="post">
         @if (TempData["Message"] != null)
         {
@@ -40,9 +41,11 @@
             <span asp-validation-for="Password" class="text-danger"></span>
         </div>
 
-        <!-- Post /login -> -->
+        <!-- Post /login -> Gọi AuthController.Login()-->
         <button type="submit" class="btn-login">Đăng nhập</button>
+        @* Nút này đi vào AuthController.GoogleLogin rồi nhảy sang Google OAuth *@
         <a class="btn-google" asp-action="GoogleLogin">Đăng nhập với Google</a>
+        @* Link này mở màn hình forgot password, sau đó controller gọi service tạo token *@
         <a class="register-link" asp-action="ForgotPassword">Quên mật khẩu?</a>
     </form>
 </div>

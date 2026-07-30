@@ -8,7 +8,6 @@
     DateTime? startAt = ViewBag.StartAt;
     bool isScheduled = ViewBag.IsScheduled;
     bool isMaintenanceActive = ViewBag.IsMaintenanceActive;
-    var auditLogs = ViewBag.AuditLogs as List<EnglishLearningOnlineSystem.Models.AuditLog>;
 }
 
 @section Styles {
@@ -40,8 +39,8 @@
     }
 
     <div class="row g-4">
-        <!-- Cột trái: Trạng thái và Thao tác -->
-        <div class="col-lg-6">
+        <!-- Cột duy nhất: Trạng thái và Thao tác -->
+        <div class="col-12">
             <div class="card status-card h-100 shadow-sm border-0">
                 <div class="card-body p-4">
                     <h4 class="card-title d-flex align-items-center mb-4">
@@ -161,58 +160,6 @@
                             </form>
                         }
                     </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- Cột phải: Lịch sử bảo trì gần đây -->
-        <div class="col-lg-6">
-            <div class="card history-card h-100 shadow-sm border-0">
-                <div class="card-body p-4">
-                    <h4 class="card-title d-flex align-items-center mb-4">
-                        <i class="bi bi-clock-history text-success me-2"></i> Lịch sử bảo trì gần đây
-                    </h4>
-
-                    @if (auditLogs == null || auditLogs.Count == 0)
-                    {
-                        <div class="text-center py-5 text-muted">
-                            <i class="bi bi-clipboard-data fs-1 mb-2"></i>
-                            <p class="mb-0">Chưa ghi nhận hoạt động bảo trì nào trong nhật ký.</p>
-                        </div>
-                    }
-                    else
-                    {
-                        <div class="table-responsive">
-                            <table class="table table-hover align-middle">
-                                <thead>
-                                    <tr>
-                                        <th>Thời gian</th>
-                                        <th>Người thực hiện</th>
-                                        <th>Hành động</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    @foreach (var log in auditLogs)
-                                    {
-                                        <tr>
-                                            <td class="text-nowrap small text-muted">
-                                                @log.Timestamp.AddHours(7).ToString("dd/MM/yyyy HH:mm:ss")
-                                            </td>
-                                            <td>
-                                                <div class="fw-bold">@log.Username</div>
-                                                <div class="text-muted small">@log.UserRole</div>
-                                            </td>
-                                            <td>
-                                                <span class="badge @(log.Action.Contains("Bắt đầu") || log.Action.Contains("ngay lập tức") ? "bg-danger" : log.Action.Contains("Lên lịch") ? "bg-primary" : log.Action.Contains("Hủy") ? "bg-secondary" : "bg-success")">
-                                                    @log.Action
-                                                </span>
-                                            </td>
-                                        </tr>
-                                    }
-                                </tbody>
-                            </table>
-                        </div>
-                    }
                 </div>
             </div>
         </div>

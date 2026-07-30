@@ -972,6 +972,7 @@
 
             const token = form.querySelector('input[name="__RequestVerificationToken"]').value;
 
+            // B2: JS gọi endpoint admin để tạo user mới, backend sẽ xử lý ở controller/service.
             fetch('/Admin/CreateUser', {
                 method: 'POST',
                 headers: {
@@ -1061,6 +1062,7 @@
 
             const token = form.querySelector('input[name="__RequestVerificationToken"]').value;
 
+            // B2: JS gửi dữ liệu cập nhật sang endpoint edit của admin.
             fetch('/Admin/EditUser', {
                 method: 'POST',
                 headers: {
@@ -1108,6 +1110,7 @@
             const token = form.querySelector('input[name="__RequestVerificationToken"]').value;
             const formData = new FormData(form);
 
+            // B2: Upload file Excel lên controller admin để import hàng loạt.
             fetch('/Admin/ImportUsersFromExcel', {
                 method: 'POST',
                 headers: {
@@ -1143,6 +1146,7 @@
                 alert("Không được phép thay đổi trạng thái tài khoản Admin.");
                 return;
             }
+            // B2: Gọi endpoint lock/unlock tài khoản.
             fetch(`/Admin/ToggleUserStatus?id=${id}`, {
                 method: 'POST'
             })
@@ -1176,6 +1180,7 @@
                 return;
             }
 
+            // B2: Gọi endpoint xóa user trên backend.
             fetch(`/Admin/DeleteUser?id=${id}`, {
                 method: 'POST'
             })

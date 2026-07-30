@@ -2,8 +2,6 @@ using EnglishLearningOnlineSystem.Data;
 using EnglishLearningOnlineSystem.Services.Interfaces;
 using EnglishLearningOnlineSystem.ViewModels.ContentManager.Courses;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
-using EnglishLearningOnlineSystem.Models;
 using System;
 
 namespace EnglishLearningOnlineSystem.Controllers.ContentManager;
@@ -59,23 +57,6 @@ public class CoursesController : BaseContentManagerController
         {
             ModelState.AddModelError(string.Empty, errorMessage ?? "Không thể tạo khoá học.");
             return View("~/Views/ContentManager/Courses/Create.cshtml", model);
-        }
-
-        if (creatorId.HasValue)
-        {
-            var user = await _db.Users.Include(u => u.Role).FirstOrDefaultAsync(u => u.Id == creatorId.Value);
-            if (user != null)
-            {
-                _db.AuditLogs.Add(new AuditLog
-                {
-                    UserId = creatorId,
-                    Username = user.Username,
-                    UserRole = user.Role?.Name ?? "Content Manager",
-                    Action = $"Tạo khóa học '{model.CourseName}' (Khối: {model.GradeLevel})",
-                    Timestamp = DateTime.UtcNow
-                });
-                await _db.SaveChangesAsync();
-            }
         }
 
         TempData["SuccessMessage"] = "Tạo khoá học thành công.";

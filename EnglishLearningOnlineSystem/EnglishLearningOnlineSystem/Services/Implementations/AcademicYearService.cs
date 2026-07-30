@@ -12,12 +12,10 @@ namespace EnglishLearningOnlineSystem.Services.Implementations;
 public class AcademicYearService : IAcademicYearService
 {
     private readonly IAcademicYearRepository _academicYearRepository;
-    private readonly IAuditLogService _auditLogService;
 
-    public AcademicYearService(IAcademicYearRepository academicYearRepository, IAuditLogService auditLogService)
+    public AcademicYearService(IAcademicYearRepository academicYearRepository)
     {
         _academicYearRepository = academicYearRepository;
-        _auditLogService = auditLogService;
     }
 
     public async Task<List<AcademicYearListItemViewModel>> GetAcademicYearsAsync()
@@ -95,13 +93,6 @@ public class AcademicYearService : IAcademicYearService
 
         await _academicYearRepository.AddAcademicYearAsync(academicYear);
         await _academicYearRepository.SaveChangesAsync();
-
-        if (adminId.HasValue)
-        {
-            await _auditLogService.LogActivityAsync(
-                adminId.Value,
-                $"Tạo năm học mới: {academicYear.YearLabel} ({academicYear.StartDate:dd/MM/yyyy} - {academicYear.EndDate:dd/MM/yyyy})");
-        }
 
         result.Success = true;
         result.AcademicYearId = academicYear.AcademicYearId;
@@ -256,13 +247,6 @@ public class AcademicYearService : IAcademicYearService
         await _academicYearRepository.AddClassEnrollmentsAsync(enrollments);
         await _academicYearRepository.SaveChangesAsync();
 
-        if (adminId.HasValue)
-        {
-            await _auditLogService.LogActivityAsync(
-                adminId.Value,
-                $"Thêm lớp học '{newClass.ClassName}' (Khối: {newClass.GradeLevel}) vào năm học '{academicYear.YearLabel}' với {enrollments.Count} học sinh");
-        }
-
         result.Success = true;
         result.SuccessMessage = "Thêm lớp học thành công.";
         result.ViewModel = (await GetEditViewModelAsync(id, null, new AddClassViewModel())).ViewModel;
@@ -376,11 +360,6 @@ public class AcademicYearService : IAcademicYearService
         academicYear.IsActive = true;
         await _academicYearRepository.SaveChangesAsync();
 
-        if (adminId.HasValue)
-        {
-            await _auditLogService.LogActivityAsync(adminId.Value, $"Kích hoạt năm học: {academicYear.YearLabel}");
-        }
-
         return new AcademicYearActionResult
         {
             Success = true,
@@ -398,11 +377,6 @@ public class AcademicYearService : IAcademicYearService
 
         classEntity.IsDeleted = true;
         await _academicYearRepository.SaveChangesAsync();
-
-        if (adminId.HasValue)
-        {
-            await _auditLogService.LogActivityAsync(adminId.Value, $"Xóa lớp học '{classEntity.ClassName}' khỏi năm học (ID: {id})");
-        }
 
         return new AcademicYearActionResult
         {
@@ -430,11 +404,6 @@ public class AcademicYearService : IAcademicYearService
 
         classEntity.IsDeleted = false;
         await _academicYearRepository.SaveChangesAsync();
-
-        if (adminId.HasValue)
-        {
-            await _auditLogService.LogActivityAsync(adminId.Value, $"Khôi phục lớp học '{classEntity.ClassName}' trong năm học (ID: {id})");
-        }
 
         return new AcademicYearActionResult
         {
@@ -503,7 +472,7 @@ public class AcademicYearService : IAcademicYearService
 
         var existingEnrollments = classEntity.Enrollments.Select(e => e.Student.Email).ToList();
         var alreadyEnrolled = students
-            .Where(s => existingEnrollments.Contains(s.Email, StringComparer.OrdinalIgnoreCase))
+            .Where(s => existingEnrollments.Any(email => string.Equals(email, s.Email, StringComparison.OrdinalIgnoreCase)))
             .Select(s => s.Email)
             .ToList();
 
@@ -536,11 +505,6 @@ public class AcademicYearService : IAcademicYearService
         await _academicYearRepository.AddClassEnrollmentsAsync(newEnrollments);
         await _academicYearRepository.SaveChangesAsync();
 
-        if (adminId.HasValue)
-        {
-            await _auditLogService.LogActivityAsync(adminId.Value, $"Thêm {newEnrollments.Count} học sinh vào lớp '{classEntity.ClassName}' trong năm học (ID: {id})");
-        }
-
         return new AcademicYearActionResult
         {
             Success = true,
@@ -570,11 +534,6 @@ public class AcademicYearService : IAcademicYearService
 
         await _academicYearRepository.RemoveClassEnrollmentAsync(enrollment);
         await _academicYearRepository.SaveChangesAsync();
-
-        if (adminId.HasValue)
-        {
-            await _auditLogService.LogActivityAsync(adminId.Value, $"Xóa học sinh '{studentEmail}' khỏi lớp '{classEntity.ClassName}' (ID: {classId}) trong năm học (ID: {id})");
-        }
 
         return new AcademicYearActionResult
         {

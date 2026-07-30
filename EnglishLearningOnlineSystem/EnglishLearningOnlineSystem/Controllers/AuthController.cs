@@ -48,6 +48,7 @@ public class AuthController : Controller
     [HttpGet("/login")]
     public IActionResult Login()
     {
+        // B1: Chỉ render màn hình đăng nhập, chưa xử lý nghiệp vụ.
         return View(new LoginViewModel());
     }
 
@@ -60,7 +61,8 @@ public class AuthController : Controller
             return View(model);
         }
 
-        var result = await _authService.LoginAsync(model); //Gọi LoginAsync từ AuthService
+        // B2: Form POST /login -> controller -> service xác thực tài khoản.
+        var result = await _authService.LoginAsync(model); 
 
         if (!result.Succeeded)
         {
@@ -71,12 +73,12 @@ public class AuthController : Controller
         if (user != null)
         {
             // BR-21: Successful login grants permissions according to the assigned role.
-            //Lưu cả userid và userrole vào session
+            // B3: Đăng nhập thành công thì lưu thông tin nhận diện user vào Session.
             HttpContext.Session.SetString("UserId", user.Id.ToString()); 
             HttpContext.Session.SetString("UserRole", user.RoleId.ToString());
         }
 
-        //Chuyển sang function RedirectByRole ở trong controller
+        // B4: Điều hướng sang dashboard tương ứng với role. Điều hướng sang AuthController.RedirectByRole().
         return RedirectByRole(user);
     }
 
@@ -106,6 +108,7 @@ public class AuthController : Controller
         var displayName = User.FindFirstValue(ClaimTypes.Name);
         var avatarUrl = User.FindFirstValue("urn:google:picture") ?? User.FindFirstValue("picture");
 
+        // B2: Sau khi Google trả callback, controller chuyển dữ liệu sang service để kiểm tra/tạo user.
         var (result, user) = await _authService.LoginWithGoogleAsync(email, displayName, avatarUrl);
 
         if (!result.Succeeded || user == null)
@@ -170,6 +173,7 @@ public class AuthController : Controller
         HttpContext.Session.Remove("PendingGoogleName");
         HttpContext.Session.Remove("PendingGoogleAvatar");
         // BR-21: Successful login grants permissions according to the assigned role.
+        // B3: Lưu Session giống luồng login thường để các màn hình khác đọc quyền.
         HttpContext.Session.SetString("UserId", user.Id.ToString());
         HttpContext.Session.SetString("UserRole", user.RoleId.ToString());
 
@@ -193,6 +197,7 @@ public class AuthController : Controller
 
         try
         {
+            // B2: Yêu cầu quên mật khẩu -> service tạo token và gửi email reset.
             await _passwordResetService.RequestPasswordResetAsync(model, token =>
                 Url.Action(nameof(ResetPassword), "Auth", new { token }, Request.Scheme)!);
         }
@@ -219,6 +224,7 @@ public class AuthController : Controller
             return RedirectToAction(nameof(Login));
         }
 
+        // B1: Mở form reset password với token lấy từ link email.
         return View(new ResetPasswordViewModel { Token = token });
     }
 
@@ -253,6 +259,7 @@ public class AuthController : Controller
             return View(model);
         }
 
+        // B2: Form reset password -> service kiểm tra token và cập nhật mật khẩu.
         var result = await _passwordResetService.ResetPasswordAsync(model);
         if (!result.Succeeded)
         {
@@ -265,6 +272,7 @@ public class AuthController : Controller
 
     private async Task<List<SelectListItem>> LoadRoleOptionsAsync()
     {
+        // B1: Lấy danh sách role cho màn hình hoàn tất Google login.
         var roles = await _authService.GetRegistrationRolesAsync();
 
         return roles
@@ -299,6 +307,7 @@ public class AuthController : Controller
     //Dẫn người dùng đến dashboard tương ứng vơi role
     private IActionResult RedirectByRole(Models.User? user)
     {
+        // B4: Route đích phụ thuộc vào role vừa đăng nhập.
         return user?.RoleId switch
         {
             1 => RedirectToAction(nameof(StudentController.Onboarding), "Student"),
