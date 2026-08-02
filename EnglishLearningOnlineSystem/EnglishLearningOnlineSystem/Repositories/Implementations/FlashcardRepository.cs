@@ -14,7 +14,10 @@ public class FlashcardRepository : IFlashcardRepository
         _db = db;
     }
 
-    public async Task<List<Vocabulary>> GetVocabularyByLessonAsync(int lessonId, int studentId)
+    public async Task<List<Vocabulary>> GetVocabularyByLessonAsync(
+        int lessonId,
+        int studentId,
+        int? assignmentId = null)
     {
         var assignment = await _db.WeeklyAssignments!
             .AsNoTracking()
@@ -22,6 +25,7 @@ public class FlashcardRepository : IFlashcardRepository
             .Where(x =>
                 x.LessonId == lessonId &&
                 x.IsVisible &&
+                (!assignmentId.HasValue || x.AssignmentId == assignmentId.Value) &&
                 x.ClassId.HasValue &&
                 _db.ClassEnrollments!.Any(e =>
                     e.ClassId == x.ClassId.Value && e.StudentId == studentId))
@@ -43,6 +47,11 @@ public class FlashcardRepository : IFlashcardRepository
                 .Where(v => v.LessonId == lessonId && selectedIds.Contains(v.VocabularyId))
                 .OrderBy(v => v.VocabularyId)
                 .ToListAsync();
+        }
+
+        if (assignmentId.HasValue)
+        {
+            return new List<Vocabulary>();
         }
 
         return await _db.Vocabularies!

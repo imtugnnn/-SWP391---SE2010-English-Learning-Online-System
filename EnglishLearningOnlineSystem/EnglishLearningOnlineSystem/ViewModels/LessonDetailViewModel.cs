@@ -3,6 +3,8 @@ namespace EnglishLearningOnlineSystem.ViewModels;
 // ViewModel hiển thị chi tiết bài học và tiến độ học tập của học sinh
 public class LessonDetailViewModel
 {
+    public int? AssignmentId { get; set; }
+
     // Thông tin bài học
     public int LessonId { get; set; }
     public string Title { get; set; } = string.Empty;

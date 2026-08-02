@@ -1,7 +1,7 @@
 @model EnglishLearningOnlineSystem.ViewModels.LessonDetailViewModel
 @{
     ViewData["Title"] = Model.Title;
-    ViewData["ActiveNav"] = "courses";
+    ViewData["ActiveNav"] = Model.AssignmentId.HasValue ? "lessons" : "courses";
     Layout = "_StudentLayout";
 
     var hasVocab = Model.Vocabularies.Any();
@@ -526,7 +526,14 @@
 }
 
 <!-- Back -->
-<a href="/student/courses/@(ViewBag.CourseId ?? "")" class="back-btn">← Quay lại khoá học</a>
+@if (Model.AssignmentId.HasValue)
+{
+    <a asp-controller="Student" asp-action="Lessons" class="back-btn">← Quay lại bài được giao</a>
+}
+else
+{
+    <a href="/student/courses/@(ViewBag.CourseId ?? "")" class="back-btn">← Quay lại khoá học</a>
+}
 
 <!-- Hero -->
 <div class="lesson-hero">
@@ -537,6 +544,10 @@
             @if (!string.IsNullOrEmpty(Model.Topic))
             {
                 <span class="hero-tag">@Model.Topic</span>
+            }
+            @if (Model.AssignmentId.HasValue)
+            {
+                <span class="hero-tag">Bài giáo viên giao</span>
             }
             <span class="hero-tag">@Model.EstimatedMinutes phút</span>
             <span class="hero-tag">+@Model.XPReward XP</span>
@@ -594,7 +605,13 @@
 <div class="activities-grid">
 
     <!-- Flashcard -->
-    <a href="@(hasVocab ? $"/student/lesson/{Model.LessonId}/flashcards" : "#")"
+    <a href="@(hasVocab
+        ? Url.Action("Flashcards", "Student", new
+        {
+            lessonId = Model.LessonId,
+            assignmentId = Model.AssignmentId
+        })
+        : "#")"
        class="activity-card flashcard @(!hasVocab ? "disabled" : "")">
         <div class="ac-icon">🃏</div>
         <div class="ac-body">
@@ -620,7 +637,13 @@
     </a>
 
     <!-- Quiz -->
-    <a href="@(hasQuiz ? $"/student/lesson/{Model.LessonId}/quiz" : "#")"
+    <a href="@(hasQuiz
+        ? Url.Action("TakeQuiz", "Student", new
+        {
+            lessonId = Model.LessonId,
+            assignmentId = Model.AssignmentId
+        })
+        : "#")"
        class="activity-card quiz @(!hasQuiz ? "disabled" : "")">
         <div class="ac-icon"></div>
         <div class="ac-body">
@@ -708,7 +731,7 @@
                 _ => $"/student/minigame/{g.GameId}"   // mở rộng sau
             };
 
-            <a href="@playUrl" class="mg-row @(g.IsDone ? "done-row" : "")">
+            <div class="mg-row @(g.IsDone ? "done-row" : "")">
                 <div class="mg-icon @(g.IsDone ? "mg-icon-done" : "mg-icon-pending")">
                     @mgEmoji
                 </div>
@@ -720,19 +743,19 @@
                 @if (g.IsDone)
                 {
                     <span class="mg-done-pill">✓ Đã chơi</span>
-                    <a href="@playUrl" class="mg-replay-btn" onclick="event.stopPropagation()">
+                    <a href="@playUrl" class="mg-replay-btn">
                         Chơi lại
                     </a>
                 }
                 else
                 {
-                    <a href="@playUrl" class="mg-play-btn" onclick="event.stopPropagation()">
+                    <a href="@playUrl" class="mg-play-btn">
                         Chơi ngay →
                     </a>
                 }
 
                 <span class="mg-xp">+@g.XPReward XP</span>
-            </a>
+            </div>
         }
     </div>
 }

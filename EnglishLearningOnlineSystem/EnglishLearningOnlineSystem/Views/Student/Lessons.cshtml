@@ -4,10 +4,10 @@
     ViewData["ActiveNav"] = "lessons";
     Layout = "_StudentLayout";
 
-    var total = Model.Lessons.Count;
-    var completed = Model.Lessons.Count(l => l.CompletionStatus == "Completed");
-    var inProg = Model.Lessons.Count(l => l.CompletionStatus == "In Progress");
-    var overdue = Model.Lessons.Count(l => l.IsOverdue);
+    var total = Model.TotalCount;
+    var completed = Model.CompletedCount;
+    var inProg = Model.InProgressCount;
+    var overdue = Model.OverdueCount;
 }
 
 @section Styles {
@@ -293,9 +293,10 @@
 <!-- Filter tabs -->
 <div class="filter-tabs">
     <a href="/student/lessons" class="tab-btn @(Model.FilterStatus == "" ? "active" : "")">Tất cả (@total)</a>
-    <a href="/student/lessons?status=NOT_STARTED" class="tab-btn @(Model.FilterStatus == "NOT_STARTED" ? "active" : "")">Chưa học</a>
-    <a href="/student/lessons?status=In Progress" class="tab-btn @(Model.FilterStatus == "In Progress" ? "active" : "")">Đang học</a>
-    <a href="/student/lessons?status=Completed" class="tab-btn @(Model.FilterStatus == "Completed" ? "active" : "")">Hoàn thành</a>
+    <a href="/student/lessons?status=NOT_STARTED" class="tab-btn @(Model.FilterStatus == "NOT_STARTED" ? "active" : "")">Chưa học (@Model.NotStartedCount)</a>
+    <a href="/student/lessons?status=In Progress" class="tab-btn @(Model.FilterStatus == "In Progress" ? "active" : "")">Đang học (@inProg)</a>
+    <a href="/student/lessons?status=Completed" class="tab-btn @(Model.FilterStatus == "Completed" ? "active" : "")">Hoàn thành (@completed)</a>
+    <a href="/student/lessons?status=OVERDUE" class="tab-btn @(Model.FilterStatus == "OVERDUE" ? "active" : "")">Quá hạn (@overdue)</a>
 </div>
 
 <!-- List -->
@@ -314,7 +315,11 @@ else
             var pillText = l.CompletionStatus == "Completed" ? "Hoàn thành" : l.IsOverdue ? "Quá hạn" : l.CompletionStatus == "In Progress" ? "Đang học" : "Chưa học";
             var scoreClass = l.QuizScore >= 80 ? "score-high" : l.QuizScore >= 50 ? "score-mid" : "score-low";
 
-            <a href="/student/lesson/@l.LessonId" class="lesson-card @cardClass">
+            <a asp-controller="Student"
+               asp-action="LessonDetail"
+               asp-route-lessonId="@l.LessonId"
+               asp-route-assignmentId="@l.AssignmentId"
+               class="lesson-card @cardClass">
                 <div class="status-bar @sbClass"></div>
                 <div class="lesson-info">
                     <div class="lesson-title">@l.Title</div>
@@ -328,6 +333,7 @@ else
                             <span class="meta-tag tag-topic">@l.Topic</span>
                         }
                         <span class="meta-tag tag-time">@l.EstimatedMinutes phút</span>
+                        <span class="meta-tag tag-time">Tuần: @l.AssignmentPeriod</span>
                         @if (l.VocabularyCount > 0)
                         {
                             <span class="meta-tag">@l.VocabularyCount từ mới</span>

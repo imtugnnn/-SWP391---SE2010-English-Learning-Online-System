@@ -21,13 +21,29 @@ public class QuizAttemptService : IQuizAttemptService
         _dashboardRepo = dashboardRepo;
     }
 
-    public async Task<TakeQuizViewModel?> GetQuizForLessonAsync(int lessonId, int studentId)
+    public async Task<TakeQuizViewModel?> GetQuizForLessonAsync(
+        int lessonId,
+        int studentId,
+        int? assignmentId = null)
     {
         var lesson = await _quizRepo.GetLessonByIdAsync(lessonId);
         if (lesson == null) return null;
 
-        var quizzes = await _quizRepo.GetQuizzesByLessonIdAsync(lessonId, studentId);
-        var assignment = await _quizRepo.GetAssignmentForLessonAsync(lessonId, studentId);
+        var assignment = await _quizRepo.GetAssignmentForLessonAsync(
+            lessonId,
+            studentId,
+            assignmentId);
+
+        // AssignmentId có trên URL nhưng không thuộc học sinh/bài học hiện tại.
+        if (assignmentId.HasValue && assignment == null)
+        {
+            return null;
+        }
+
+        var quizzes = await _quizRepo.GetQuizzesByLessonIdAsync(
+            lessonId,
+            studentId,
+            assignment?.AssignmentId);
         
         bool isOverdue = assignment != null && assignment.DueDate.Date < DateTime.Today;
 
@@ -37,6 +53,7 @@ public class QuizAttemptService : IQuizAttemptService
             LessonTitle = lesson.Title,
             WeeklyAssignmentId = assignment?.AssignmentId,
             IsOverdue = isOverdue,
+            DueDate = assignment?.DueDate,
             Questions = quizzes.Select(q => new QuizQuestionItem
             {
                 QuizId = q.QuizId,
@@ -52,7 +69,21 @@ public class QuizAttemptService : IQuizAttemptService
         var lesson = await _quizRepo.GetLessonByIdAsync(submitData.LessonId);
         if (lesson == null) return null;
 
-        var quizzes = await _quizRepo.GetQuizzesByLessonIdAsync(submitData.LessonId, studentId);
+        var assignment = await _quizRepo.GetAssignmentForLessonAsync(
+            submitData.LessonId,
+            studentId,
+            submitData.WeeklyAssignmentId);
+
+        // Không tin cậy AssignmentId gửi từ hidden input: luôn xác thực lại quyền truy cập.
+        if (submitData.WeeklyAssignmentId.HasValue && assignment == null)
+        {
+            return null;
+        }
+
+        var quizzes = await _quizRepo.GetQuizzesByLessonIdAsync(
+            submitData.LessonId,
+            studentId,
+            assignment?.AssignmentId);
         if (!quizzes.Any()) return null;
 
         int totalQuestions = quizzes.Count;
@@ -95,7 +126,7 @@ public class QuizAttemptService : IQuizAttemptService
         {
             StudentId = studentId,
             LessonId = submitData.LessonId,
-            WeeklyAssignmentId = submitData.WeeklyAssignmentId,
+            WeeklyAssignmentId = assignment?.AssignmentId,
             TotalQuestions = totalQuestions,
             CorrectCount = correctCount,
             Score = score,

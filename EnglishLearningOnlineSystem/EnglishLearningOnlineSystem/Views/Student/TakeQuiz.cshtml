@@ -34,6 +34,24 @@
             border: 1px solid var(--border);
             transition: transform 0.3s ease, box-shadow 0.3s ease;
         }
+        .quiz-notice {
+            border-radius: 14px;
+            padding: 14px 18px;
+            margin-bottom: 22px;
+            font-weight: 700;
+        }
+        .quiz-notice.overdue {
+            color: #991b1b;
+            background: #fef2f2;
+            border: 1px solid #fecaca;
+        }
+        .quiz-back {
+            display: inline-block;
+            margin-bottom: 16px;
+            color: var(--sky-d);
+            font-weight: 800;
+            text-decoration: none;
+        }
         .question-card:hover {
             transform: translateY(-5px);
             box-shadow: 0 8px 24px rgba(14, 165, 233, 0.2);
@@ -137,10 +155,27 @@
 }
 
 <div class="quiz-container">
+    <a asp-controller="Student"
+       asp-action="LessonDetail"
+       asp-route-lessonId="@Model.LessonId"
+       asp-route-assignmentId="@Model.WeeklyAssignmentId"
+       class="quiz-back">← Quay lại chi tiết bài học</a>
+
     <div class="quiz-header">
         <h1>@Model.LessonTitle</h1>
-        <p class="mb-0 fs-5">Hãy bình tĩnh và làm bài tốt nhé! </p>
+        <p class="mb-0 fs-5">
+            @(Model.DueDate.HasValue
+                ? $"Hạn nộp: {Model.DueDate.Value:dd/MM/yyyy}"
+                : "Hãy bình tĩnh và làm bài tốt nhé!")
+        </p>
     </div>
+
+    @if (Model.IsOverdue)
+    {
+        <div class="quiz-notice overdue" role="alert">
+            Bài tập đã quá hạn. Kết quả vẫn được ghi nhận là một lần nộp muộn.
+        </div>
+    }
 
     <form id="quizForm" method="post" action="/student/lesson/@Model.LessonId/quiz/submit">
         @Html.AntiForgeryToken()
@@ -166,7 +201,7 @@
                                 foreach (var opt in q.Options)
                                 {
                                     <div class="option-wrapper">
-                                        <input type="radio" id="q_@(q.QuizId)_@(optIndex)" name="Answers[@q.QuizId]" value="@opt" class="option-input" />
+                                        <input type="radio" id="q_@(q.QuizId)_@(optIndex)" name="Answers[@q.QuizId]" value="@opt" class="option-input" required />
                                         <label for="q_@(q.QuizId)_@(optIndex)" class="option-label">
                                             <span class="radio-custom"></span>
                                             @if (q.QuizType == "IMAGE_CHOICE")
@@ -186,7 +221,7 @@
                     }
                     else
                     {
-                        <textarea name="Answers[@q.QuizId]" class="form-control" rows="3" placeholder="Nhập câu trả lời của bạn vào đây..."></textarea>
+                        <textarea name="Answers[@q.QuizId]" class="form-control" rows="3" placeholder="Nhập câu trả lời của bạn vào đây..." required></textarea>
                     }
                 </div>
                 qIndex++;
@@ -199,9 +234,12 @@
             </div>
         }
 
-        <div class="bottom-bar">
-            <button type="submit" class="btn-submit">Nộp bài </button>
-        </div>
+        @if (Model.Questions != null && Model.Questions.Any())
+        {
+            <div class="bottom-bar">
+                <button type="submit" class="btn-submit">Nộp bài</button>
+            </div>
+        }
     </form>
 </div>
 

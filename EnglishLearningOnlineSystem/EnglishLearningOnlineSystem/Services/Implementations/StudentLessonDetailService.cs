@@ -16,9 +16,12 @@ public class StudentLessonDetailService : IStudentLessonDetailService
     }
 
     // Lấy thông tin chi tiết bài học và tiến độ học tập của học sinh
-    public async Task<LessonDetailViewModel?> GetLessonDetailAsync(int studentId, int lessonId)
+    public async Task<LessonDetailViewModel?> GetLessonDetailAsync(
+        int studentId,
+        int lessonId,
+        int? assignmentId = null)
     {
-        var lesson = await _repo.GetLessonWithContentAsync(studentId, lessonId);
+        var lesson = await _repo.GetLessonWithContentAsync(studentId, lessonId, assignmentId);
         if (lesson == null) return null;
 
         var progress = await _repo.GetBestProgressAsync(studentId, lessonId);
@@ -31,6 +34,7 @@ public class StudentLessonDetailService : IStudentLessonDetailService
 
         return new LessonDetailViewModel
         {
+            AssignmentId = assignmentId,
             LessonId = lesson.LessonId,
             Title = lesson.Title,
             Topic = lesson.Topic ?? "",

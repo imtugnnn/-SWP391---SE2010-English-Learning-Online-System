@@ -720,7 +720,11 @@
                             ? " Đang học"
                             : " Chưa làm";
 
-                    <a href="/student/lesson/@lesson.LessonId/quiz" class="lesson-card">
+                    <a asp-controller="Student"
+                       asp-action="TakeQuiz"
+                       asp-route-lessonId="@lesson.LessonId"
+                       asp-route-assignmentId="@lesson.AssignmentId"
+                       class="lesson-card">
                         <div class="lesson-dot status-@lesson.CompletionStatus"></div>
                         <div class="lesson-info">
                             <div class="l-title">@lesson.Title</div>

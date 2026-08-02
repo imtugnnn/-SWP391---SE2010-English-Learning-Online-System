@@ -14,9 +14,15 @@ public class QuizAttemptRepository : IQuizAttemptRepository
         _db = db;
     }
 
-    public async Task<List<Quiz>> GetQuizzesByLessonIdAsync(int lessonId, int studentId)
+    public async Task<List<Quiz>> GetQuizzesByLessonIdAsync(
+        int lessonId,
+        int studentId,
+        int? assignmentId = null)
     {
-        var assignment = await GetAssignmentForLessonAsync(lessonId, studentId);
+        var assignment = await GetAssignmentForLessonAsync(
+            lessonId,
+            studentId,
+            assignmentId);
         if (assignment?.IncludeQuiz == true)
         {
             var selectedIds = await _db.WeeklyAssignmentQuizzes
@@ -48,12 +54,16 @@ public class QuizAttemptRepository : IQuizAttemptRepository
             .FirstOrDefaultAsync(l => l.LessonId == lessonId);
     }
 
-    public async Task<WeeklyAssignment?> GetAssignmentForLessonAsync(int lessonId, int studentId)
+    public async Task<WeeklyAssignment?> GetAssignmentForLessonAsync(
+        int lessonId,
+        int studentId,
+        int? assignmentId = null)
     {
         return await _db.WeeklyAssignments!
             .Where(wa =>
                 wa.LessonId == lessonId &&
                 wa.IsVisible &&
+                (!assignmentId.HasValue || wa.AssignmentId == assignmentId.Value) &&
                 wa.ClassId.HasValue &&
                 _db.ClassEnrollments!.Any(e =>
                     e.ClassId == wa.ClassId.Value && e.StudentId == studentId))
