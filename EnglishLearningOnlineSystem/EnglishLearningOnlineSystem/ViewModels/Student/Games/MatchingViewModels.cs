@@ -10,6 +10,7 @@ public class MatchingPlayViewModel
     public string GameTitle { get; set; } = string.Empty;
     public int XPReward { get; set; }
     public int LessonId { get; set; }
+    public int? AssignmentId { get; set; }
     public string LessonTitle { get; set; } = string.Empty;
 
     // Cột bên trái: các từ (đã được xáo trộn vị trí)
@@ -32,6 +33,8 @@ public class MatchingSubmitViewModel
     [Required]
     public int GameId { get; set; }
 
+    public int? AssignmentId { get; set; }
+
     public List<MatchingAnswerItem> Answers { get; set; } = [];
 }
 
@@ -51,6 +54,7 @@ public class MatchingResultViewModel
     public int GameId { get; set; }
     public string GameTitle { get; set; } = string.Empty;
     public int LessonId { get; set; }
+    public int? AssignmentId { get; set; }
 
     public List<MatchingResultItem> Items { get; set; } = [];
 

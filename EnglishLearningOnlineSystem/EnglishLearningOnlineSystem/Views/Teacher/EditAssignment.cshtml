@@ -1,0 +1,78 @@
+@model EnglishLearningOnlineSystem.ViewModels.EditTeacherAssignmentViewModel
+@{
+    ViewData["Title"] = "Chỉnh sửa bài giao";
+}
+
+<div class="teacher-workspace">
+    <div class="teacher-page-heading">
+        <div>
+            <a asp-controller="Teacher" asp-action="AssignmentDetails" asp-route-assignmentId="@Model.AssignmentId" asp-route-classId="@Model.ClassId" class="teacher-back-link">← Chi tiết bài giao</a>
+            <span class="page-badge"><span class="page-badge-dot"></span>@Model.Status</span>
+            <h1>Chỉnh sửa @Model.LessonTitle</h1>
+            <p>@Model.ClassName · Chỉ chọn những hoạt động học sinh cần hoàn thành.</p>
+        </div>
+    </div>
+
+    <form asp-controller="Teacher" asp-action="EditAssignment" method="post" class="teacher-form-stack">
+        @Html.AntiForgeryToken()
+        <input asp-for="AssignmentId" type="hidden" />
+        <input asp-for="ClassId" type="hidden" />
+        <input asp-for="LessonId" type="hidden" />
+        <div asp-validation-summary="ModelOnly" class="alert alert-danger"></div>
+
+        <section class="teacher-panel">
+            <div class="teacher-panel__header"><div><span class="teacher-eyebrow">Thời hạn</span><h2>Lịch bài giao</h2></div></div>
+            <div class="row g-3 p-4 pt-0">
+                <div class="col-md-6"><label asp-for="StartDate" class="form-label">Ngày bắt đầu</label><input asp-for="StartDate" type="date" class="form-control" /><span asp-validation-for="StartDate" class="text-danger"></span></div>
+                <div class="col-md-6"><label asp-for="DueDate" class="form-label">Hạn hoàn thành</label><input asp-for="DueDate" type="date" class="form-control" /><span asp-validation-for="DueDate" class="text-danger"></span></div>
+            </div>
+        </section>
+
+        <section class="teacher-panel">
+            <div class="teacher-panel__header">
+                <div><span class="teacher-eyebrow">Cấu hình nội dung</span><h2>Learning activities</h2></div>
+                <button type="button" class="btn-teacher-outline" data-lesson-preview-url="@Url.Action("LessonPreview", "Teacher", new { classId = Model.ClassId, lessonId = Model.LessonId })">Xem trước bài học</button>
+            </div>
+            <div class="teacher-activity-editor">
+                <article class="teacher-activity-select">
+                    <label class="teacher-check-heading"><input asp-for="IncludeVocabulary" /> <span>Flashcard</span><small>@Model.Vocabularies.Count từ có thể chọn</small></label>
+                    <div class="teacher-option-list">
+                        @foreach (var item in Model.Vocabularies)
+                        {
+                            <label><input type="checkbox" name="SelectedVocabularyIds" value="@item.VocabularyId" checked="@Model.SelectedVocabularyIds.Contains(item.VocabularyId)" /><span><strong>@item.Word</strong><small>@item.Meaning</small></span></label>
+                        }
+                    </div>
+                </article>
+                <article class="teacher-activity-select">
+                    <label class="teacher-check-heading"><input asp-for="IncludeQuiz" /> <span>Quiz</span><small>@Model.Quizzes.Count câu có thể chọn</small></label>
+                    <div class="teacher-option-list">
+                        @foreach (var item in Model.Quizzes)
+                        {
+                            <label><input type="checkbox" name="SelectedQuizIds" value="@item.QuizId" checked="@Model.SelectedQuizIds.Contains(item.QuizId)" /><span><strong>@item.Question</strong><small>@item.QuizType</small></span></label>
+                        }
+                    </div>
+                </article>
+                <article class="teacher-activity-select">
+                    <label class="teacher-check-heading"><input asp-for="IncludeMiniGame" /> <span>Mini-game</span><small>@Model.MiniGames.Count game có thể chọn</small></label>
+                    <div class="teacher-option-list">
+                        @foreach (var item in Model.MiniGames)
+                        {
+                            <label><input type="checkbox" name="SelectedMiniGameIds" value="@item.GameId" checked="@Model.SelectedMiniGameIds.Contains(item.GameId)" /><span><strong>@item.Title</strong><small>@item.GameType</small></span></label>
+                        }
+                    </div>
+                </article>
+            </div>
+        </section>
+
+        <div class="teacher-sticky-actions">
+            <a asp-controller="Teacher" asp-action="AssignmentDetails" asp-route-assignmentId="@Model.AssignmentId" asp-route-classId="@Model.ClassId" class="btn-teacher-outline">Hủy thay đổi</a>
+            <button type="submit" class="btn-teacher">Lưu thay đổi</button>
+        </div>
+    </form>
+</div>
+
+<partial name="_LessonPreviewDrawer" />
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+    <script src="~/js/teacher/lesson-preview.js" asp-append-version="true"></script>
+}

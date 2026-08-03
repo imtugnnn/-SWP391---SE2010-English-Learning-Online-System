@@ -249,10 +249,10 @@
 
         @* ── CHANGED: button styles; hrefs UNCHANGED ── *@
         <div class="ws-result-actions">
-            <a href="/WordScramble/Play/@Model.GameId" class="btn-play-again">
+            <a href="/WordScramble/Play/@Model.GameId?assignmentId=@Model.AssignmentId" class="btn-play-again">
                 <i class="bi bi-arrow-repeat"></i> Chơi lại
             </a>
-            <a href="/student/lesson/@Model.LessonId" class="btn-lesson-back">
+            <a href="/student/lesson/@Model.LessonId?assignmentId=@Model.AssignmentId" class="btn-lesson-back">
                 <i class="bi bi-book"></i> Quay lại bài học
             </a>
         </div>

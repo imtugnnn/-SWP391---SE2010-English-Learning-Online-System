@@ -269,7 +269,7 @@
 
     @* ── CHANGED: top bar layout; href/route UNCHANGED ── *@
     <div class="scramble-topbar">
-        <a href="/student/lesson/@Model.LessonId" class="btn-back-lesson">
+        <a href="/student/lesson/@Model.LessonId?assignmentId=@Model.AssignmentId" class="btn-back-lesson">
             <i class="bi bi-arrow-left"></i> Quay lại bài học
         </a>
         <div class="scramble-topbar-title">
@@ -332,6 +332,7 @@
             <form action="/WordScramble/Submit" method="post">
                 @Html.AntiForgeryToken()
                 <input type="hidden" name="GameId" value="@Model.GameId" />
+                <input type="hidden" name="AssignmentId" value="@Model.AssignmentId" />
                 <input type="hidden" name="VocabularyId" value="@Model.VocabularyId" />
 
                 <div class="answer-input-wrap">

@@ -8,6 +8,9 @@
     var hasQuiz = Model.Quizzes.Any();
     var hasGame = Model.MiniGames.Any();
     var doneGames = Model.MiniGames.Count(g => g.IsDone);
+    var assignmentProgress = Model.RequiredActivityCount == 0
+        ? (Model.IsCompleted ? 100 : 0)
+        : (int)Math.Round((double)Model.CompletedActivityCount / Model.RequiredActivityCount * 100);
 }
 
 @section Styles {
@@ -551,6 +554,10 @@ else
             }
             <span class="hero-tag">@Model.EstimatedMinutes phút</span>
             <span class="hero-tag">+@Model.XPReward XP</span>
+            @if (Model.DueDate.HasValue)
+            {
+                <span class="hero-tag">Hạn @Model.DueDate.Value.ToString("dd/MM/yyyy")</span>
+            }
             @if (Model.IsCompleted)
             {
                 <span class="hero-tag">✓ Hoàn thành</span>
@@ -585,13 +592,13 @@ else
     </div>
     <div class="prog-bar">
         <div class="prog-fill"
-             style="width:@(Model.IsCompleted ? 100 : Model.CompletionStatus == "In Progress" ? 50 : 0)%">
+             style="width:@assignmentProgress%">
         </div>
     </div>
     <div class="step-chips">
-        <span class="step-chip @(hasVocab ? "active" : "")">Từ vựng (@Model.Vocabularies.Count)</span>
-        <span class="step-chip @(hasQuiz ? "active" : "")">Quiz (@Model.Quizzes.Count câu)</span>
-        <span class="step-chip @(hasGame ? "active" : "")">Mini Game (@Model.MiniGames.Count)</span>
+        <span class="step-chip @(hasVocab ? "active" : "")">Flashcard (@Model.Vocabularies.Count) · @Model.FlashcardStatus</span>
+        <span class="step-chip @(hasQuiz ? "active" : "")">Quiz (@Model.Quizzes.Count câu) · @Model.QuizStatus</span>
+        <span class="step-chip @(hasGame ? "active" : "")">Mini Game (@Model.MiniGames.Count) · @Model.MiniGameStatus</span>
         @if (Model.AttemptCount > 0)
         {
             <span class="step-chip done">
@@ -726,9 +733,9 @@ else
 
             var playUrl = g.GameType switch
             {
-                "WordScramble" => $"/WordScramble/Play/{g.GameId}",
-                "Matching" => $"/Matching/Play/{g.GameId}",
-                _ => $"/student/minigame/{g.GameId}"   // mở rộng sau
+                "WordScramble" => $"/WordScramble/Play/{g.GameId}?assignmentId={Model.AssignmentId}",
+                "Matching" => $"/Matching/Play/{g.GameId}?assignmentId={Model.AssignmentId}",
+                _ => "#"
             };
 
             <div class="mg-row @(g.IsDone ? "done-row" : "")">

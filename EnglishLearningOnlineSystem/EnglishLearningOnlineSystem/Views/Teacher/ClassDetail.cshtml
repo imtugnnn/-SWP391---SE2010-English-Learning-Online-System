@@ -359,8 +359,9 @@
 
                 <div class="d-flex gap-2 flex-wrap">
                     <a asp-controller="Teacher"
-                       asp-action="StudentsNeedSupport"
+                       asp-action="ManageStudentList"
                        asp-route-classId="@Model.ClassId"
+                       asp-route-status="support"
                        class="btn-teacher-outline">
                         Học sinh cần hỗ trợ
                     </a>

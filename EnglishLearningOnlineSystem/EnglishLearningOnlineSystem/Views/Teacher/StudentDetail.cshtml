@@ -364,11 +364,7 @@
                 <div class="section-header px-0 pt-0">
                     <h2 class="section-title">Tổng quan học tập</h2>
 
-                    <a asp-controller="Teacher"
-                       asp-action="ProvideFeedback"
-                       asp-route-classId="@Model.ClassId"
-                       asp-route-studentId="@Model.StudentId"
-                       class="btn-teacher">
+                    <a href="#feedback-compose" class="btn-teacher">
                         Gửi phản hồi
                     </a>
                 </div>
@@ -426,6 +422,7 @@
                                 <th>Bài học</th>
                                 <th>Chủ đề</th>
                                 <th>Điểm quiz</th>
+                                <th>Hoạt động</th>
                                 <th>XP</th>
                                 <th>Trạng thái</th>
                                 <th>Ngày hoàn thành</th>
@@ -439,6 +436,13 @@
                                     <td class="fw-bold">@item.LessonTitle</td>
                                     <td>@item.Topic</td>
                                     <td>@item.QuizScore</td>
+                                    <td>
+                                        <div class="d-flex flex-wrap gap-1">
+                                            @if (item.FlashcardStatus != "NotAssigned") { <span class="badge-soft-secondary">Flashcard: @item.FlashcardStatus</span> }
+                                            @if (item.QuizStatus != "NotAssigned") { <span class="badge-soft-primary">Quiz: @item.QuizStatus</span> }
+                                            @if (item.MiniGameStatus != "NotAssigned") { <span class="badge-soft-secondary">Game: @item.MiniGameStatus</span> }
+                                        </div>
+                                    </td>
                                     <td>@item.XPEarned</td>
                                     <td>
                                         @if (item.CompletionStatus.Equals("Completed", StringComparison.OrdinalIgnoreCase))
@@ -473,11 +477,7 @@
             <div class="section-header">
                 <h2 class="section-title">Lịch sử phản hồi</h2>
 
-                <a asp-controller="Teacher"
-                   asp-action="ProvideFeedback"
-                   asp-route-classId="@Model.ClassId"
-                   asp-route-studentId="@Model.StudentId"
-                   class="btn-teacher">
+                <a href="#feedback-compose" class="btn-teacher">
                     Thêm phản hồi
                 </a>
             </div>
@@ -518,5 +518,38 @@
                 }
             </div>
         </div>
+
+        <div class="section-card mt-4" id="feedback-compose">
+            <div class="section-header">
+                <div>
+                    <h2 class="section-title">Gửi phản hồi học tập</h2>
+                    <p class="mb-0 text-muted">Phản hồi sẽ được lưu vào hồ sơ của học sinh và tạo thông báo mới.</p>
+                </div>
+            </div>
+            <form asp-controller="Teacher" asp-action="ProvideFeedback" method="post" class="p-4">
+                @Html.AntiForgeryToken()
+                <input type="hidden" name="ClassId" value="@Model.ClassId" />
+                <input type="hidden" name="StudentId" value="@Model.StudentId" />
+                <div class="mb-3">
+                    <label for="student-feedback-content" class="form-label fw-bold">Nội dung phản hồi</label>
+                    <textarea id="student-feedback-content" name="Content" class="form-control" rows="5" maxlength="1000" required placeholder="Nêu điểm học sinh làm tốt và một hành động cụ thể cần cải thiện..."></textarea>
+                    <div class="d-flex justify-content-between mt-2 text-muted small"><span>Tối đa 1000 ký tự</span><span id="student-feedback-count">0/1000</span></div>
+                </div>
+                <div class="d-flex justify-content-end"><button type="submit" class="btn-teacher">Gửi phản hồi</button></div>
+            </form>
+        </div>
     </div>
 </div>
+
+@section Scripts {
+    <script>
+        (() => {
+            const input = document.getElementById('student-feedback-content');
+            const count = document.getElementById('student-feedback-count');
+            if (!input || !count) return;
+            const update = () => count.textContent = `${input.value.length}/1000`;
+            input.addEventListener('input', update);
+            update();
+        })();
+    </script>
+}

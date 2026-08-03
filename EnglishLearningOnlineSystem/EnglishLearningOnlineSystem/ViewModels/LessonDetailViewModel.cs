@@ -12,6 +12,9 @@ public class LessonDetailViewModel
     public string CourseName { get; set; } = string.Empty;
     public int XPReward { get; set; }
     public int EstimatedMinutes { get; set; }
+    public DateTime? StartDate { get; set; }
+    public DateTime? DueDate { get; set; }
+    public string AssignmentStatus { get; set; } = string.Empty;
 
     // Nội dung bài học
     public List<VocabItem> Vocabularies { get; set; } = new();
@@ -22,6 +25,12 @@ public class LessonDetailViewModel
     public string CompletionStatus { get; set; } = "NOT_STARTED";
     public int BestScore { get; set; }
     public int AttemptCount { get; set; }
+    public string FlashcardStatus { get; set; } = "NotAssigned";
+    public string QuizStatus { get; set; } = "NotAssigned";
+    public string MiniGameStatus { get; set; } = "NotAssigned";
+    public int CompletedActivityCount { get; set; }
+    public int RequiredActivityCount { get; set; }
+    public bool IsCompletedLate { get; set; }
 
     // Kiểm tra bài học đã hoàn thành hay chưa
     public bool IsCompleted => CompletionStatus == "Completed";

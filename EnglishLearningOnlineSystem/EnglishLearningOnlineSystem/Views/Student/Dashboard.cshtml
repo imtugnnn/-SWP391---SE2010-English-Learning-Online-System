@@ -721,7 +721,7 @@
                             : " Chưa làm";
 
                     <a asp-controller="Student"
-                       asp-action="TakeQuiz"
+                       asp-action="LessonDetail"
                        asp-route-lessonId="@lesson.LessonId"
                        asp-route-assignmentId="@lesson.AssignmentId"
                        class="lesson-card">
@@ -792,7 +792,6 @@
         <!-- Daily Missions -->
         <div class="section-hd">
             <h3> Nhiệm vụ hôm nay</h3>
-            <a href="/student/missions">Xem tất cả →</a>
         </div>
         @if (!Model.DailyMissions.Any())
         {
@@ -837,7 +836,6 @@
         {
             <div class="section-hd">
                 <h3> Huy hiệu mới</h3>
-                <a href="/student/badges">Xem tất cả →</a>
             </div>
             <div class="badge-grid">
                 @foreach (var b in Model.RecentBadges)

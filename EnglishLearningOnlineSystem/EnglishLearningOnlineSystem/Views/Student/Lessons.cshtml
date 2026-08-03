@@ -296,6 +296,7 @@
     <a href="/student/lessons?status=NOT_STARTED" class="tab-btn @(Model.FilterStatus == "NOT_STARTED" ? "active" : "")">Chưa học (@Model.NotStartedCount)</a>
     <a href="/student/lessons?status=In Progress" class="tab-btn @(Model.FilterStatus == "In Progress" ? "active" : "")">Đang học (@inProg)</a>
     <a href="/student/lessons?status=Completed" class="tab-btn @(Model.FilterStatus == "Completed" ? "active" : "")">Hoàn thành (@completed)</a>
+    <a href="/student/lessons?status=COMPLETED_LATE" class="tab-btn @(Model.FilterStatus == "COMPLETED_LATE" ? "active" : "")">Hoàn thành muộn (@Model.CompletedLateCount)</a>
     <a href="/student/lessons?status=OVERDUE" class="tab-btn @(Model.FilterStatus == "OVERDUE" ? "active" : "")">Quá hạn (@overdue)</a>
 </div>
 
@@ -351,12 +352,23 @@ else
                             <span class="meta-tag tag-overdue">Quá hạn</span>
                         }
                     </div>
+                    @if (l.RequiredActivityCount > 0)
+                    {
+                        <div class="mt-2">
+                            <div class="d-flex justify-content-between small fw-bold text-muted mb-1"><span>Hoạt động hoàn thành</span><span>@l.CompletedActivityCount/@l.RequiredActivityCount</span></div>
+                            <div class="progress" style="height:7px"><div class="progress-bar" style="width:@(Math.Round((double)l.CompletedActivityCount / l.RequiredActivityCount * 100))%"></div></div>
+                        </div>
+                    }
                 </div>
                 <div class="lesson-right">
                     <span class="xp-badge">+@l.XPReward XP</span>
                     <span class="due-text @(l.IsOverdue ? "overdue-text" : "")">Hạn: @l.DueDate.ToString("dd/MM/yyyy")</span>
                     <span class="status-pill @pillClass">@pillText</span>
-                    @if (l.CompletionStatus == "Completed")
+                    @if (l.IsCompletedLate)
+                    {
+                        <span class="status-pill pill-overdue">Hoàn thành muộn</span>
+                    }
+                    else if (l.CompletionStatus == "Completed")
                     {
                         <span class="score-pill @scoreClass">@l.QuizScore%</span>
                     }

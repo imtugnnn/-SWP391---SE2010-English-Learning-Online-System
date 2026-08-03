@@ -123,6 +123,10 @@
 }
 
 <div class="result-hero">
+    @if (Model.IsCompletedLate)
+    {
+        <div class="alert alert-warning">Kết quả được ghi nhận là hoàn thành muộn.</div>
+    }
     <div class="score-circle">
         @Model.Score%
     </div>
@@ -152,4 +156,5 @@
     <a href="/student/quiz/review/@Model.AttemptId" class="btn-review">
         Xem chi tiết câu sai 
     </a>
+    <a asp-controller="Student" asp-action="LessonDetail" asp-route-lessonId="@Model.LessonId" asp-route-assignmentId="@Model.WeeklyAssignmentId" class="btn btn-outline-primary d-block mx-auto" style="width:fit-content">Quay lại bài giao</a>
 </div>

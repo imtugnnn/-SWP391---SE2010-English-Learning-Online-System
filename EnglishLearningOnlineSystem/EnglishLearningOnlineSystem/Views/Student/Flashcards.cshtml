@@ -190,6 +190,7 @@
     </div>
 
     <form id="flashcard-form" method="post" action="/student/lesson/@Model.LessonId/flashcards/submit">
+        <input type="hidden" name="AssignmentId" value="@Model.AssignmentId" />
         @Html.AntiForgeryToken()
         <input type="hidden" name="SessionId" value="@Model.SessionId" />
         <input type="hidden" name="LessonId" value="@Model.LessonId" />
@@ -241,10 +242,10 @@
             <h3 style="color: var(--sky-d); font-weight: 900; margin-bottom: 15px;">Tuyệt vời!</h3>
             <p style="color: var(--muted); font-size: 1.1rem; font-weight: 600; margin-bottom: 30px;">Bạn đã thuộc toàn bộ từ vựng của bài này!</p>
             <div class="d-flex justify-content-center gap-3">
-                <a href="/student/lesson/@Model.LessonId" class="btn-action btn-action-secondary">
+                <a href="/student/lesson/@Model.LessonId?assignmentId=@Model.AssignmentId" class="btn-action btn-action-secondary">
                     Trở lại bài học
                 </a>
-                <a href="/student/lesson/@Model.LessonId/flashcards?mode=reset" class="btn-action btn-action-primary">
+                <a href="/student/lesson/@Model.LessonId/flashcards?mode=reset&amp;assignmentId=@Model.AssignmentId" class="btn-action btn-action-primary">
                     Ôn tập lại từ đầu
                 </a>
             </div>

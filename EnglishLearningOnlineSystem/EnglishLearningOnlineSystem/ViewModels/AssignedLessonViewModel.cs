@@ -9,6 +9,7 @@ public class AssignedLessonListViewModel
     public int InProgressCount { get; set; }
     public int NotStartedCount { get; set; }
     public int OverdueCount { get; set; }
+    public int CompletedLateCount { get; set; }
 
     // Trạng thái lọc hiện tại
     public string FilterStatus { get; set; } = "";
@@ -46,6 +47,13 @@ public class AssignedLessonItem
 
     // Điểm quiz đạt được
     public int QuizScore { get; set; }
+
+    public string FlashcardStatus { get; set; } = "NotAssigned";
+    public string QuizStatus { get; set; } = "NotAssigned";
+    public string MiniGameStatus { get; set; } = "NotAssigned";
+    public int CompletedActivityCount { get; set; }
+    public int RequiredActivityCount { get; set; }
+    public bool IsCompletedLate { get; set; }
 
     // Kiểm tra bài học đã quá hạn hay chưa
     public bool IsOverdue => DateTime.Today > DueDate && CompletionStatus != "Completed";

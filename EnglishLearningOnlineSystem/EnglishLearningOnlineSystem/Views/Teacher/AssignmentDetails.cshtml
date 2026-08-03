@@ -1,0 +1,111 @@
+@model EnglishLearningOnlineSystem.ViewModels.TeacherAssignmentDetailsViewModel
+@{
+    ViewData["Title"] = "Chi tiết bài giao";
+    var completionRate = Model.AssignedStudentCount == 0
+        ? 0
+        : Math.Round((double)Model.CompletedStudentCount / Model.AssignedStudentCount * 100, 1);
+}
+
+<div class="teacher-workspace">
+    <div class="teacher-page-heading">
+        <div>
+            <a asp-controller="Teacher" asp-action="AssignmentOverview" asp-route-classId="@Model.ClassId" class="teacher-back-link">← Danh sách bài giao</a>
+            <span class="page-badge"><span class="page-badge-dot"></span>@Model.Status</span>
+            <h1>@Model.LessonTitle</h1>
+            <p>@Model.ClassName · @Model.CourseName · @Model.Topic</p>
+        </div>
+        <div class="teacher-action-row">
+            @if (Model.CanEdit)
+            {
+                <a asp-controller="Teacher" asp-action="EditAssignment" asp-route-assignmentId="@Model.AssignmentId" asp-route-classId="@Model.ClassId" class="btn-teacher-outline">Chỉnh sửa</a>
+            }
+            <a href="#assignment-completion" class="btn-teacher">Theo dõi hoàn thành</a>
+        </div>
+    </div>
+
+    <div class="teacher-metric-grid">
+        <article class="teacher-metric-card"><span>Thời gian</span><strong>@Model.StartDate.ToString("dd/MM/yyyy") – @Model.DueDate.ToString("dd/MM/yyyy")</strong></article>
+        <article class="teacher-metric-card"><span>Đã hoàn thành</span><strong>@Model.CompletedStudentCount/@Model.AssignedStudentCount</strong></article>
+        <article class="teacher-metric-card"><span>Tỷ lệ hoàn thành</span><strong>@completionRate%</strong></article>
+        <article class="teacher-metric-card teacher-metric-card--warning"><span>Hoàn thành muộn</span><strong>@Model.CompletedLateCount</strong></article>
+    </div>
+
+    <section class="teacher-panel">
+        <div class="teacher-panel__header">
+            <div><span class="teacher-eyebrow">Nội dung được giao</span><h2>Learning activities</h2></div>
+            <button type="button" class="btn-teacher-outline" data-lesson-preview-url="@Url.Action("LessonPreview", "Teacher", new { classId = Model.ClassId, lessonId = Model.LessonId })">Xem nội dung</button>
+        </div>
+        @if (Model.Activities.Count == 0)
+        {
+            <div class="teacher-empty-state">Bài giao chưa có hoạt động học tập.</div>
+        }
+        else
+        {
+            <div class="teacher-activity-grid">
+                @foreach (var activity in Model.Activities)
+                {
+                    <article class="teacher-activity-card">
+                        <span class="teacher-activity-card__type">@activity.ActivityType</span>
+                        <h3>@activity.Title</h3>
+                        <p>@activity.ItemCount nội dung được cấu hình</p>
+                        <span class="badge-soft-success">Bắt buộc</span>
+                    </article>
+                }
+            </div>
+        }
+    </section>
+
+    <section class="teacher-panel" id="assignment-completion">
+        <div class="teacher-panel__header">
+            <div><span class="teacher-eyebrow">Tiến độ lớp</span><h2>Hoàn thành bài giao</h2></div>
+            <div class="teacher-status-summary">
+                <span>@Model.NotStartedStudentCount chưa bắt đầu</span>
+                <span>@Model.InProgressStudentCount đang học</span>
+            </div>
+        </div>
+        @if (Model.Students.Count == 0)
+        {
+            <div class="teacher-empty-state">Chưa có dữ liệu hoàn thành của học sinh.</div>
+        }
+        else
+        {
+            <div class="table-responsive">
+                <table class="table table-hover align-middle teacher-data-table">
+                    <thead><tr><th>Học sinh</th><th>Hoạt động</th><th>Quiz</th><th>Trạng thái</th><th>Hoàn thành lúc</th><th></th></tr></thead>
+                    <tbody>
+                    @foreach (var student in Model.Students)
+                    {
+                        var statusClass = student.IsCompletedLate ? "badge-soft-warning"
+                            : student.CompletionStatus.Equals("Completed", StringComparison.OrdinalIgnoreCase) ? "badge-soft-success"
+                            : student.CompletionStatus.Contains("Progress", StringComparison.OrdinalIgnoreCase) ? "badge-soft-primary"
+                            : "badge-soft-secondary";
+                        <tr>
+                            <td><strong>@student.StudentName</strong><small class="d-block text-muted">@student.Email</small></td>
+                            <td>@student.CompletedActivityCount/@student.RequiredActivityCount</td>
+                            <td>@(student.QuizScore.HasValue ? $"{student.QuizScore}%" : "—")</td>
+                            <td><span class="@statusClass">@(student.IsCompletedLate ? "Hoàn thành muộn" : student.CompletionStatus)</span></td>
+                            <td>@(student.CompletedAt?.ToString("dd/MM/yyyy HH:mm") ?? "—")</td>
+                            <td class="text-end"><a asp-controller="Teacher" asp-action="StudentDetail" asp-route-classId="@Model.ClassId" asp-route-studentId="@student.StudentId" class="btn-teacher-outline">Chi tiết</a></td>
+                        </tr>
+                    }
+                    </tbody>
+                </table>
+            </div>
+        }
+    </section>
+
+    <section class="teacher-danger-zone">
+        <div><strong>Quản lý vòng đời</strong><p>Chỉ hủy hoặc xóa khi đáp ứng quy tắc dữ liệu của bài giao.</p></div>
+        <div class="teacher-action-row">
+            @if (Model.CanArchive) { <button type="button" class="btn-teacher-outline">Lưu trữ</button> }
+            @if (Model.CanCancel) { <button type="button" class="btn-teacher-danger">Hủy bài giao</button> }
+            @if (Model.CanDelete) { <button type="button" class="btn-teacher-danger">Xóa</button> }
+        </div>
+    </section>
+</div>
+
+<partial name="_LessonPreviewDrawer" />
+
+@section Scripts {
+    <script src="~/js/teacher/lesson-preview.js" asp-append-version="true"></script>
+}

@@ -33,4 +33,14 @@ public class TeacherAssignmentItemViewModel
     public DateTime WeekStartDate { get; set; }
     public DateTime DueDate { get; set; }
     public string Status { get; set; } = string.Empty;
+    public int AssignedStudentCount { get; set; }
+    public int CompletedStudentCount { get; set; }
+    public int CompletedLateCount { get; set; }
+    public double CompletionRate => AssignedStudentCount == 0
+        ? 0
+        : Math.Round((double)CompletedStudentCount / AssignedStudentCount * 100, 1);
+    public bool CanEdit { get; set; }
+    public bool CanCancel { get; set; }
+    public bool CanDelete { get; set; }
+    public bool CanArchive { get; set; }
 }

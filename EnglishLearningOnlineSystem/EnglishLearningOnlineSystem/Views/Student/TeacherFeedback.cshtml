@@ -1,0 +1,35 @@
+@model EnglishLearningOnlineSystem.ViewModels.StudentTeacherFeedbackViewModel
+@{
+    Layout = "_StudentLayout";
+    ViewData["Title"] = "Phản hồi giáo viên";
+    ViewData["ActiveNav"] = "feedback";
+}
+
+<div class="student-screen-shell">
+    <header class="student-screen-heading">
+        <div><span class="student-kicker">Hỗ trợ học tập</span><h1>Phản hồi từ giáo viên</h1><p>Đọc nhận xét và gợi ý để cải thiện quá trình học.</p></div>
+        @if (Model.UnreadCount > 0) { <span class="student-unread-pill">@Model.UnreadCount phản hồi mới</span> }
+    </header>
+
+    @if (Model.Feedbacks.Count == 0)
+    {
+        <div class="student-empty-panel"><span>💬</span><h2>Chưa có phản hồi</h2><p>Phản hồi mới từ giáo viên sẽ xuất hiện tại đây.</p></div>
+    }
+    else
+    {
+        <div class="student-feedback-grid">
+        @foreach (var item in Model.Feedbacks)
+        {
+            <article class="student-feedback-card @(!item.IsRead ? "is-unread" : null)">
+                <div class="student-feedback-avatar">@(string.IsNullOrWhiteSpace(item.TeacherName) ? "G" : item.TeacherName[..1].ToUpperInvariant())</div>
+                <div class="student-feedback-content">
+                    <div class="student-feedback-heading"><div><strong>@item.TeacherName</strong><span>@item.ClassName</span></div><time>@item.CreatedAt.ToString("dd/MM/yyyy HH:mm")</time></div>
+                    @if (!string.IsNullOrWhiteSpace(item.AssignmentTitle)) { <div class="student-feedback-context">Bài giao: @item.AssignmentTitle</div> }
+                    <p>@item.Content</p>
+                    @if (!item.IsRead) { <form asp-controller="Student" asp-action="MarkFeedbackRead" method="post">@Html.AntiForgeryToken()<input type="hidden" name="feedbackId" value="@item.FeedbackId" /><button type="submit" class="student-link-button">Đánh dấu đã đọc</button></form> }
+                </div>
+            </article>
+        }
+        </div>
+    }
+</div>
