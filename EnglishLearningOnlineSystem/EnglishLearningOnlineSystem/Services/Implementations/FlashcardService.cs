@@ -14,11 +14,16 @@ public class FlashcardService : IFlashcardService
 {
     private readonly IFlashcardRepository _flashcardRepo;
     private readonly IStudentDashboardRepository _dashboardRepo;
+    private readonly IAssignmentProgressService _assignmentProgressService;
 
-    public FlashcardService(IFlashcardRepository flashcardRepo, IStudentDashboardRepository dashboardRepo)
+    public FlashcardService(
+        IFlashcardRepository flashcardRepo,
+        IStudentDashboardRepository dashboardRepo,
+        IAssignmentProgressService assignmentProgressService)
     {
         _flashcardRepo = flashcardRepo;
         _dashboardRepo = dashboardRepo;
+        _assignmentProgressService = assignmentProgressService;
     }
 
     public async Task<FlashcardPracticeViewModel?> StartSessionAsync(
@@ -59,16 +64,32 @@ public class FlashcardService : IFlashcardService
         {
             StudentId = studentId,
             LessonId = lessonId,
-            StartedAt = DateTime.UtcNow
+            StartedAt = DateTime.UtcNow,
+            WeeklyAssignmentId = assignmentId
         };
 
         await _flashcardRepo.CreateSessionAsync(session);
+        if (assignmentId.HasValue)
+        {
+            if (vocabulariesToPractice.Count == 0)
+            {
+                // Business process: các thẻ đã được làm chủ từ trước vẫn thỏa activity của bài giao mới.
+                await _assignmentProgressService.MarkActivityCompletedAsync(
+                    assignmentId.Value, studentId, AssignmentActivityType.Flashcard);
+            }
+            else
+            {
+                await _assignmentProgressService.MarkActivityStartedAsync(
+                    assignmentId.Value, studentId, AssignmentActivityType.Flashcard);
+            }
+        }
         var dashboard = await _dashboardRepo.GetProfileByUserIdAsync(studentId);
 
         return new FlashcardPracticeViewModel
         {
             SessionId = session.SessionId,
             LessonId = lessonId,
+            AssignmentId = assignmentId,
             LessonTitle = lesson.Title,
             Cards = vocabulariesToPractice.Select(v => new FlashcardItem
             {
@@ -99,6 +120,14 @@ public class FlashcardService : IFlashcardService
         }).ToList();
 
         await _flashcardRepo.CompleteSessionAsync(completeData.SessionId, completeData.Results.Count, results);
+        if (session.WeeklyAssignmentId.HasValue)
+        {
+            // Business process: hoàn tất toàn bộ phiên thẻ được cấu hình sẽ hoàn tất activity Flashcard.
+            await _assignmentProgressService.MarkActivityCompletedAsync(
+                session.WeeklyAssignmentId.Value,
+                studentId,
+                AssignmentActivityType.Flashcard);
+        }
     }
 
     public async Task<FlashcardResultViewModel?> GetSessionResultAsync(int sessionId, int studentId)
@@ -119,6 +148,7 @@ public class FlashcardService : IFlashcardService
         {
             SessionId = session.SessionId,
             LessonId = session.LessonId,
+            AssignmentId = session.WeeklyAssignmentId,
             LessonTitle = session.Lesson?.Title ?? "",
             TotalCards = session.CardsReviewed,
             KnewCards = items.Count(i => i.KnewIt),

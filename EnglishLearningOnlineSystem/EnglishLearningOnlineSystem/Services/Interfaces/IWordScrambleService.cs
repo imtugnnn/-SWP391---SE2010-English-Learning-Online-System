@@ -8,7 +8,7 @@ public interface IWordScrambleService
     Task<StudentMiniGameListViewModel?> GetGamesByLessonAsync(int lessonId);
 
     /// <summary>Tải màn chơi: chọn ngẫu nhiên từ vựng và xáo trộn chữ cái.</summary>
-    Task<WordScramblePlayViewModel?> LoadPlayAsync(int gameId);
+    Task<WordScramblePlayViewModel?> LoadPlayAsync(int gameId, int studentId, int? assignmentId = null);
 
     /// <summary>
     /// Kiểm tra đáp án, lưu StudentGameProgress, cập nhật XP và trả về kết quả.

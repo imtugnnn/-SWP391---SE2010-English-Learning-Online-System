@@ -45,6 +45,8 @@ public class AppDbContext : Microsoft.EntityFrameworkCore.DbContext
     public DbSet<QuizAttemptAnswer> QuizAttemptAnswers { get; set; }
     public DbSet<FlashcardSession> FlashcardSessions { get; set; }
     public DbSet<FlashcardCardResult> FlashcardCardResults { get; set; }
+    public DbSet<AssignmentProgress> AssignmentProgresses { get; set; }
+    public DbSet<AssignmentActivityProgress> AssignmentActivityProgresses { get; set; }
     public DbSet<SystemSetting> SystemSettings { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
@@ -189,6 +191,33 @@ public class AppDbContext : Microsoft.EntityFrameworkCore.DbContext
             eb.HasIndex(x => new { x.ClassId, x.LessonId, x.WeekStartDate });
         });
 
+        modelBuilder.Entity<AssignmentProgress>(eb =>
+        {
+            eb.HasIndex(x => new { x.AssignmentId, x.StudentId }).IsUnique();
+            eb.HasOne(x => x.Assignment)
+              .WithMany(x => x.StudentProgresses)
+              .HasForeignKey(x => x.AssignmentId)
+              .OnDelete(DeleteBehavior.Cascade);
+            eb.HasOne(x => x.Student)
+              .WithMany(x => x.AssignmentProgresses)
+              .HasForeignKey(x => x.StudentId)
+              .OnDelete(DeleteBehavior.Restrict);
+        });
+
+        modelBuilder.Entity<AssignmentActivityProgress>(eb =>
+        {
+            eb.HasIndex(x => new { x.AssignmentId, x.StudentId, x.ActivityType, x.ActivityId })
+              .IsUnique();
+            eb.HasOne(x => x.Assignment)
+              .WithMany(x => x.ActivityProgresses)
+              .HasForeignKey(x => x.AssignmentId)
+              .OnDelete(DeleteBehavior.Cascade);
+            eb.HasOne(x => x.Student)
+              .WithMany(x => x.AssignmentActivityProgresses)
+              .HasForeignKey(x => x.StudentId)
+              .OnDelete(DeleteBehavior.Restrict);
+        });
+
         modelBuilder.Entity<WeeklyAssignmentVocabulary>(eb =>
         {
             eb.HasKey(x => new { x.AssignmentId, x.VocabularyId });
@@ -282,6 +311,11 @@ public class AppDbContext : Microsoft.EntityFrameworkCore.DbContext
                   .OnDelete(DeleteBehavior.Restrict);
 
                 eb.HasIndex(fs => fs.StudentId);
+
+                eb.HasOne(fs => fs.WeeklyAssignment)
+                  .WithMany()
+                  .HasForeignKey(fs => fs.WeeklyAssignmentId)
+                  .OnDelete(DeleteBehavior.SetNull);
             });
 
             modelBuilder.Entity<FlashcardCardResult>(eb =>
@@ -298,6 +332,14 @@ public class AppDbContext : Microsoft.EntityFrameworkCore.DbContext
             });
         }
         catch { }
+
+        modelBuilder.Entity<StudentGameProgress>(eb =>
+        {
+            eb.HasOne(x => x.WeeklyAssignment)
+              .WithMany()
+              .HasForeignKey(x => x.WeeklyAssignmentId)
+              .OnDelete(DeleteBehavior.SetNull);
+        });
 
         // SEED DATA: roles (preserve previous roles list) and an admin user
         modelBuilder.Entity<Role>().HasData(

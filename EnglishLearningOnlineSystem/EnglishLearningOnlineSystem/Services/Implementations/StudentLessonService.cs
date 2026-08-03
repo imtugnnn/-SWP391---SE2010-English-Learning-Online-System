@@ -1,6 +1,7 @@
 using EnglishLearningOnlineSystem.Repositories.Interfaces;
 using EnglishLearningOnlineSystem.Services.Interfaces;
 using EnglishLearningOnlineSystem.ViewModels;
+using EnglishLearningOnlineSystem.Models;
 
 namespace EnglishLearningOnlineSystem.Services.Implementations;
 
@@ -8,10 +9,14 @@ namespace EnglishLearningOnlineSystem.Services.Implementations;
 public class StudentLessonService : IStudentLessonService
 {
     private readonly IStudentLessonRepository _repo;
+    private readonly IAssignmentProgressService _assignmentProgressService;
 
-    public StudentLessonService(IStudentLessonRepository repo)
+    public StudentLessonService(
+        IStudentLessonRepository repo,
+        IAssignmentProgressService assignmentProgressService)
     {
         _repo = repo;
+        _assignmentProgressService = assignmentProgressService;
     }
 
     // Lấy danh sách bài học được giao và hỗ trợ lọc theo trạng thái
@@ -24,8 +29,9 @@ public class StudentLessonService : IStudentLessonService
         {
             if (wa.Lesson == null) continue;
 
-            // Lấy tiến độ tốt nhất của học sinh cho bài học
-            var progress = await _repo.GetBestProgressAsync(studentId, wa.LessonId ?? 0);
+            // Business process: tiến độ phải lấy theo assignment, không dùng Progress theo Lesson
+            // vì cùng một lesson có thể được giao nhiều lần với cấu hình activity khác nhau.
+            var snapshot = await _assignmentProgressService.GetSnapshotAsync(wa.AssignmentId, studentId);
 
             items.Add(new AssignedLessonItem
             {
@@ -41,8 +47,14 @@ public class StudentLessonService : IStudentLessonService
                 MiniGameCount = wa.IncludeMiniGame ? wa.MiniGames.Count : 0,
                 WeekStartDate = wa.WeekStartDate,
                 DueDate = wa.DueDate,
-                CompletionStatus = progress?.CompletionStatus ?? "NOT_STARTED",
-                QuizScore = progress?.QuizScore ?? 0
+                CompletionStatus = ToDisplayStatus(snapshot?.Status ?? AssignmentCompletionStatus.NotStarted),
+                QuizScore = snapshot?.BestQuizScore ?? 0,
+                FlashcardStatus = ToActivityStatus(snapshot, AssignmentActivityType.Flashcard),
+                QuizStatus = ToActivityStatus(snapshot, AssignmentActivityType.Quiz),
+                MiniGameStatus = ToActivityStatus(snapshot, AssignmentActivityType.MiniGame),
+                CompletedActivityCount = snapshot?.CompletedActivityCount ?? 0,
+                RequiredActivityCount = snapshot?.RequiredActivityCount ?? 0,
+                IsCompletedLate = snapshot?.IsCompletedLate ?? false
             });
         }
 
@@ -54,6 +66,7 @@ public class StudentLessonService : IStudentLessonService
             "NOT_STARTED" => "NOT_STARTED",
             "IN PROGRESS" => "In Progress",
             "COMPLETED" => "Completed",
+            "COMPLETED_LATE" => "COMPLETED_LATE",
             "OVERDUE" => "OVERDUE",
             _ => ""
         };
@@ -71,8 +84,9 @@ public class StudentLessonService : IStudentLessonService
                 .Where(i => i.CompletionStatus == "In Progress" && !i.IsOverdue)
                 .ToList(),
             "Completed" => allItems
-                .Where(i => i.CompletionStatus == "Completed")
+                .Where(i => i.CompletionStatus == "Completed" && !i.IsCompletedLate)
                 .ToList(),
+            "COMPLETED_LATE" => allItems.Where(i => i.IsCompletedLate).ToList(),
             _ => allItems
         };
 
@@ -86,7 +100,25 @@ public class StudentLessonService : IStudentLessonService
                 i.CompletionStatus == "In Progress" && !i.IsOverdue),
             NotStartedCount = allItems.Count(i =>
                 i.CompletionStatus == "NOT_STARTED" && !i.IsOverdue),
-            OverdueCount = allItems.Count(i => i.IsOverdue)
+            OverdueCount = allItems.Count(i => i.IsOverdue),
+            CompletedLateCount = allItems.Count(i => i.IsCompletedLate)
         };
     }
+
+    private static string ToActivityStatus(
+        AssignmentProgressSnapshot? snapshot,
+        AssignmentActivityType type)
+    {
+        if (snapshot == null || !snapshot.ActivityStatuses.TryGetValue(type, out var status))
+            return "NotAssigned";
+        return status?.ToString() ?? "NotStarted";
+    }
+
+    private static string ToDisplayStatus(AssignmentCompletionStatus status) => status switch
+    {
+        AssignmentCompletionStatus.NotStarted => "NOT_STARTED",
+        AssignmentCompletionStatus.InProgress => "In Progress",
+        AssignmentCompletionStatus.Completed => "Completed",
+        _ => "NOT_STARTED"
+    };
 }

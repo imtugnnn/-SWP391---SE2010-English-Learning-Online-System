@@ -14,11 +14,16 @@ public class QuizAttemptService : IQuizAttemptService
 {
     private readonly IQuizAttemptRepository _quizRepo;
     private readonly IStudentDashboardRepository _dashboardRepo;
+    private readonly IAssignmentProgressService _assignmentProgressService;
 
-    public QuizAttemptService(IQuizAttemptRepository quizRepo, IStudentDashboardRepository dashboardRepo)
+    public QuizAttemptService(
+        IQuizAttemptRepository quizRepo,
+        IStudentDashboardRepository dashboardRepo,
+        IAssignmentProgressService assignmentProgressService)
     {
         _quizRepo = quizRepo;
         _dashboardRepo = dashboardRepo;
+        _assignmentProgressService = assignmentProgressService;
     }
 
     public async Task<TakeQuizViewModel?> GetQuizForLessonAsync(
@@ -38,6 +43,12 @@ public class QuizAttemptService : IQuizAttemptService
         if (assignmentId.HasValue && assignment == null)
         {
             return null;
+        }
+
+        if (assignment != null)
+        {
+            await _assignmentProgressService.MarkActivityStartedAsync(
+                assignment.AssignmentId, studentId, AssignmentActivityType.Quiz);
         }
 
         var quizzes = await _quizRepo.GetQuizzesByLessonIdAsync(
@@ -173,6 +184,16 @@ public class QuizAttemptService : IQuizAttemptService
             await _quizRepo.UpdateProgressAsync(existingProgress);
         }
 
+        if (assignment != null)
+        {
+            // Business process: một lần submit hợp lệ hoàn tất activity Quiz; điểm cao nhất được giữ riêng.
+            await _assignmentProgressService.MarkActivityCompletedAsync(
+                assignment.AssignmentId,
+                studentId,
+                AssignmentActivityType.Quiz,
+                score: score);
+        }
+
         return await GetAttemptResultAsync(attempt.AttemptId, studentId);
     }
 
@@ -189,12 +210,16 @@ public class QuizAttemptService : IQuizAttemptService
             AttemptId = attempt.AttemptId,
             LessonId = attempt.LessonId,
             LessonTitle = attempt.Lesson?.Title ?? "",
+            WeeklyAssignmentId = attempt.WeeklyAssignmentId,
             Score = attempt.Score,
             CorrectCount = attempt.CorrectCount,
             TotalQuestions = attempt.TotalQuestions,
             XpEarned = attempt.XpAwarded ? (attempt.Lesson?.XPReward ?? 0) : 0,
             AlreadyAwardedXp = alreadyAwardedXp,
             TimeSpentSec = attempt.TimeSpentSec,
+            IsCompletedLate = attempt.WeeklyAssignmentId.HasValue &&
+                (await _assignmentProgressService.GetSnapshotAsync(
+                    attempt.WeeklyAssignmentId.Value, studentId))?.IsCompletedLate == true,
             AnswerResults = attempt.Answers.Select(a => new QuizAnswerResultItem
             {
                 QuizId = a.QuizId,

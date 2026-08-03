@@ -42,6 +42,40 @@ public interface ITeacherAssignmentService
     /// Phát hành một bài giao đang ở trạng thái bản nháp.
     /// </summary>
     Task<bool> PublishDraftAsync(int assignmentId, int classId, int teacherId);
+    Task<TeacherAssignmentDetailsViewModel?> GetAssignmentDetailsAsync(
+        int assignmentId,
+        int classId,
+        int teacherId);
+    Task<EditTeacherAssignmentViewModel?> GetEditAssignmentAsync(
+        int assignmentId,
+        int classId,
+        int teacherId);
+    Task<TeacherAssignmentCommandResult> UpdateAssignmentAsync(
+        EditTeacherAssignmentViewModel model,
+        int teacherId);
+    Task<TeacherAssignmentCommandResult> CancelAssignmentAsync(
+        int assignmentId,
+        int classId,
+        int teacherId);
+    Task<TeacherAssignmentCommandResult> ArchiveAssignmentAsync(
+        int assignmentId,
+        int classId,
+        int teacherId);
+    Task<TeacherAssignmentCommandResult> DeleteAssignmentAsync(
+        int assignmentId,
+        int classId,
+        int teacherId);
+}
+
+public sealed class TeacherAssignmentCommandResult
+{
+    public bool Succeeded { get; init; }
+    public string Message { get; init; } = string.Empty;
+
+    public static TeacherAssignmentCommandResult Success(string message) =>
+        new() { Succeeded = true, Message = message };
+    public static TeacherAssignmentCommandResult Failure(string message) =>
+        new() { Message = message };
 }
 
 /// <summary>

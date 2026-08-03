@@ -17,17 +17,23 @@ public class MatchingGameService : IMatchingGameService
 
     private readonly AppDbContext _db;
     private readonly IStudentGameProgressRepository _progressRepo;
+    private readonly IAssignmentProgressService _assignmentProgressService;
     private static readonly Random _rng = new();
 
     public MatchingGameService(
         AppDbContext db,
-        IStudentGameProgressRepository progressRepo)
+        IStudentGameProgressRepository progressRepo,
+        IAssignmentProgressService assignmentProgressService)
     {
         _db = db;
         _progressRepo = progressRepo;
+        _assignmentProgressService = assignmentProgressService;
     }
 
-    public async Task<MatchingPlayViewModel?> LoadPlayAsync(int gameId)
+    public async Task<MatchingPlayViewModel?> LoadPlayAsync(
+        int gameId,
+        int studentId,
+        int? assignmentId = null)
     {
         var game = await _db.MiniGames!
             .AsNoTracking()
@@ -42,6 +48,10 @@ public class MatchingGameService : IMatchingGameService
             .ToListAsync();
 
         if (vocabularies.Count < MinPairsRequired) return null;
+
+        if (assignmentId.HasValue && !await _assignmentProgressService.MarkActivityStartedAsync(
+                assignmentId.Value, studentId, AssignmentActivityType.MiniGame, gameId))
+            return null;
 
         var pairCount = Math.Min(MaxPairsPerRound, vocabularies.Count);
 
@@ -73,6 +83,7 @@ public class MatchingGameService : IMatchingGameService
         return new MatchingPlayViewModel
         {
             GameId = game.GameId,
+            AssignmentId = assignmentId,
             GameTitle = game.Title,
             XPReward = game.XPReward,
             LessonId = game.LessonId,
@@ -92,6 +103,9 @@ public class MatchingGameService : IMatchingGameService
 
         if (game == null)
             return (null, "Không tìm thấy trò chơi.");
+        if (vm.AssignmentId.HasValue && !await _assignmentProgressService.MarkActivityStartedAsync(
+                vm.AssignmentId.Value, studentId, AssignmentActivityType.MiniGame, vm.GameId))
+            return (null, "Trò chơi không thuộc bài giao của bạn.");
 
         if (vm.Answers == null || vm.Answers.Count == 0)
             return (null, "Vui lòng ghép ít nhất một cặp từ.");
@@ -145,6 +159,7 @@ public class MatchingGameService : IMatchingGameService
         {
             StudentId = studentId,
             GameId = game.GameId,
+            WeeklyAssignmentId = vm.AssignmentId,
             Score = totalCount > 0 ? (correctCount * 100) / totalCount : 0,
             XPEarned = xpEarned,
             CompletedAt = DateTime.UtcNow
@@ -166,10 +181,20 @@ public class MatchingGameService : IMatchingGameService
         }
 
         await _progressRepo.SaveChangesAsync();
+        if (vm.AssignmentId.HasValue)
+        {
+            await _assignmentProgressService.MarkActivityCompletedAsync(
+                vm.AssignmentId.Value,
+                studentId,
+                AssignmentActivityType.MiniGame,
+                vm.GameId,
+                progress.Score);
+        }
 
         return (new MatchingResultViewModel
         {
             GameId = game.GameId,
+            AssignmentId = vm.AssignmentId,
             GameTitle = game.Title,
             LessonId = game.LessonId,
             Items = items,

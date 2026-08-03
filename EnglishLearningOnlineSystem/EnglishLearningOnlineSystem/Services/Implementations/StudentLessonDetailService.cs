@@ -2,6 +2,7 @@ using System.Text.Json;
 using EnglishLearningOnlineSystem.Repositories.Interfaces;
 using EnglishLearningOnlineSystem.Services.Interfaces;
 using EnglishLearningOnlineSystem.ViewModels;
+using EnglishLearningOnlineSystem.Models;
 
 namespace EnglishLearningOnlineSystem.Services.Implementations;
 
@@ -9,10 +10,14 @@ namespace EnglishLearningOnlineSystem.Services.Implementations;
 public class StudentLessonDetailService : IStudentLessonDetailService
 {
     private readonly IStudentLessonDetailRepository _repo;
+    private readonly IAssignmentProgressService _assignmentProgressService;
 
-    public StudentLessonDetailService(IStudentLessonDetailRepository repo)
+    public StudentLessonDetailService(
+        IStudentLessonDetailRepository repo,
+        IAssignmentProgressService assignmentProgressService)
     {
         _repo = repo;
+        _assignmentProgressService = assignmentProgressService;
     }
 
     // Lấy thông tin chi tiết bài học và tiến độ học tập của học sinh
@@ -24,9 +29,15 @@ public class StudentLessonDetailService : IStudentLessonDetailService
         var lesson = await _repo.GetLessonWithContentAsync(studentId, lessonId, assignmentId);
         if (lesson == null) return null;
 
-        var progress = await _repo.GetBestProgressAsync(studentId, lessonId);
-        var attemptCount = await _repo.GetAttemptCountAsync(studentId, lessonId);
-        var gameProgresses = await _repo.GetGameProgressesAsync(studentId, lessonId);
+        var assignment = assignmentId.HasValue
+            ? await _repo.GetAccessibleAssignmentAsync(studentId, lessonId, assignmentId.Value)
+            : null;
+        var snapshot = assignmentId.HasValue
+            ? await _assignmentProgressService.GetSnapshotAsync(assignmentId.Value, studentId)
+            : null;
+        var progress = assignmentId.HasValue ? null : await _repo.GetBestProgressAsync(studentId, lessonId);
+        var attemptCount = await _repo.GetAttemptCountAsync(studentId, lessonId, assignmentId);
+        var gameProgresses = await _repo.GetGameProgressesAsync(studentId, lessonId, assignmentId);
 
         var doneGameIds = gameProgresses
             .Select(gp => gp.GameId)
@@ -41,9 +52,20 @@ public class StudentLessonDetailService : IStudentLessonDetailService
             CourseName = lesson.Course?.CourseName ?? "",
             XPReward = lesson.XPReward,
             EstimatedMinutes = lesson.EstimatedMinutes,
-            CompletionStatus = progress?.CompletionStatus ?? "NOT_STARTED",
-            BestScore = progress?.QuizScore ?? 0,
+            StartDate = assignment?.WeekStartDate,
+            DueDate = assignment?.DueDate,
+            AssignmentStatus = assignment == null ? string.Empty : "Published",
+            CompletionStatus = snapshot == null
+                ? progress?.CompletionStatus ?? "NOT_STARTED"
+                : ToDisplayStatus(snapshot.Status),
+            BestScore = snapshot?.BestQuizScore ?? progress?.QuizScore ?? 0,
             AttemptCount = attemptCount,
+            FlashcardStatus = ToActivityStatus(snapshot, AssignmentActivityType.Flashcard),
+            QuizStatus = ToActivityStatus(snapshot, AssignmentActivityType.Quiz),
+            MiniGameStatus = ToActivityStatus(snapshot, AssignmentActivityType.MiniGame),
+            CompletedActivityCount = snapshot?.CompletedActivityCount ?? 0,
+            RequiredActivityCount = snapshot?.RequiredActivityCount ?? 0,
+            IsCompletedLate = snapshot?.IsCompletedLate ?? false,
 
             Vocabularies = lesson.Vocabularies?.Select(v => new VocabItem
             {
@@ -72,6 +94,23 @@ public class StudentLessonDetailService : IStudentLessonDetailService
             }).ToList() ?? new()
         };
     }
+
+    private static string ToActivityStatus(
+        AssignmentProgressSnapshot? snapshot,
+        AssignmentActivityType type)
+    {
+        if (snapshot == null || !snapshot.ActivityStatuses.TryGetValue(type, out var status))
+            return "NotAssigned";
+        return status?.ToString() ?? "NotStarted";
+    }
+
+    private static string ToDisplayStatus(AssignmentCompletionStatus status) => status switch
+    {
+        AssignmentCompletionStatus.NotStarted => "NOT_STARTED",
+        AssignmentCompletionStatus.InProgress => "In Progress",
+        AssignmentCompletionStatus.Completed => "Completed",
+        _ => "NOT_STARTED"
+    };
 
     // Chấm điểm quiz và lưu kết quả làm bài của học sinh
     public async Task<(bool ok, string message)> SubmitQuizAsync(

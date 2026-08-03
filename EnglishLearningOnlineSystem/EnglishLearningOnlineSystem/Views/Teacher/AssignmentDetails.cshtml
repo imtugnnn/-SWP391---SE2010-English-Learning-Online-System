@@ -97,9 +97,9 @@
     <section class="teacher-danger-zone">
         <div><strong>Quản lý vòng đời</strong><p>Chỉ hủy hoặc xóa khi đáp ứng quy tắc dữ liệu của bài giao.</p></div>
         <div class="teacher-action-row">
-            @if (Model.CanArchive) { <button type="button" class="btn-teacher-outline">Lưu trữ</button> }
-            @if (Model.CanCancel) { <button type="button" class="btn-teacher-danger">Hủy bài giao</button> }
-            @if (Model.CanDelete) { <button type="button" class="btn-teacher-danger">Xóa</button> }
+            @if (Model.CanArchive) { <form asp-action="ArchiveAssignment" method="post">@Html.AntiForgeryToken()<input type="hidden" name="assignmentId" value="@Model.AssignmentId" /><input type="hidden" name="classId" value="@Model.ClassId" /><button type="submit" class="btn-teacher-outline">Lưu trữ</button></form> }
+            @if (Model.CanCancel) { <form asp-action="CancelAssignment" method="post">@Html.AntiForgeryToken()<input type="hidden" name="assignmentId" value="@Model.AssignmentId" /><input type="hidden" name="classId" value="@Model.ClassId" /><button type="submit" class="btn-teacher-danger">Hủy bài giao</button></form> }
+            @if (Model.CanDelete) { <form asp-action="DeleteAssignment" method="post">@Html.AntiForgeryToken()<input type="hidden" name="assignmentId" value="@Model.AssignmentId" /><input type="hidden" name="classId" value="@Model.ClassId" /><button type="submit" class="btn-teacher-danger">Xóa</button></form> }
         </div>
     </section>
 </div>
