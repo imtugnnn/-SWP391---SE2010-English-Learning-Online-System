@@ -1,7 +1,7 @@
 ﻿@model EnglishLearningOnlineSystem.ViewModels.AssignWeeklyLessonViewModel
 
 @{
-    ViewData["Title"] = "Giao bài học theo tuần";
+    ViewData["Title"] = "Tạo bài giao";
 }
 
 <style>
@@ -299,7 +299,7 @@
                         </div>
 
                         <h1 class="page-title">
-                            Giao bài học cho lớp <span>@Model.ClassName</span>
+                            Tạo bài giao cho lớp <span>@Model.ClassName</span>
                         </h1>
 
                         <p class="page-subtitle">
@@ -645,7 +645,7 @@
                             <button type="submit" class="btn-teacher" id="assignmentSubmitButton">
                                 @(Model.Status == EnglishLearningOnlineSystem.Models.AssignmentStatus.Draft
                                     ? "Lưu bản nháp"
-                                    : "Giao bài ngay")
+                                    : "Xuất bản bài giao")
                             </button>
                         }
                     </div>

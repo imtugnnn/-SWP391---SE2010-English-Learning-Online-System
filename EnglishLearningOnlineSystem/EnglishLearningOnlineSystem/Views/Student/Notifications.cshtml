@@ -1,0 +1,45 @@
+@model EnglishLearningOnlineSystem.ViewModels.StudentNotificationCenterViewModel
+@{
+    Layout = "_StudentLayout";
+    ViewData["Title"] = "Thông báo";
+    ViewData["ActiveNav"] = "notifications";
+}
+
+<div class="student-screen-shell">
+    <header class="student-screen-heading">
+        <div><span class="student-kicker">Trung tâm thông báo</span><h1>Thông báo của bạn</h1><p>Theo dõi bài giao mới, thay đổi hạn và phản hồi từ giáo viên.</p></div>
+        @if (Model.UnreadCount > 0)
+        {
+            <form asp-controller="Student" asp-action="MarkAllNotificationsRead" method="post">@Html.AntiForgeryToken()<button class="student-btn student-btn--secondary" type="submit">Đánh dấu tất cả đã đọc</button></form>
+        }
+    </header>
+
+    <nav class="student-filter-tabs" aria-label="Lọc thông báo">
+        <a asp-controller="Student" asp-action="Notifications" asp-route-filter="all" class="@(Model.Filter == "all" ? "active" : null)">Tất cả</a>
+        <a asp-controller="Student" asp-action="Notifications" asp-route-filter="unread" class="@(Model.Filter == "unread" ? "active" : null)">Chưa đọc (@Model.UnreadCount)</a>
+        <a asp-controller="Student" asp-action="Notifications" asp-route-filter="assignment" class="@(Model.Filter == "assignment" ? "active" : null)">Bài giao</a>
+        <a asp-controller="Student" asp-action="Notifications" asp-route-filter="feedback" class="@(Model.Filter == "feedback" ? "active" : null)">Phản hồi</a>
+    </nav>
+
+    @if (Model.Notifications.Count == 0)
+    {
+        <div class="student-empty-panel"><span>🔔</span><h2>Không có thông báo</h2><p>Các cập nhật học tập mới sẽ xuất hiện tại đây.</p></div>
+    }
+    else
+    {
+        <div class="student-notification-list">
+        @foreach (var item in Model.Notifications)
+        {
+            var icon = item.Type switch { "NEW_ASSIGNMENT" => "📘", "ASSIGNMENT_UPDATED" => "🗓️", "ASSIGNMENT_CANCELLED" => "⛔", "TEACHER_FEEDBACK" => "💬", _ => "🔔" };
+            <article class="student-notification-card @(!item.IsRead ? "is-unread" : null)">
+                <div class="student-notification-icon">@icon</div>
+                <div class="student-notification-copy"><div class="student-notification-meta"><span>@item.Title</span><time>@item.CreatedAt.ToString("dd/MM/yyyy HH:mm")</time></div><p>@item.Message</p></div>
+                <div class="student-notification-actions">
+                    @if (!string.IsNullOrWhiteSpace(item.TargetUrl)) { <a href="@item.TargetUrl" class="student-btn student-btn--small">Xem</a> }
+                    @if (!item.IsRead) { <form asp-controller="Student" asp-action="MarkNotificationRead" method="post">@Html.AntiForgeryToken()<input type="hidden" name="notificationId" value="@item.NotificationId" /><button type="submit" class="student-link-button">Đã đọc</button></form> }
+                </div>
+            </article>
+        }
+        </div>
+    }
+</div>

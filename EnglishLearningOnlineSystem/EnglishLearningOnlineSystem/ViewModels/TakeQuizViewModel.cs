@@ -6,6 +6,7 @@ public class TakeQuizViewModel
     public string LessonTitle { get; set; } = string.Empty;
     public int? WeeklyAssignmentId { get; set; }
     public bool IsOverdue { get; set; }
+    public DateTime? DueDate { get; set; }
     public List<QuizQuestionItem> Questions { get; set; } = new();
 }
 

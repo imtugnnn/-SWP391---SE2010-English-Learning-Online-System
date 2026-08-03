@@ -1,9 +1,8 @@
 @model EnglishLearningOnlineSystem.ViewModels.TeacherNavigationViewModel
 @{
     var isDashboard = Model.CurrentAction == "Dashboard";
-    var studentActions = new[] { "ManageStudentList", "StudentDetail" };
-    var supportActions = new[] { "StudentsNeedSupport", "ProvideFeedback" };
-    var assignmentActions = new[] { "AssignmentOverview", "AssignWeeklyLessons", "PublishDraft" };
+    var studentActions = new[] { "ManageStudentList", "StudentsNeedSupport", "StudentDetail", "ProvideFeedback" };
+    var assignmentActions = new[] { "AssignmentOverview", "AssignWeeklyLessons", "AssignmentDetails", "EditAssignment", "PublishDraft" };
 }
 
 <div class="teacher-sidebar__profile">
@@ -40,7 +39,6 @@
             var isSelected = Model.SelectedClassId == classItem.ClassId;
             var isClassOverview = isSelected && Model.CurrentAction == "ClassDetail";
             var isStudents = isSelected && studentActions.Contains(Model.CurrentAction);
-            var isSupport = isSelected && supportActions.Contains(Model.CurrentAction);
             var isAssignments = isSelected && assignmentActions.Contains(Model.CurrentAction);
 
             <details class="teacher-sidebar__class-group @(isSelected ? "selected" : null)"
@@ -84,25 +82,12 @@
                        asp-route-classId="@classItem.ClassId"
                        class="teacher-sidebar__subitem @(isStudents ? "active" : null)"
                        aria-current="@(isStudents ? "page" : null)"
-                       title="Danh sách học sinh">
+                       title="Tiến độ học sinh">
                         <svg viewBox="0 0 24 24" aria-hidden="true">
                             <circle cx="9" cy="8" r="3" />
                             <path d="M3.5 19c.5-4 2.2-6 5.5-6s5 2 5.5 6M16 6.5a3 3 0 0 1 0 5.8M16 14c2.7.3 4.1 2 4.5 5" />
                         </svg>
-                        <span class="teacher-sidebar__subitem-label">Danh sách học sinh</span>
-                    </a>
-
-                    <a asp-controller="Teacher"
-                       asp-action="StudentsNeedSupport"
-                       asp-route-classId="@classItem.ClassId"
-                       class="teacher-sidebar__subitem @(isSupport ? "active" : null)"
-                       aria-current="@(isSupport ? "page" : null)"
-                       title="Học sinh cần hỗ trợ">
-                        <svg viewBox="0 0 24 24" aria-hidden="true">
-                            <path d="M12 21s8-4.5 8-11a4.5 4.5 0 0 0-8-2.7A4.5 4.5 0 0 0 4 10c0 6.5 8 11 8 11Z" />
-                            <path d="M12 9v4M12 16h.01" />
-                        </svg>
-                        <span class="teacher-sidebar__subitem-label">Học sinh cần hỗ trợ</span>
+                        <span class="teacher-sidebar__subitem-label">Tiến độ học sinh</span>
                     </a>
 
                     <a asp-controller="Teacher"
@@ -110,12 +95,12 @@
                        asp-route-classId="@classItem.ClassId"
                        class="teacher-sidebar__subitem @(isAssignments ? "active" : null)"
                        aria-current="@(isAssignments ? "page" : null)"
-                       title="Bài tập tuần">
+                       title="Bài giao">
                         <svg viewBox="0 0 24 24" aria-hidden="true">
                             <rect x="5" y="4" width="14" height="17" rx="2" />
                             <path d="M9 4.5V3h6v1.5M8.5 10h7M8.5 14h7M8.5 18h4" />
                         </svg>
-                        <span class="teacher-sidebar__subitem-label">Bài tập tuần</span>
+                        <span class="teacher-sidebar__subitem-label">Bài giao</span>
                     </a>
                 </div>
             </details>

@@ -4,7 +4,10 @@ namespace EnglishLearningOnlineSystem.Services.Interfaces;
 
 public interface IQuizAttemptService
 {
-    Task<TakeQuizViewModel?> GetQuizForLessonAsync(int lessonId, int studentId);
+    Task<TakeQuizViewModel?> GetQuizForLessonAsync(
+        int lessonId,
+        int studentId,
+        int? assignmentId = null);
     Task<QuizResultViewModel?> SubmitQuizAsync(int studentId, QuizSubmitViewModel submitData);
     Task<QuizResultViewModel?> GetAttemptResultAsync(int attemptId, int studentId);
     Task<AttemptHistoryViewModel> GetStudentHistoryAsync(int studentId, int? lessonId, string? from, string? to, string sort);

@@ -4,9 +4,15 @@ namespace EnglishLearningOnlineSystem.Repositories.Interfaces;
 
 public interface IQuizAttemptRepository
 {
-    Task<List<Quiz>> GetQuizzesByLessonIdAsync(int lessonId, int studentId);
+    Task<List<Quiz>> GetQuizzesByLessonIdAsync(
+        int lessonId,
+        int studentId,
+        int? assignmentId = null);
     Task<Lesson?> GetLessonByIdAsync(int lessonId);
-    Task<WeeklyAssignment?> GetAssignmentForLessonAsync(int lessonId, int studentId);
+    Task<WeeklyAssignment?> GetAssignmentForLessonAsync(
+        int lessonId,
+        int studentId,
+        int? assignmentId = null);
     Task<Progress?> GetProgressAsync(int studentId, int lessonId);
     Task UpdateProgressAsync(Progress progress);
     Task CreateProgressAsync(Progress progress);

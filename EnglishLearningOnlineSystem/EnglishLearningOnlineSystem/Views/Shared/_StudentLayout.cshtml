@@ -33,6 +33,7 @@
 
     <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet" />
     <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="~/css/student-common.css" asp-append-version="true" />
 
     @* ── CSS tokens & shared styles ── *@
     <style>
@@ -325,26 +326,27 @@
         <a href="/student/dashboard"   class="@Nav("dashboard")">
             <span class="nav-icon"></span><span>Trang chủ</span>
         </a>
-        <a href="/student/courses"     class="@Nav("courses")">
-            <span class="nav-icon"></span><span>Khoá học</span>
+        <a href="/student/lessons" class="@Nav("lessons")">
+            <span class="nav-icon">📚</span><span>Bài được giao</span>
+            @if (ViewBag.PendingLessons is int pendingLessons && pendingLessons > 0)
+            {
+                <span class="nav-badge">@pendingLessons</span>
+            }
         </a>
-        <a href="/student/vocabulary"  class="@Nav("vocabulary")">
-            <span class="nav-icon"></span><span>Từ vựng</span>
+        <a href="/student/courses" class="@Nav("courses")">
+            <span class="nav-icon">🎓</span><span>Khoá học</span>
         </a>
-        <a href="/student/minigames"   class="@Nav("minigames")">
-            <span class="nav-icon"></span><span>Mini Game</span>
+        <a href="/student/vocabulary" class="@Nav("vocabulary")">
+            <span class="nav-icon">🃏</span><span>Từ vựng</span>
         </a>
-        <a href="/student/missions"    class="@Nav("missions")">
-            <span class="nav-icon"></span><span>Nhiệm vụ</span>
+        <a href="/student/notifications" class="@Nav("notifications")">
+            <span class="nav-icon">🔔</span><span>Thông báo</span>
         </a>
-        <a href="/student/badges"      class="@Nav("badges")">
-            <span class="nav-icon"></span><span>Huy hiệu</span>
+        <a href="/student/feedback" class="@Nav("feedback")">
+            <span class="nav-icon">💬</span><span>Phản hồi giáo viên</span>
         </a>
-        <a href="/student/leaderboard" class="@Nav("leaderboard")">
-            <span class="nav-icon"></span><span>Bảng xếp hạng</span>
-        </a>
-        <a href="/student/profile"     class="@Nav("profile")">
-            <span class="nav-icon"></span><span>Hồ sơ</span>
+        <a href="/student/profile" class="@Nav("profile")">
+            <span class="nav-icon">👤</span><span>Hồ sơ</span>
         </a>
     </nav>
 
@@ -375,10 +377,13 @@
                 </button>
                 <div class="notif-dropdown d-none" id="notifDropdown">
                     <div class="notif-dropdown-header">
-                        Thông báo hệ thống
+                        Thông báo
                     </div>
                     <div class="notif-dropdown-body" id="notifDropdownBody">
                         <div class="notif-loading">Đang tải...</div>
+                    </div>
+                    <div class="p-2 border-top text-center">
+                        <a href="/student/notifications" class="text-decoration-none fw-bold small">Xem tất cả thông báo</a>
                     </div>
                 </div>
             </div>

@@ -112,12 +112,15 @@ public class StudentController : BaseStudentController
 
     // Hiển thị giao diện làm bài Quiz cho một bài học cụ thể
     [HttpGet("/student/lesson/{lessonId}/quiz")]
-    public async Task<IActionResult> TakeQuiz(int lessonId)
+    public async Task<IActionResult> TakeQuiz(int lessonId, int? assignmentId = null)
     {
         var userId = GetCurrentUserId();
         if (userId == null) return RedirectToAction("Login", "Auth");
 
-        var vm = await _quizService.GetQuizForLessonAsync(lessonId, userId.Value);
+        var vm = await _quizService.GetQuizForLessonAsync(
+            lessonId,
+            userId.Value,
+            assignmentId);
         if (vm == null) return NotFound("Lesson or quizzes not found.");
 
         return View(vm);
@@ -183,12 +186,19 @@ public class StudentController : BaseStudentController
 
     // Hiển thị giao diện lật thẻ (Flashcards) cho một bài học
     [HttpGet("/student/lesson/{lessonId}/flashcards")]
-    public async Task<IActionResult> Flashcards(int lessonId, string mode = "")
+    public async Task<IActionResult> Flashcards(
+        int lessonId,
+        string mode = "",
+        int? assignmentId = null)
     {
         var userId = GetCurrentUserId();
         if (userId == null) return RedirectToAction("Login", "Auth");
 
-        var vm = await _flashcardService.StartSessionAsync(lessonId, userId.Value, mode == "reset");
+        var vm = await _flashcardService.StartSessionAsync(
+            lessonId,
+            userId.Value,
+            mode == "reset",
+            assignmentId);
         if (vm == null) return NotFound("Vocabulary not found for this lesson.");
 
         return View(vm);
@@ -295,12 +305,15 @@ public class StudentController : BaseStudentController
 
     // Hiển thị chi tiết bài học và nội dung học tập
     [HttpGet("/student/lesson/{lessonId:int}")]
-    public async Task<IActionResult> LessonDetail(int lessonId)
+    public async Task<IActionResult> LessonDetail(int lessonId, int? assignmentId = null)
     {
         var userId = GetCurrentUserId();
         if (userId == null) return RedirectToAction("Login", "Auth");
 
-        var vm = await _lessonDetailService.GetLessonDetailAsync(userId.Value, lessonId);
+        var vm = await _lessonDetailService.GetLessonDetailAsync(
+            userId.Value,
+            lessonId,
+            assignmentId);
         if (vm == null) return NotFound();
 
         return View(vm);

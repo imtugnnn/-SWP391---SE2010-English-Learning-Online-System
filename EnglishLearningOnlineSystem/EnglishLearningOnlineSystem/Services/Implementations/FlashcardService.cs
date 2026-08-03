@@ -21,12 +21,19 @@ public class FlashcardService : IFlashcardService
         _dashboardRepo = dashboardRepo;
     }
 
-    public async Task<FlashcardPracticeViewModel?> StartSessionAsync(int lessonId, int studentId, bool resetProgress = false)
+    public async Task<FlashcardPracticeViewModel?> StartSessionAsync(
+        int lessonId,
+        int studentId,
+        bool resetProgress = false,
+        int? assignmentId = null)
     {
         var lesson = await _flashcardRepo.GetLessonByIdAsync(lessonId);
         if (lesson == null) return null;
 
-        var vocabularies = await _flashcardRepo.GetVocabularyByLessonAsync(lessonId, studentId);
+        var vocabularies = await _flashcardRepo.GetVocabularyByLessonAsync(
+            lessonId,
+            studentId,
+            assignmentId);
         if (!vocabularies.Any()) return null;
 
         if (resetProgress)

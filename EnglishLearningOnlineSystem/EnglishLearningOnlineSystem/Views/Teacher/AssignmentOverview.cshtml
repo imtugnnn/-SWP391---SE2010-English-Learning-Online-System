@@ -248,7 +248,7 @@
                         </div>
 
                         <h1 class="page-title">
-                            Bài giao tuần · <span>@Model.ClassName</span>
+                            Bài giao · <span>@Model.ClassName</span>
                         </h1>
 
                         <p class="page-subtitle">
@@ -267,7 +267,7 @@
                            asp-action="AssignWeeklyLessons"
                            asp-route-classId="@Model.ClassId"
                            class="btn-teacher">
-                            Giao bài tuần mới
+                            Tạo bài giao mới
                         </a>
                     </div>
                 </div>
@@ -368,6 +368,7 @@
                                 <th>Chủ đề</th>
                                 <th>Ngày bắt đầu</th>
                                 <th>Hạn hoàn thành</th>
+                                <th>Hoàn thành</th>
                                 <th>Trạng thái</th>
                                 <th>Thao tác</th>
                             </tr>
@@ -400,6 +401,19 @@
                                     <td>@item.WeekStartDate.ToString("dd/MM/yyyy")</td>
                                     <td>@item.DueDate.ToString("dd/MM/yyyy")</td>
                                     <td>
+                                        @if (item.AssignedStudentCount > 0)
+                                        {
+                                            <div class="fw-bold">@item.CompletedStudentCount/@item.AssignedStudentCount</div>
+                                            <div class="progress mt-1" style="height:6px;min-width:90px" role="progressbar" aria-label="Tiến độ hoàn thành" aria-valuenow="@item.CompletionRate" aria-valuemin="0" aria-valuemax="100">
+                                                <div class="progress-bar" style="width:@item.CompletionRate%"></div>
+                                            </div>
+                                        }
+                                        else
+                                        {
+                                            <span class="text-muted">Chưa có dữ liệu</span>
+                                        }
+                                    </td>
+                                    <td>
                                         <button type="button"
                                                 class="btn-teacher-outline me-2"
                                                 data-lesson-preview-url="@Url.Action(
@@ -426,6 +440,24 @@
                                         }
                                     </td>
                                     <td>
+                                        <div class="d-flex flex-wrap gap-2">
+                                            <a asp-controller="Teacher"
+                                               asp-action="AssignmentDetails"
+                                               asp-route-assignmentId="@item.AssignmentId"
+                                               asp-route-classId="@Model.ClassId"
+                                               class="btn-teacher-outline">
+                                                Chi tiết
+                                            </a>
+                                            @if (item.CanEdit || item.Status == "Bản nháp")
+                                            {
+                                                <a asp-controller="Teacher"
+                                                   asp-action="EditAssignment"
+                                                   asp-route-assignmentId="@item.AssignmentId"
+                                                   asp-route-classId="@Model.ClassId"
+                                                   class="btn-teacher-outline">
+                                                    Chỉnh sửa
+                                                </a>
+                                            }
                                         @if (item.Status == "Bản nháp")
                                         {
                                             <form asp-controller="Teacher"
@@ -443,8 +475,16 @@
                                         }
                                         else
                                         {
-                                            <span class="text-muted">—</span>
+                                            <a asp-controller="Teacher"
+                                               asp-action="AssignmentDetails"
+                                               asp-route-assignmentId="@item.AssignmentId"
+                                               asp-route-classId="@Model.ClassId"
+                                               asp-fragment="assignment-completion"
+                                               class="btn-teacher-outline">
+                                                Tiến độ
+                                            </a>
                                         }
+                                        </div>
                                     </td>
                                 </tr>
                             }

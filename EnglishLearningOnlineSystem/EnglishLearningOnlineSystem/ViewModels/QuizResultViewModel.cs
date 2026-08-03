@@ -4,6 +4,8 @@ public class QuizResultViewModel
 {
     public int AttemptId { get; set; }
     public int LessonId { get; set; }
+    public int? WeeklyAssignmentId { get; set; }
+    public bool IsCompletedLate { get; set; }
     public string LessonTitle { get; set; } = string.Empty;
     public int Score { get; set; }           // Percentage 0-100
     public int CorrectCount { get; set; }

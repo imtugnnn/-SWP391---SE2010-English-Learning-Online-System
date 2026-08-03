@@ -4,6 +4,7 @@ public class FlashcardResultViewModel
 {
     public int SessionId { get; set; }
     public int LessonId { get; set; }
+    public int? AssignmentId { get; set; }
     public string LessonTitle { get; set; } = string.Empty;
     public int TotalCards { get; set; }
     public int KnewCards { get; set; }

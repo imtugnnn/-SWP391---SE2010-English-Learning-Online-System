@@ -10,6 +10,7 @@ public class WordScramblePlayViewModel
     public string GameTitle { get; set; } = string.Empty;
     public int XPReward { get; set; }
     public int LessonId { get; set; }
+    public int? AssignmentId { get; set; }
     public string LessonTitle { get; set; } = string.Empty;
 
     // Từ vựng được chọn ngẫu nhiên
@@ -26,6 +27,8 @@ public class WordScrambleSubmitViewModel
 {
     [Required]
     public int GameId { get; set; }
+
+    public int? AssignmentId { get; set; }
 
     [Required]
     public int VocabularyId { get; set; }
@@ -47,6 +50,7 @@ public class WordScrambleResultViewModel
     public int XPEarned { get; set; }
     public int NewTotalXP { get; set; }
     public int LessonId { get; set; }
+    public int? AssignmentId { get; set; }
 }
 
 // ── ViewModel danh sách game cho học sinh ────────────────────────────────────

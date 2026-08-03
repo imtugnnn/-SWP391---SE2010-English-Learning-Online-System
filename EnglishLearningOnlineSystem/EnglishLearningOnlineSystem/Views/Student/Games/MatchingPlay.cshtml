@@ -226,6 +226,7 @@
             <form asp-controller="Matching" asp-action="Submit" method="post">
                 @Html.AntiForgeryToken()
                 <input type="hidden" name="GameId" value="@Model.GameId" />
+                <input type="hidden" name="AssignmentId" value="@Model.AssignmentId" />
 
                 @* ── CHANGED: table styling, classes renamed for better visuals ── *@
                 <table class="matching-table">

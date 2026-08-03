@@ -16,7 +16,10 @@ public class StudentLessonDetailRepository : IStudentLessonDetailRepository
     }
 
     // Lấy thông tin bài học cùng toàn bộ nội dung liên quan
-    public async Task<Lesson?> GetLessonWithContentAsync(int studentId, int lessonId)
+    public async Task<Lesson?> GetLessonWithContentAsync(
+        int studentId,
+        int lessonId,
+        int? assignmentId = null)
     {
         var lesson = await _db.Lessons!
             .AsNoTracking()
@@ -39,11 +42,17 @@ public class StudentLessonDetailRepository : IStudentLessonDetailRepository
             .Where(x =>
                 x.LessonId == lessonId &&
                 x.IsVisible &&
+                (!assignmentId.HasValue || x.AssignmentId == assignmentId.Value) &&
                 x.ClassId.HasValue &&
                 _db.ClassEnrollments!.Any(e =>
                     e.ClassId == x.ClassId.Value && e.StudentId == studentId))
             .OrderByDescending(x => x.WeekStartDate)
             .FirstOrDefaultAsync();
+
+        if (assignment == null && assignmentId.HasValue)
+        {
+            return null;
+        }
 
         if (assignment == null)
         {

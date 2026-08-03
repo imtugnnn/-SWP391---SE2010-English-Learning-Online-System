@@ -36,6 +36,7 @@ public class StudentDashboardViewModel
 
 public class AssignedLessonSummary
 {
+    public int AssignmentId { get; set; }
     public int LessonId { get; set; }
     public string Title { get; set; } = string.Empty;
     public string Topic { get; set; } = string.Empty;

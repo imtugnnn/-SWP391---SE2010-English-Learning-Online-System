@@ -29,6 +29,7 @@ public class StudentLessonService : IStudentLessonService
 
             items.Add(new AssignedLessonItem
             {
+                AssignmentId = wa.AssignmentId,
                 LessonId = wa.LessonId ?? 0,
                 Title = wa.Lesson.Title,
                 Topic = wa.Lesson.Topic ?? "",
@@ -45,14 +46,47 @@ public class StudentLessonService : IStudentLessonService
             });
         }
 
-        // Lọc danh sách theo trạng thái hoàn thành
-        if (!string.IsNullOrEmpty(filterStatus) && filterStatus != "ALL")
-            items = items.Where(i => i.CompletionStatus == filterStatus).ToList();
+        var normalizedStatus = (filterStatus ?? string.Empty)
+            .Trim()
+            .ToUpperInvariant() switch
+        {
+            "" or "ALL" => "",
+            "NOT_STARTED" => "NOT_STARTED",
+            "IN PROGRESS" => "In Progress",
+            "COMPLETED" => "Completed",
+            "OVERDUE" => "OVERDUE",
+            _ => ""
+        };
+        var allItems = items;
+
+        // Lọc danh sách theo trạng thái hoàn thành hoặc quá hạn.
+        items = normalizedStatus switch
+        {
+            "" => allItems,
+            "OVERDUE" => allItems.Where(i => i.IsOverdue).ToList(),
+            "NOT_STARTED" => allItems
+                .Where(i => i.CompletionStatus == "NOT_STARTED" && !i.IsOverdue)
+                .ToList(),
+            "In Progress" => allItems
+                .Where(i => i.CompletionStatus == "In Progress" && !i.IsOverdue)
+                .ToList(),
+            "Completed" => allItems
+                .Where(i => i.CompletionStatus == "Completed")
+                .ToList(),
+            _ => allItems
+        };
 
         return new AssignedLessonListViewModel
         {
             Lessons = items,
-            FilterStatus = filterStatus
+            FilterStatus = normalizedStatus,
+            TotalCount = allItems.Count,
+            CompletedCount = allItems.Count(i => i.CompletionStatus == "Completed"),
+            InProgressCount = allItems.Count(i =>
+                i.CompletionStatus == "In Progress" && !i.IsOverdue),
+            NotStartedCount = allItems.Count(i =>
+                i.CompletionStatus == "NOT_STARTED" && !i.IsOverdue),
+            OverdueCount = allItems.Count(i => i.IsOverdue)
         };
     }
 }

@@ -13,7 +13,6 @@ public class TeacherDashboardService : ITeacherDashboardService
     private readonly INotificationRepository _notificationRepository;
     private readonly IStudentManagementService _studentManagementService;
     private readonly ISystemNotificationService _systemNotificationService;
-    private readonly AppDbContext _context;
 
     public TeacherDashboardService(
         IClassRepository classRepository,
@@ -21,8 +20,7 @@ public class TeacherDashboardService : ITeacherDashboardService
         IStudentManagementService studentManagementService,
         ITeacherDashboardRepository teacherDashboardRepository,
         INotificationRepository notificationRepository,
-        ISystemNotificationService systemNotificationService,
-        AppDbContext context)
+        ISystemNotificationService systemNotificationService)
     {
         _classRepository = classRepository;
         _assignmentRepository = assignmentRepository;
@@ -30,7 +28,6 @@ public class TeacherDashboardService : ITeacherDashboardService
         _teacherDashboardRepository = teacherDashboardRepository;
         _notificationRepository = notificationRepository;
         _systemNotificationService = systemNotificationService;
-        _context = context;
     }
 
     /// <summary>

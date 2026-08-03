@@ -1,7 +1,7 @@
 ﻿@model EnglishLearningOnlineSystem.ViewModels.ManageStudentListViewModel
 
 @{
-    ViewData["Title"] = "Danh sách học sinh";
+    ViewData["Title"] = "Tiến độ học sinh";
 }
 
 <style>
@@ -242,11 +242,11 @@
                         </div>
 
                         <h1 class="page-title">
-                            Danh sách học sinh lớp <span>@Model.ClassName</span>
+                            Tiến độ học sinh lớp <span>@Model.ClassName</span>
                         </h1>
 
                         <p class="page-subtitle">
-                            Tìm kiếm, sắp xếp và theo dõi các học sinh đang hoạt động trong lớp.
+                            Tìm kiếm, lọc tiến độ và nhận diện học sinh cần hỗ trợ trong cùng một màn hình.
                         </p>
                     </div>
 
@@ -259,12 +259,15 @@
                 </div>
 
                 <div class="row g-3">
-                    <div class="col-md-4">
+                    <div class="col-md">
                         <div class="summary-card">
                             <div class="summary-label">Học sinh đang hoạt động</div>
                             <p class="summary-value">@Model.TotalStudents</p>
                         </div>
                     </div>
+                    <div class="col-md"><div class="summary-card"><div class="summary-label">Đã hoàn thành</div><p class="summary-value">@Model.CompletedStudents</p></div></div>
+                    <div class="col-md"><div class="summary-card"><div class="summary-label">Đang học</div><p class="summary-value">@Model.InProgressStudents</p></div></div>
+                    <div class="col-md"><div class="summary-card"><div class="summary-label">Cần hỗ trợ</div><p class="summary-value">@Model.StudentsNeedSupport</p></div></div>
                 </div>
             </div>
         </div>
@@ -279,7 +282,7 @@
                     <input type="hidden" name="classId" value="@Model.ClassId" />
 
                     <div class="row g-3 align-items-end">
-                        <div class="col-md-5">
+                        <div class="col-lg-4">
                             <label class="form-label" for="teacher-student-keyword">Tìm kiếm</label>
                             <input type="text"
                                    id="teacher-student-keyword"
@@ -289,16 +292,30 @@
                                    placeholder="Nhập tên hoặc email học sinh" />
                         </div>
 
-                        <div class="col-md-4">
+                        <div class="col-lg-3">
+                            <label class="form-label" for="teacher-student-status">Trạng thái học tập</label>
+                            <select name="status" id="teacher-student-status" class="form-select">
+                                <option value="all" selected="@(Model.Status == "all")">Tất cả</option>
+                                <option value="notstarted" selected="@(Model.Status == "notstarted")">Chưa bắt đầu</option>
+                                <option value="inprogress" selected="@(Model.Status == "inprogress")">Đang học</option>
+                                <option value="completed" selected="@(Model.Status == "completed")">Hoàn thành</option>
+                                <option value="completedlate" selected="@(Model.Status == "completedlate")">Hoàn thành muộn</option>
+                                <option value="support" selected="@(Model.Status == "support")">Cần hỗ trợ</option>
+                            </select>
+                        </div>
+
+                        <div class="col-lg-3">
                             <label class="form-label" for="teacher-student-sort">Sắp xếp</label>
                             <select name="sortBy" id="teacher-student-sort" class="form-select">
                                 <option value="name" selected="@(Model.SortBy == "name")">Tên học sinh</option>
                                 <option value="email" selected="@(Model.SortBy == "email")">Email</option>
                                 <option value="date" selected="@(Model.SortBy == "date")">Ngày tham gia</option>
+                                <option value="progress" selected="@(Model.SortBy == "progress")">Tiến độ</option>
+                                <option value="risk" selected="@(Model.SortBy == "risk")">Mức cần hỗ trợ</option>
                             </select>
                         </div>
 
-                        <div class="col-md-3 d-grid gap-2">
+                        <div class="col-lg-2 d-grid gap-2">
                             <button type="submit" class="btn-teacher">
                                 Lọc
                             </button>
@@ -316,7 +333,7 @@
 
         <div class="section-card">
             <div class="section-header">
-                <h2 class="section-title">Danh sách học sinh</h2>
+                <h2 class="section-title">Danh sách và tiến độ học sinh</h2>
                 <span class="page-badge mb-0">
                     <span class="page-badge-dot"></span>
                     @Model.TotalItems kết quả
@@ -331,6 +348,9 @@
                             <tr>
                                 <th>Tên học sinh</th>
                                 <th>Email</th>
+                                <th>Tiến độ</th>
+                                <th>Điểm TB</th>
+                                <th>Hỗ trợ</th>
                                 <th>Ngày tham gia</th>
                                 <th class="text-end">Thao tác</th>
                             </tr>
@@ -342,6 +362,22 @@
                                 <tr>
                                     <td class="fw-bold">@student.StudentName</td>
                                     <td>@student.Email</td>
+                                    <td>
+                                        <div class="fw-bold">@student.CompletedAssignments/@student.TotalAssignments</div>
+                                        <div class="progress mt-1" style="height:6px;min-width:90px"><div class="progress-bar" style="width:@student.CompletionRate%"></div></div>
+                                    </td>
+                                    <td>@(student.AverageQuizScore.HasValue ? $"{student.AverageQuizScore:0.#}%" : "—")</td>
+                                    <td>
+                                        @if (student.RiskScore > 0 || student.SupportReasons.Count > 0)
+                                        {
+                                            <span class="badge-soft-danger">Cần hỗ trợ</span>
+                                            @if (student.OverdueAssignmentCount > 0) { <small class="d-block text-muted mt-1">@student.OverdueAssignmentCount bài quá hạn</small> }
+                                        }
+                                        else
+                                        {
+                                            <span class="badge-soft-success">Ổn định</span>
+                                        }
+                                    </td>
                                     <td>@student.EnrolledAt.ToString("dd/MM/yyyy")</td>
                                     <td class="text-end">
                                         <a asp-controller="Teacher"

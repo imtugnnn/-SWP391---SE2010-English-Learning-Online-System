@@ -28,6 +28,7 @@ public class TeacherStudentDetailViewModel
 
 public class TeacherStudentLessonProgressViewModel
 {
+    public int? AssignmentId { get; set; }
     public int LessonId { get; set; }
     public string LessonTitle { get; set; } = string.Empty;
     public string Topic { get; set; } = string.Empty;
@@ -35,6 +36,11 @@ public class TeacherStudentLessonProgressViewModel
     public int XPEarned { get; set; }
     public string CompletionStatus { get; set; } = string.Empty;
     public DateTime? CompletedAt { get; set; }
+    public DateTime? DueDate { get; set; }
+    public string FlashcardStatus { get; set; } = "NotAssigned";
+    public string QuizStatus { get; set; } = "NotAssigned";
+    public string MiniGameStatus { get; set; } = "NotAssigned";
+    public bool IsCompletedLate { get; set; }
 }
 
 public class TeacherStudentFeedbackViewModel

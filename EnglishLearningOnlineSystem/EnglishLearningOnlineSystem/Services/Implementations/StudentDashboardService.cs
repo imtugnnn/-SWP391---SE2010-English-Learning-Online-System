@@ -63,6 +63,7 @@ public class StudentDashboardService : IStudentDashboardService
 
             AssignedLessons = assignedLessons.Select(wa => new AssignedLessonSummary
             {
+                AssignmentId = wa.AssignmentId,
                 LessonId = wa.LessonId ?? 0,           // FIX: LessonId is int?
                 Title = wa.Lesson?.Title ?? "—",
                 Topic = wa.Lesson?.Topic ?? "",

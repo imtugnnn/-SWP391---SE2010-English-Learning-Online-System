@@ -278,10 +278,10 @@
 
             @* ── CHANGED: buttons restyled; hrefs UNCHANGED ── *@
             <div class="result-actions">
-                <a href="/Matching/Play/@Model.GameId" class="btn-replay">
+                <a href="/Matching/Play/@Model.GameId?assignmentId=@Model.AssignmentId" class="btn-replay">
                     <i class="bi bi-arrow-repeat"></i> Chơi lại
                 </a>
-                <a href="/student/lesson/@Model.LessonId" class="btn-back">
+                <a href="/student/lesson/@Model.LessonId?assignmentId=@Model.AssignmentId" class="btn-back">
                     Về danh sách bài học
                 </a>
             </div>
