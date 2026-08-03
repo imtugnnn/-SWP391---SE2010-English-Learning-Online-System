@@ -401,4 +401,102 @@ public class TeacherController : Controller
             new { classId, status = "draft" });
     }
 
+    [HttpGet]
+    public async Task<IActionResult> AssignmentDetails(int assignmentId, int classId)
+    {
+        var teacherId = GetCurrentUserId();
+        if (teacherId == null) return RedirectToAction("Login", "Auth");
+        var model = await _teacherAssignmentService.GetAssignmentDetailsAsync(
+            assignmentId, classId, teacherId.Value);
+        return model == null ? NotFound() : View(model);
+    }
+
+    [HttpGet]
+    public async Task<IActionResult> EditAssignment(int assignmentId, int classId)
+    {
+        var teacherId = GetCurrentUserId();
+        if (teacherId == null) return RedirectToAction("Login", "Auth");
+        var model = await _teacherAssignmentService.GetEditAssignmentAsync(
+            assignmentId, classId, teacherId.Value);
+        if (model == null)
+        {
+            TempData["ErrorMessage"] = "Bài giao không tồn tại hoặc đã có học sinh bắt đầu làm.";
+            return RedirectToAction(nameof(AssignmentDetails), new { assignmentId, classId });
+        }
+        return View(model);
+    }
+
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> EditAssignment(EditTeacherAssignmentViewModel model)
+    {
+        var teacherId = GetCurrentUserId();
+        if (teacherId == null) return RedirectToAction("Login", "Auth");
+        if (!ModelState.IsValid)
+        {
+            var source = await _teacherAssignmentService.GetEditAssignmentAsync(
+                model.AssignmentId, model.ClassId, teacherId.Value);
+            if (source == null) return NotFound();
+            source.StartDate = model.StartDate;
+            source.DueDate = model.DueDate;
+            source.IncludeVocabulary = model.IncludeVocabulary;
+            source.IncludeQuiz = model.IncludeQuiz;
+            source.IncludeMiniGame = model.IncludeMiniGame;
+            source.SelectedVocabularyIds = model.SelectedVocabularyIds;
+            source.SelectedQuizIds = model.SelectedQuizIds;
+            source.SelectedMiniGameIds = model.SelectedMiniGameIds;
+            return View(source);
+        }
+
+        // Controller chỉ điều phối; toàn bộ quyền sở hữu và quy tắc cập nhật nằm tại Service.
+        var result = await _teacherAssignmentService.UpdateAssignmentAsync(model, teacherId.Value);
+        TempData[result.Succeeded ? "SuccessMessage" : "ErrorMessage"] = result.Message;
+        if (!result.Succeeded)
+        {
+            ModelState.AddModelError(string.Empty, result.Message);
+            var source = await _teacherAssignmentService.GetEditAssignmentAsync(
+                model.AssignmentId, model.ClassId, teacherId.Value);
+            if (source != null) return View(source);
+        }
+        return RedirectToAction(nameof(AssignmentDetails),
+            new { assignmentId = model.AssignmentId, classId = model.ClassId });
+    }
+
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public Task<IActionResult> CancelAssignment(int assignmentId, int classId) =>
+        RunLifecycleCommandAsync(() => _teacherAssignmentService.CancelAssignmentAsync(
+            assignmentId, classId, GetCurrentUserId()!.Value), assignmentId, classId);
+
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public Task<IActionResult> ArchiveAssignment(int assignmentId, int classId) =>
+        RunLifecycleCommandAsync(() => _teacherAssignmentService.ArchiveAssignmentAsync(
+            assignmentId, classId, GetCurrentUserId()!.Value), assignmentId, classId);
+
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> DeleteAssignment(int assignmentId, int classId)
+    {
+        var teacherId = GetCurrentUserId();
+        if (teacherId == null) return RedirectToAction("Login", "Auth");
+        var result = await _teacherAssignmentService.DeleteAssignmentAsync(
+            assignmentId, classId, teacherId.Value);
+        TempData[result.Succeeded ? "SuccessMessage" : "ErrorMessage"] = result.Message;
+        return result.Succeeded
+            ? RedirectToAction(nameof(AssignmentOverview), new { classId })
+            : RedirectToAction(nameof(AssignmentDetails), new { assignmentId, classId });
+    }
+
+    private async Task<IActionResult> RunLifecycleCommandAsync(
+        Func<Task<TeacherAssignmentCommandResult>> command,
+        int assignmentId,
+        int classId)
+    {
+        if (GetCurrentUserId() == null) return RedirectToAction("Login", "Auth");
+        var result = await command();
+        TempData[result.Succeeded ? "SuccessMessage" : "ErrorMessage"] = result.Message;
+        return RedirectToAction(nameof(AssignmentDetails), new { assignmentId, classId });
+    }
+
 }

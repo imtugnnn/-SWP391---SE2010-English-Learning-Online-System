@@ -16,11 +16,11 @@ public class WordScrambleController : Controller
     // GET: /WordScramble/Play/5
     // Tải màn chơi: chọn ngẫu nhiên từ vựng và xáo trộn chữ cái
     [HttpGet("/WordScramble/Play/{id:int}")]
-    public async Task<IActionResult> Play(int id)
+    public async Task<IActionResult> Play(int id, int? assignmentId = null)
     {
         if (!IsAuthorized()) return RedirectToLogin();
 
-        var vm = await _wordScrambleService.LoadPlayAsync(id);
+        var vm = await _wordScrambleService.LoadPlayAsync(id, GetCurrentStudentId(), assignmentId);
 
         if (vm == null)
         {
@@ -41,7 +41,8 @@ public class WordScrambleController : Controller
 
         if (!ModelState.IsValid)
         {
-            var playVm = await _wordScrambleService.LoadPlayAsync(vm.GameId);
+            var playVm = await _wordScrambleService.LoadPlayAsync(
+                vm.GameId, GetCurrentStudentId(), vm.AssignmentId);
             if (playVm == null) return NotFound();
             return View("~/Views/Student/Games/Play.cshtml", playVm);
         }
@@ -52,7 +53,7 @@ public class WordScrambleController : Controller
         if (error != null)
         {
             TempData["ErrorMessage"] = error;
-            return Redirect($"/WordScramble/Play/{vm.GameId}");
+            return Redirect($"/WordScramble/Play/{vm.GameId}?assignmentId={vm.AssignmentId}");
         }
 
         return View("~/Views/Student/Games/Result.cshtml", result);

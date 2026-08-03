@@ -16,11 +16,11 @@ public class MatchingController : Controller
     // GET: /Matching/Play/5
     // Tải màn chơi: chọn ngẫu nhiên các cặp từ vựng và xáo trộn cột nghĩa
     [HttpGet("/Matching/Play/{id:int}")]
-    public async Task<IActionResult> Play(int id)
+    public async Task<IActionResult> Play(int id, int? assignmentId = null)
     {
         if (!IsAuthorized()) return RedirectToLogin();
 
-        var vm = await _matchingGameService.LoadPlayAsync(id);
+        var vm = await _matchingGameService.LoadPlayAsync(id, GetCurrentStudentId(), assignmentId);
 
         if (vm == null)
         {
@@ -45,7 +45,7 @@ public class MatchingController : Controller
         if (error != null)
         {
             TempData["ErrorMessage"] = error;
-            return Redirect($"/Matching/Play/{vm.GameId}");
+            return Redirect($"/Matching/Play/{vm.GameId}?assignmentId={vm.AssignmentId}");
         }
 
         return View("~/Views/Student/Games/MatchingResult.cshtml", result);

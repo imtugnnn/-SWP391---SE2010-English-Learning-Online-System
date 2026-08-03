@@ -10,6 +10,9 @@ namespace EnglishLearningOnlineSystem.Models
         public DateTime WeekStartDate { get; set; }
         public DateTime DueDate { get; set; }
         public bool IsVisible { get; set; }
+        public AssignmentStatus Status { get; set; } = AssignmentStatus.Draft;
+        public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+        public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;
 
         public int? ClassId { get; set; }
         [ForeignKey(nameof(ClassId))]
@@ -33,5 +36,9 @@ namespace EnglishLearningOnlineSystem.Models
             = new List<WeeklyAssignmentQuiz>();
         public ICollection<WeeklyAssignmentMiniGame> MiniGames { get; set; }
             = new List<WeeklyAssignmentMiniGame>();
+        public ICollection<AssignmentProgress> StudentProgresses { get; set; }
+            = new List<AssignmentProgress>();
+        public ICollection<AssignmentActivityProgress> ActivityProgresses { get; set; }
+            = new List<AssignmentActivityProgress>();
     }
 }

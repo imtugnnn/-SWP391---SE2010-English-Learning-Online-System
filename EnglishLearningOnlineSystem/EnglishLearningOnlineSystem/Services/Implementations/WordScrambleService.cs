@@ -11,14 +11,17 @@ public class WordScrambleService : IWordScrambleService
 {
     private readonly AppDbContext _db;
     private readonly IStudentGameProgressRepository _progressRepo;
+    private readonly IAssignmentProgressService _assignmentProgressService;
     private static readonly Random _rng = new();
 
     public WordScrambleService(
         AppDbContext db,
-        IStudentGameProgressRepository progressRepo)
+        IStudentGameProgressRepository progressRepo,
+        IAssignmentProgressService assignmentProgressService)
     {
         _db = db;
         _progressRepo = progressRepo;
+        _assignmentProgressService = assignmentProgressService;
     }
 
     public async Task<StudentMiniGameListViewModel?> GetGamesByLessonAsync(int lessonId)
@@ -49,7 +52,10 @@ public class WordScrambleService : IWordScrambleService
         };
     }
 
-    public async Task<WordScramblePlayViewModel?> LoadPlayAsync(int gameId)
+    public async Task<WordScramblePlayViewModel?> LoadPlayAsync(
+        int gameId,
+        int studentId,
+        int? assignmentId = null)
     {
         var game = await _db.MiniGames!
             .AsNoTracking()
@@ -65,12 +71,17 @@ public class WordScrambleService : IWordScrambleService
 
         if (!vocabularies.Any()) return null;
 
+        if (assignmentId.HasValue && !await _assignmentProgressService.MarkActivityStartedAsync(
+                assignmentId.Value, studentId, AssignmentActivityType.MiniGame, gameId))
+            return null;
+
         // Chọn ngẫu nhiên một từ vựng
         var vocab = vocabularies[_rng.Next(vocabularies.Count)];
 
         return new WordScramblePlayViewModel
         {
             GameId       = game.GameId,
+            AssignmentId = assignmentId,
             GameTitle    = game.Title,
             XPReward     = game.XPReward,
             LessonId     = game.LessonId,
@@ -94,6 +105,9 @@ public class WordScrambleService : IWordScrambleService
 
         if (game == null)
             return (null, "Không tìm thấy trò chơi.");
+        if (vm.AssignmentId.HasValue && !await _assignmentProgressService.MarkActivityStartedAsync(
+                vm.AssignmentId.Value, studentId, AssignmentActivityType.MiniGame, vm.GameId))
+            return (null, "Trò chơi không thuộc bài giao của bạn.");
 
         var vocab = await _db.Vocabularies!
             .AsNoTracking()
@@ -121,6 +135,7 @@ public class WordScrambleService : IWordScrambleService
         {
             StudentId   = studentId,
             GameId      = game.GameId,
+            WeeklyAssignmentId = vm.AssignmentId,
             Score       = isCorrect ? 100 : 0,
             XPEarned    = xpEarned,
             CompletedAt = DateTime.UtcNow
@@ -144,10 +159,21 @@ public class WordScrambleService : IWordScrambleService
         }
 
         await _progressRepo.SaveChangesAsync();
+        if (vm.AssignmentId.HasValue)
+        {
+            // Business process: mỗi mini-game được cấu hình là một activity bắt buộc độc lập.
+            await _assignmentProgressService.MarkActivityCompletedAsync(
+                vm.AssignmentId.Value,
+                studentId,
+                AssignmentActivityType.MiniGame,
+                vm.GameId,
+                progress.Score);
+        }
 
         var result = new WordScrambleResultViewModel
         {
             GameId        = game.GameId,
+            AssignmentId  = vm.AssignmentId,
             GameTitle     = game.Title,
             IsCorrect     = isCorrect,
             CorrectWord   = vocab.Word,

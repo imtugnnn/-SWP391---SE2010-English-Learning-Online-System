@@ -79,6 +79,9 @@ public class AssignmentRepository : IAssignmentRepository
         }
 
         return await _context.WeeklyAssignments!
+            .Include(a => a.Class)
+                .ThenInclude(c => c!.Enrollments)
+                    .ThenInclude(e => e.Student)
             .Include(a => a.Lesson)
                 .ThenInclude(l => l.Vocabularies)
             .Include(a => a.Lesson)
@@ -88,6 +91,7 @@ public class AssignmentRepository : IAssignmentRepository
             .Include(a => a.Vocabularies)
             .Include(a => a.Quizzes)
             .Include(a => a.MiniGames)
+            .Include(a => a.StudentProgresses)
             .Where(a => a.ClassId.HasValue && classIds.Contains(a.ClassId.Value))
             .AsNoTracking()
             .AsSplitQuery()
@@ -131,5 +135,38 @@ public class AssignmentRepository : IAssignmentRepository
                 candidate.LessonId == lessonId &&
                 candidate.WeekStartDate.Date == weekStartDate.Date &&
                 candidate.IsVisible);
+    }
+
+    public Task<WeeklyAssignment?> GetAssignmentDetailsAsync(int assignmentId, int classId)
+    {
+        return _context.WeeklyAssignments!
+            .Include(x => x.Class)
+                .ThenInclude(x => x!.Enrollments)
+                    .ThenInclude(x => x.Student)
+            .Include(x => x.Course)
+            .Include(x => x.Lesson)
+                .ThenInclude(x => x.Vocabularies)
+            .Include(x => x.Lesson)
+                .ThenInclude(x => x.Quizzes)
+            .Include(x => x.Lesson)
+                .ThenInclude(x => x.MiniGames)
+            .Include(x => x.Vocabularies)
+            .Include(x => x.Quizzes)
+            .Include(x => x.MiniGames)
+            .Include(x => x.StudentProgresses)
+                .ThenInclude(x => x.Student)
+                    .ThenInclude(x => x.User)
+            .AsSplitQuery()
+            .FirstOrDefaultAsync(x => x.AssignmentId == assignmentId && x.ClassId == classId);
+    }
+
+    public Task<bool> HasStudentProgressAsync(int assignmentId)
+    {
+        return _context.AssignmentProgresses.AnyAsync(x => x.AssignmentId == assignmentId);
+    }
+
+    public void RemoveAssignment(WeeklyAssignment assignment)
+    {
+        _context.WeeklyAssignments!.Remove(assignment);
     }
 }

@@ -26,4 +26,7 @@ public interface IAssignmentRepository
         int? lessonId,
         DateTime weekStartDate,
         int excludedAssignmentId);
+    Task<WeeklyAssignment?> GetAssignmentDetailsAsync(int assignmentId, int classId);
+    Task<bool> HasStudentProgressAsync(int assignmentId);
+    void RemoveAssignment(WeeklyAssignment assignment);
 }

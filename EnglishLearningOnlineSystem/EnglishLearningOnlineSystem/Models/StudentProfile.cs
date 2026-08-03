@@ -27,5 +27,7 @@ namespace EnglishLearningOnlineSystem.Models
         public ICollection<TeacherFeedback> ReceivedFeedbacks { get; set; }
         public ICollection<QuizAttempt> QuizAttempts { get; set; }
         public ICollection<FlashcardSession> FlashcardSessions { get; set; }
+        public ICollection<AssignmentProgress> AssignmentProgresses { get; set; } = new List<AssignmentProgress>();
+        public ICollection<AssignmentActivityProgress> AssignmentActivityProgresses { get; set; } = new List<AssignmentActivityProgress>();
     }
 }

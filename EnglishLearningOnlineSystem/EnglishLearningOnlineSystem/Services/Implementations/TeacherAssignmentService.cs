@@ -342,6 +342,7 @@ public class TeacherAssignmentService : ITeacherAssignmentService
                 WeekStartDate = model.WeekStartDate,
                 DueDate = model.DueDate,
                 IsVisible = model.Status == AssignmentStatus.Published,
+                Status = model.Status,
                 IncludeVocabulary = selection.IncludeVocabulary,
                 IncludeQuiz = selection.IncludeQuiz,
                 IncludeMiniGame = selection.IncludeMiniGame
@@ -525,9 +526,9 @@ public class TeacherAssignmentService : ITeacherAssignmentService
         var assignments = await _assignmentRepository.GetAssignmentsByClassIdsAsync(classIds);
 
         var totalAssignments = assignments.Count;
-        var draftAssignments = assignments.Count(a => !a.IsVisible);
-        var activeAssignments = assignments.Count(a => a.IsVisible && a.DueDate >= DateTime.UtcNow);
-        var expiredAssignments = assignments.Count(a => a.IsVisible && a.DueDate < DateTime.UtcNow);
+        var draftAssignments = assignments.Count(a => a.Status == AssignmentStatus.Draft);
+        var activeAssignments = assignments.Count(a => a.Status == AssignmentStatus.Published && a.DueDate >= DateTime.UtcNow);
+        var expiredAssignments = assignments.Count(a => a.Status == AssignmentStatus.Published && a.DueDate < DateTime.UtcNow);
 
         var filteredAssignments = ApplyAssignmentStatusFilter(assignments, status);
         filteredAssignments = ApplyAssignmentSorting(filteredAssignments, sortBy);
@@ -577,9 +578,14 @@ public class TeacherAssignmentService : ITeacherAssignmentService
                 MiniGameCount = a.IncludeMiniGame ? a.MiniGames.Count : 0,
                 WeekStartDate = a.WeekStartDate,
                 DueDate = a.DueDate,
-                Status = !a.IsVisible
-                    ? "Bản nháp"
-                    : a.DueDate < DateTime.UtcNow ? "Quá hạn" : "Đã giao"
+                Status = GetDisplayStatus(a),
+                AssignedStudentCount = a.Class?.Enrollments.Count(x => x.Student.IsActive) ?? 0,
+                CompletedStudentCount = a.StudentProgresses.Count(x => x.Status == AssignmentCompletionStatus.Completed),
+                CompletedLateCount = a.StudentProgresses.Count(x => x.IsCompletedLate),
+                CanEdit = a.Status == AssignmentStatus.Draft || a.StudentProgresses.Count == 0,
+                CanCancel = a.Status == AssignmentStatus.Published,
+                CanDelete = a.Status == AssignmentStatus.Draft && a.StudentProgresses.Count == 0,
+                CanArchive = a.Status == AssignmentStatus.Published && a.DueDate < DateTime.UtcNow
             }).ToList()
         };
     }
@@ -595,9 +601,9 @@ public class TeacherAssignmentService : ITeacherAssignmentService
 
         return normalizedStatus switch
         {
-            "draft" => assignments.Where(a => !a.IsVisible).ToList(),
-            "active" => assignments.Where(a => a.IsVisible && a.DueDate >= DateTime.UtcNow).ToList(),
-            "expired" => assignments.Where(a => a.IsVisible && a.DueDate < DateTime.UtcNow).ToList(),
+            "draft" => assignments.Where(a => a.Status == AssignmentStatus.Draft).ToList(),
+            "active" => assignments.Where(a => a.Status == AssignmentStatus.Published && a.DueDate >= DateTime.UtcNow).ToList(),
+            "expired" => assignments.Where(a => a.Status == AssignmentStatus.Published && a.DueDate < DateTime.UtcNow).ToList(),
             _ => assignments
         };
     }
@@ -678,6 +684,8 @@ public class TeacherAssignmentService : ITeacherAssignmentService
             }
 
             assignment.IsVisible = true;
+            assignment.Status = AssignmentStatus.Published;
+            assignment.UpdatedAt = DateTime.UtcNow;
 
             var students = await _classRepository.GetActiveStudentsByClassIdAsync(classId);
             var notifications = students.Select(student => new Notification
@@ -699,5 +707,264 @@ public class TeacherAssignmentService : ITeacherAssignmentService
             await transaction.RollbackAsync();
             throw;
         }
+    }
+
+    public async Task<TeacherAssignmentDetailsViewModel?> GetAssignmentDetailsAsync(
+        int assignmentId,
+        int classId,
+        int teacherId)
+    {
+        if (await ValidateTeacherAccessAsync(classId, teacherId) == null) return null;
+        var assignment = await _assignmentRepository.GetAssignmentDetailsAsync(assignmentId, classId);
+        if (assignment?.Lesson == null || assignment.Class == null) return null;
+
+        var progressByStudent = assignment.StudentProgresses.ToDictionary(x => x.StudentId);
+        var students = assignment.Class.Enrollments
+            .Where(x => x.Student.IsActive)
+            .OrderBy(x => x.Student.Username)
+            .Select(enrollment =>
+            {
+                progressByStudent.TryGetValue(enrollment.StudentId, out var progress);
+                return new TeacherAssignmentStudentCompletionViewModel
+                {
+                    StudentId = enrollment.StudentId,
+                    StudentName = progress?.Student?.Nickname ?? enrollment.Student.Username,
+                    Email = enrollment.Student.Email,
+                    CompletionStatus = progress?.Status.ToString() ?? AssignmentCompletionStatus.NotStarted.ToString(),
+                    CompletedActivityCount = progress?.CompletedActivityCount ?? 0,
+                    RequiredActivityCount = progress?.RequiredActivityCount ?? CountRequiredActivities(assignment),
+                    QuizScore = progress?.BestQuizScore,
+                    CompletedAt = progress?.CompletedAt,
+                    IsCompletedLate = progress?.IsCompletedLate ?? false
+                };
+            }).ToList();
+
+        var hasProgress = assignment.StudentProgresses.Count > 0;
+        return new TeacherAssignmentDetailsViewModel
+        {
+            AssignmentId = assignment.AssignmentId,
+            ClassId = classId,
+            ClassName = assignment.Class.ClassName,
+            LessonId = assignment.LessonId ?? 0,
+            LessonTitle = assignment.Lesson.Title,
+            CourseName = assignment.Course?.CourseName ?? string.Empty,
+            Topic = assignment.Lesson.Topic ?? string.Empty,
+            StartDate = assignment.WeekStartDate,
+            DueDate = assignment.DueDate,
+            Status = GetDisplayStatus(assignment),
+            AssignedStudentCount = students.Count,
+            CompletedStudentCount = students.Count(x => x.CompletionStatus == AssignmentCompletionStatus.Completed.ToString()),
+            InProgressStudentCount = students.Count(x => x.CompletionStatus == AssignmentCompletionStatus.InProgress.ToString()),
+            NotStartedStudentCount = students.Count(x => x.CompletionStatus == AssignmentCompletionStatus.NotStarted.ToString()),
+            CompletedLateCount = students.Count(x => x.IsCompletedLate),
+            CanEdit = assignment.Status is not (AssignmentStatus.Cancelled or AssignmentStatus.Archived) &&
+                      (assignment.Status == AssignmentStatus.Draft || !hasProgress),
+            CanCancel = assignment.Status == AssignmentStatus.Published,
+            CanDelete = assignment.Status == AssignmentStatus.Draft && !hasProgress,
+            CanArchive = assignment.Status == AssignmentStatus.Published && assignment.DueDate < DateTime.UtcNow,
+            Activities = BuildActivitySummary(assignment),
+            Students = students
+        };
+    }
+
+    public async Task<EditTeacherAssignmentViewModel?> GetEditAssignmentAsync(
+        int assignmentId,
+        int classId,
+        int teacherId)
+    {
+        if (await ValidateTeacherAccessAsync(classId, teacherId) == null) return null;
+        var assignment = await _assignmentRepository.GetAssignmentDetailsAsync(assignmentId, classId);
+        if (assignment?.Lesson == null || assignment.Class == null ||
+            assignment.Status is AssignmentStatus.Cancelled or AssignmentStatus.Archived ||
+            await _assignmentRepository.HasStudentProgressAsync(assignmentId))
+        {
+            return null;
+        }
+
+        return BuildEditViewModel(assignment);
+    }
+
+    public async Task<TeacherAssignmentCommandResult> UpdateAssignmentAsync(
+        EditTeacherAssignmentViewModel model,
+        int teacherId)
+    {
+        if (await ValidateTeacherAccessAsync(model.ClassId, teacherId) == null)
+            return TeacherAssignmentCommandResult.Failure("Bạn không có quyền sửa bài giao này.");
+
+        var assignment = await _assignmentRepository.GetAssignmentDetailsAsync(model.AssignmentId, model.ClassId);
+        if (assignment?.Lesson == null)
+            return TeacherAssignmentCommandResult.Failure("Không tìm thấy bài giao.");
+        if (await _assignmentRepository.HasStudentProgressAsync(model.AssignmentId))
+            return TeacherAssignmentCommandResult.Failure("Không thể đổi cấu hình sau khi học sinh đã bắt đầu làm bài.");
+        if (assignment.Status is AssignmentStatus.Cancelled or AssignmentStatus.Archived)
+            return TeacherAssignmentCommandResult.Failure("Bài giao đã kết thúc vòng đời và không thể chỉnh sửa.");
+        if (model.DueDate <= model.StartDate)
+            return TeacherAssignmentCommandResult.Failure("Hạn hoàn thành phải sau ngày bắt đầu.");
+
+        var vocabularyIds = assignment.Lesson.Vocabularies.Select(x => x.VocabularyId).ToHashSet();
+        var quizIds = assignment.Lesson.Quizzes.Select(x => x.QuizId).ToHashSet();
+        var gameIds = assignment.Lesson.MiniGames.Select(x => x.GameId).ToHashSet();
+        model.SelectedVocabularyIds = model.IncludeVocabulary
+            ? model.SelectedVocabularyIds.Distinct().Where(vocabularyIds.Contains).ToList() : new();
+        model.SelectedQuizIds = model.IncludeQuiz
+            ? model.SelectedQuizIds.Distinct().Where(quizIds.Contains).ToList() : new();
+        model.SelectedMiniGameIds = model.IncludeMiniGame
+            ? model.SelectedMiniGameIds.Distinct().Where(gameIds.Contains).ToList() : new();
+        if (model.SelectedVocabularyIds.Count + model.SelectedQuizIds.Count + model.SelectedMiniGameIds.Count == 0)
+            return TeacherAssignmentCommandResult.Failure("Bài giao phải có ít nhất một hoạt động hợp lệ.");
+
+        // Business process: thay toàn bộ cấu hình activity trong một lần SaveChanges để tránh dữ liệu nửa cũ nửa mới.
+        assignment.WeekStartDate = model.StartDate;
+        assignment.DueDate = model.DueDate;
+        assignment.IncludeVocabulary = model.SelectedVocabularyIds.Count > 0;
+        assignment.IncludeQuiz = model.SelectedQuizIds.Count > 0;
+        assignment.IncludeMiniGame = model.SelectedMiniGameIds.Count > 0;
+        foreach (var item in assignment.Vocabularies.Where(x => !model.SelectedVocabularyIds.Contains(x.VocabularyId)).ToList())
+            assignment.Vocabularies.Remove(item);
+        foreach (var id in model.SelectedVocabularyIds.Where(id => assignment.Vocabularies.All(x => x.VocabularyId != id)))
+            assignment.Vocabularies.Add(new WeeklyAssignmentVocabulary { AssignmentId = assignment.AssignmentId, VocabularyId = id });
+        foreach (var item in assignment.Quizzes.Where(x => !model.SelectedQuizIds.Contains(x.QuizId)).ToList())
+            assignment.Quizzes.Remove(item);
+        foreach (var id in model.SelectedQuizIds.Where(id => assignment.Quizzes.All(x => x.QuizId != id)))
+            assignment.Quizzes.Add(new WeeklyAssignmentQuiz { AssignmentId = assignment.AssignmentId, QuizId = id });
+        foreach (var item in assignment.MiniGames.Where(x => !model.SelectedMiniGameIds.Contains(x.GameId)).ToList())
+            assignment.MiniGames.Remove(item);
+        foreach (var id in model.SelectedMiniGameIds.Where(id => assignment.MiniGames.All(x => x.GameId != id)))
+            assignment.MiniGames.Add(new WeeklyAssignmentMiniGame { AssignmentId = assignment.AssignmentId, GameId = id });
+        assignment.UpdatedAt = DateTime.UtcNow;
+        if (assignment.Status == AssignmentStatus.Published && assignment.Class != null)
+        {
+            var notifications = assignment.Class.Enrollments
+                .Where(x => x.Student.IsActive)
+                .Select(x => new Notification
+                {
+                    UserId = x.StudentId,
+                    Type = "ASSIGNMENT_UPDATED",
+                    Message = $"Bài giao {assignment.Lesson.Title} đã được cập nhật. Hạn hoàn thành: {assignment.DueDate:dd/MM/yyyy}.",
+                    IsRead = false,
+                    CreateAt = DateTime.UtcNow
+                }).ToList();
+            await _notificationRepository.AddRangeAsync(notifications);
+        }
+        await _unitOfWork.SaveChangesAsync();
+        return TeacherAssignmentCommandResult.Success("Đã cập nhật bài giao.");
+    }
+
+    public Task<TeacherAssignmentCommandResult> CancelAssignmentAsync(
+        int assignmentId, int classId, int teacherId) =>
+        ChangeLifecycleAsync(assignmentId, classId, teacherId, AssignmentStatus.Cancelled);
+
+    public Task<TeacherAssignmentCommandResult> ArchiveAssignmentAsync(
+        int assignmentId, int classId, int teacherId) =>
+        ChangeLifecycleAsync(assignmentId, classId, teacherId, AssignmentStatus.Archived);
+
+    public async Task<TeacherAssignmentCommandResult> DeleteAssignmentAsync(
+        int assignmentId,
+        int classId,
+        int teacherId)
+    {
+        if (await ValidateTeacherAccessAsync(classId, teacherId) == null)
+            return TeacherAssignmentCommandResult.Failure("Bạn không có quyền xóa bài giao này.");
+        var assignment = await _assignmentRepository.GetAssignmentDetailsAsync(assignmentId, classId);
+        if (assignment == null || assignment.Status != AssignmentStatus.Draft || assignment.IsVisible)
+            return TeacherAssignmentCommandResult.Failure("Chỉ được xóa bài giao đang ở bản nháp.");
+        if (await _assignmentRepository.HasStudentProgressAsync(assignmentId))
+            return TeacherAssignmentCommandResult.Failure("Không thể xóa bài giao đã có tiến độ học sinh.");
+        _assignmentRepository.RemoveAssignment(assignment);
+        await _unitOfWork.SaveChangesAsync();
+        return TeacherAssignmentCommandResult.Success("Đã xóa bản nháp.");
+    }
+
+    private async Task<TeacherAssignmentCommandResult> ChangeLifecycleAsync(
+        int assignmentId,
+        int classId,
+        int teacherId,
+        AssignmentStatus targetStatus)
+    {
+        if (await ValidateTeacherAccessAsync(classId, teacherId) == null)
+            return TeacherAssignmentCommandResult.Failure("Bạn không có quyền thay đổi bài giao này.");
+        var assignment = await _assignmentRepository.GetAssignmentDetailsAsync(assignmentId, classId);
+        if (assignment == null || assignment.Status != AssignmentStatus.Published)
+            return TeacherAssignmentCommandResult.Failure("Trạng thái bài giao không cho phép thao tác này.");
+        if (targetStatus == AssignmentStatus.Archived && assignment.DueDate >= DateTime.UtcNow)
+            return TeacherAssignmentCommandResult.Failure("Chỉ lưu trữ bài giao đã hết hạn.");
+        assignment.Status = targetStatus;
+        assignment.IsVisible = false;
+        assignment.UpdatedAt = DateTime.UtcNow;
+        if (targetStatus == AssignmentStatus.Cancelled && assignment.Class != null)
+        {
+            var notifications = assignment.Class.Enrollments
+                .Where(x => x.Student.IsActive)
+                .Select(x => new Notification
+                {
+                    UserId = x.StudentId,
+                    Type = "ASSIGNMENT_CANCELLED",
+                    Message = $"Bài giao {assignment.Lesson?.Title ?? string.Empty} đã được giáo viên hủy.",
+                    IsRead = false,
+                    CreateAt = DateTime.UtcNow
+                }).ToList();
+            await _notificationRepository.AddRangeAsync(notifications);
+        }
+        await _unitOfWork.SaveChangesAsync();
+        return TeacherAssignmentCommandResult.Success(
+            targetStatus == AssignmentStatus.Cancelled ? "Đã hủy bài giao." : "Đã lưu trữ bài giao.");
+    }
+
+    private static EditTeacherAssignmentViewModel BuildEditViewModel(WeeklyAssignment assignment)
+    {
+        return new EditTeacherAssignmentViewModel
+        {
+            AssignmentId = assignment.AssignmentId,
+            ClassId = assignment.ClassId ?? 0,
+            ClassName = assignment.Class?.ClassName ?? string.Empty,
+            LessonId = assignment.LessonId ?? 0,
+            LessonTitle = assignment.Lesson?.Title ?? string.Empty,
+            StartDate = assignment.WeekStartDate,
+            DueDate = assignment.DueDate,
+            Status = GetDisplayStatus(assignment),
+            IncludeVocabulary = assignment.IncludeVocabulary,
+            IncludeQuiz = assignment.IncludeQuiz,
+            IncludeMiniGame = assignment.IncludeMiniGame,
+            SelectedVocabularyIds = assignment.Vocabularies.Select(x => x.VocabularyId).ToList(),
+            SelectedQuizIds = assignment.Quizzes.Select(x => x.QuizId).ToList(),
+            SelectedMiniGameIds = assignment.MiniGames.Select(x => x.GameId).ToList(),
+            Vocabularies = assignment.Lesson?.Vocabularies.Select(x => new AssignmentVocabularyOptionViewModel
+                { VocabularyId = x.VocabularyId, Word = x.Word, Meaning = x.Meaning }).ToList() ?? new(),
+            Quizzes = assignment.Lesson?.Quizzes.Select(x => new AssignmentQuizOptionViewModel
+                { QuizId = x.QuizId, Question = x.Question, QuizType = x.QuizType ?? "Quiz" }).ToList() ?? new(),
+            MiniGames = assignment.Lesson?.MiniGames.Select(x => new AssignmentMiniGameOptionViewModel
+                { GameId = x.GameId, Title = x.Title, GameType = x.GameType ?? "MiniGame" }).ToList() ?? new()
+        };
+    }
+
+    private static List<TeacherAssignmentActivityViewModel> BuildActivitySummary(WeeklyAssignment assignment)
+    {
+        var result = new List<TeacherAssignmentActivityViewModel>();
+        if (assignment.IncludeVocabulary && assignment.Vocabularies.Count > 0)
+            result.Add(new() { ActivityType = "Flashcard", Title = "Ôn tập từ vựng", ItemCount = assignment.Vocabularies.Count, IsRequired = true });
+        if (assignment.IncludeQuiz && assignment.Quizzes.Count > 0)
+            result.Add(new() { ActivityType = "Quiz", Title = "Bài kiểm tra", ItemCount = assignment.Quizzes.Count, IsRequired = true });
+        if (assignment.IncludeMiniGame && assignment.MiniGames.Count > 0)
+            result.Add(new() { ActivityType = "Mini-game", Title = "Trò chơi luyện tập", ItemCount = assignment.MiniGames.Count, IsRequired = true });
+        return result;
+    }
+
+    private static int CountRequiredActivities(WeeklyAssignment assignment) =>
+        (assignment.IncludeVocabulary && assignment.Vocabularies.Count > 0 ? 1 : 0) +
+        (assignment.IncludeQuiz && assignment.Quizzes.Count > 0 ? 1 : 0) +
+        (assignment.IncludeMiniGame ? assignment.MiniGames.Count : 0);
+
+    private static string GetDisplayStatus(WeeklyAssignment assignment)
+    {
+        if (assignment.Status == AssignmentStatus.Published && assignment.DueDate < DateTime.UtcNow)
+            return "Quá hạn";
+        return assignment.Status switch
+        {
+            AssignmentStatus.Draft => "Bản nháp",
+            AssignmentStatus.Published => "Đã giao",
+            AssignmentStatus.Cancelled => "Đã hủy",
+            AssignmentStatus.Archived => "Đã lưu trữ",
+            _ => assignment.Status.ToString()
+        };
     }
 }

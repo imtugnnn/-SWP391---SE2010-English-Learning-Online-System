@@ -76,6 +76,22 @@ public class StudentLessonDetailRepository : IStudentLessonDetailRepository
         return lesson;
     }
 
+    public Task<WeeklyAssignment?> GetAccessibleAssignmentAsync(
+        int studentId,
+        int lessonId,
+        int assignmentId)
+    {
+        return _db.WeeklyAssignments!
+            .AsNoTracking()
+            .FirstOrDefaultAsync(x =>
+                x.AssignmentId == assignmentId &&
+                x.LessonId == lessonId &&
+                x.Status == AssignmentStatus.Published &&
+                x.IsVisible &&
+                x.ClassId.HasValue &&
+                _db.ClassEnrollments!.Any(e => e.ClassId == x.ClassId && e.StudentId == studentId));
+    }
+
     // Lấy kết quả làm bài tốt nhất của học sinh
     public async Task<Progress?> GetBestProgressAsync(int studentId, int lessonId)
     {
@@ -87,15 +103,25 @@ public class StudentLessonDetailRepository : IStudentLessonDetailRepository
     }
 
     // Đếm số lần học sinh làm bài quiz
-    public async Task<int> GetAttemptCountAsync(int studentId, int lessonId)
+    public async Task<int> GetAttemptCountAsync(int studentId, int lessonId, int? assignmentId = null)
     {
+        if (assignmentId.HasValue)
+        {
+            return await _db.QuizAttempts.CountAsync(x =>
+                x.StudentId == studentId &&
+                x.LessonId == lessonId &&
+                x.WeeklyAssignmentId == assignmentId.Value);
+        }
         return await _db.Progresses!
             .Where(p => p.StudentId == studentId && p.LessonId == lessonId)
             .CountAsync();
     }
 
     // Lấy tiến độ hoàn thành các mini game trong bài học
-    public async Task<List<StudentGameProgress>> GetGameProgressesAsync(int studentId, int lessonId)
+    public async Task<List<StudentGameProgress>> GetGameProgressesAsync(
+        int studentId,
+        int lessonId,
+        int? assignmentId = null)
     {
         var gameIds = await _db.MiniGames!
             .Where(g => g.LessonId == lessonId)
@@ -103,7 +129,10 @@ public class StudentLessonDetailRepository : IStudentLessonDetailRepository
             .ToListAsync();
 
         return await _db.StudentGameProgresses!
-            .Where(gp => gp.StudentId == studentId && gameIds.Contains(gp.GameId))
+            .Where(gp =>
+                gp.StudentId == studentId &&
+                gameIds.Contains(gp.GameId) &&
+                (!assignmentId.HasValue || gp.WeeklyAssignmentId == assignmentId.Value))
             .ToListAsync();
     }
 

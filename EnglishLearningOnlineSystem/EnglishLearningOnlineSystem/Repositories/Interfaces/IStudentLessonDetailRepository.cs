@@ -6,12 +6,13 @@ namespace EnglishLearningOnlineSystem.Repositories.Interfaces;
 public interface IStudentLessonDetailRepository
 {
     Task<Lesson?> GetLessonWithContentAsync(int studentId, int lessonId, int? assignmentId = null);
+    Task<WeeklyAssignment?> GetAccessibleAssignmentAsync(int studentId, int lessonId, int assignmentId);
 
     Task<Progress?> GetBestProgressAsync(int studentId, int lessonId);
 
-    Task<int> GetAttemptCountAsync(int studentId, int lessonId);
+    Task<int> GetAttemptCountAsync(int studentId, int lessonId, int? assignmentId = null);
 
-    Task<List<StudentGameProgress>> GetGameProgressesAsync(int studentId, int lessonId);
+    Task<List<StudentGameProgress>> GetGameProgressesAsync(int studentId, int lessonId, int? assignmentId = null);
 
     Task SaveProgressAsync(int studentId, int lessonId, int score, string answersJson, int xpEarned);
 }

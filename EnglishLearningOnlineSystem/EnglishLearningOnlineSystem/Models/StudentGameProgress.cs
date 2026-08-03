@@ -18,5 +18,9 @@ namespace EnglishLearningOnlineSystem.Models
         public int GameId { get; set; }
         [ForeignKey("GameId")]
         public MiniGame MiniGame { get; set; }
+
+        public int? WeeklyAssignmentId { get; set; }
+        [ForeignKey(nameof(WeeklyAssignmentId))]
+        public WeeklyAssignment? WeeklyAssignment { get; set; }
     }
 }

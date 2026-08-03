@@ -5,7 +5,7 @@ namespace EnglishLearningOnlineSystem.Services.Interfaces;
 public interface IMatchingGameService
 {
     /// <summary>Tải màn chơi: chọn ngẫu nhiên các cặp từ vựng và xáo trộn cột nghĩa.</summary>
-    Task<MatchingPlayViewModel?> LoadPlayAsync(int gameId);
+    Task<MatchingPlayViewModel?> LoadPlayAsync(int gameId, int studentId, int? assignmentId = null);
 
     /// <summary>
     /// Kiểm tra các cặp ghép, lưu StudentGameProgress, cập nhật XP và trả về kết quả.

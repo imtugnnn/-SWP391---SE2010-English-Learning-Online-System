@@ -20,6 +20,10 @@ namespace EnglishLearningOnlineSystem.Models
         [ForeignKey("LessonId")]
         public Lesson Lesson { get; set; }
 
+        public int? WeeklyAssignmentId { get; set; }
+        [ForeignKey(nameof(WeeklyAssignmentId))]
+        public WeeklyAssignment? WeeklyAssignment { get; set; }
+
         public ICollection<FlashcardCardResult> CardResults { get; set; } = new List<FlashcardCardResult>();
     }
 }
