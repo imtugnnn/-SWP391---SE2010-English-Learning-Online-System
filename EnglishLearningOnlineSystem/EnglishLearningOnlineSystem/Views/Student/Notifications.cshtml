@@ -36,7 +36,7 @@
                 <div class="student-notification-copy"><div class="student-notification-meta"><span>@item.Title</span><time>@item.CreatedAt.ToString("dd/MM/yyyy HH:mm")</time></div><p>@item.Message</p></div>
                 <div class="student-notification-actions">
                     @if (!string.IsNullOrWhiteSpace(item.TargetUrl)) { <a href="@item.TargetUrl" class="student-btn student-btn--small">Xem</a> }
-                    @if (!item.IsRead) { <form asp-controller="Student" asp-action="MarkNotificationRead" method="post">@Html.AntiForgeryToken()<input type="hidden" name="notificationId" value="@item.NotificationId" /><button type="submit" class="student-link-button">Đã đọc</button></form> }
+                    @if (!item.IsRead) { <form asp-controller="Student" asp-action="MarkNotificationRead" asp-route-notificationId="@item.NotificationId" method="post">@Html.AntiForgeryToken()<button type="submit" class="student-link-button">Đã đọc</button></form> }
                 </div>
             </article>
         }

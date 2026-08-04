@@ -167,8 +167,33 @@ public class AppDbContext : Microsoft.EntityFrameworkCore.DbContext
                 .WithMany(s => s.ReceivedFeedbacks)
                 .HasForeignKey(f => f.StudentId)
                 .OnDelete(DeleteBehavior.Cascade);
+
+            modelBuilder.Entity<TeacherFeedback>()
+                .HasOne(f => f.Class)
+                .WithMany()
+                .HasForeignKey(f => f.ClassId)
+                .OnDelete(DeleteBehavior.SetNull);
+
+            modelBuilder.Entity<TeacherFeedback>()
+                .HasOne(f => f.Assignment)
+                .WithMany()
+                .HasForeignKey(f => f.AssignmentId)
+                .OnDelete(DeleteBehavior.SetNull);
         }
         catch { }
+
+        modelBuilder.Entity<Notification>(eb =>
+        {
+            eb.HasOne(x => x.Assignment)
+              .WithMany()
+              .HasForeignKey(x => x.AssignmentId)
+              .OnDelete(DeleteBehavior.SetNull);
+            eb.HasOne(x => x.Feedback)
+              .WithMany()
+              .HasForeignKey(x => x.FeedbackId)
+              .OnDelete(DeleteBehavior.SetNull);
+            eb.HasIndex(x => new { x.UserId, x.IsRead, x.CreateAt });
+        });
 
         // 4. WeeklyAssignment -> Course : Restrict
         try

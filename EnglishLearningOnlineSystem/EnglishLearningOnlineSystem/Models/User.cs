@@ -24,4 +24,5 @@ public class User
     public ICollection<Class> TaughtClasses { get; set; } = new List<Class>();
     public ICollection<ClassEnrollment> ClassEnrollments { get; set; } = new List<ClassEnrollment>();
     public ICollection<TeacherFeedback> GivenFeedbacks { get; set; } = new List<TeacherFeedback>();
+    public StudentProfile? StudentProfile { get; set; }
 }

@@ -68,6 +68,7 @@ namespace EnglishLearningOnlineSystem.Controllers
             {
                 Id = u.Id,
                 Username = u.Username,
+                FullName = u.StudentProfile?.FullName,
                 Email = u.Email,
                 BirthDate = u.BirthDate,
                 IsActive = u.IsActive,

@@ -20,5 +20,13 @@ namespace EnglishLearningOnlineSystem.Models
         public int StudentId { get; set; }
         [ForeignKey("StudentId")]
         public StudentProfile Student { get; set; }
+
+        public int? ClassId { get; set; }
+        [ForeignKey(nameof(ClassId))]
+        public Class? Class { get; set; }
+
+        public int? AssignmentId { get; set; }
+        [ForeignKey(nameof(AssignmentId))]
+        public WeeklyAssignment? Assignment { get; set; }
     }
 }

@@ -37,39 +37,110 @@ public class StudentManagementService : IStudentManagementService
         }
 
         var enrollments = await _classRepository.GetActiveStudentsByClassIdAsync(classId);
+        var assignments = (await _classRepository.GetAssignmentsWithProgressByClassAsync(classId))
+            .Where(x => x.Status is AssignmentStatus.Published or AssignmentStatus.Archived)
+            .ToList();
+        var now = DateTime.UtcNow;
 
-        var totalStudents = enrollments.Count;
-        var activeStudents = totalStudents;
-        const int inactiveStudents = 0;
-
-        var filteredEnrollments = ApplySearch(enrollments, keyword);
-        filteredEnrollments = ApplySorting(filteredEnrollments, sortBy);
-
-        page = NormalizePage(page);
-
-        var totalItems = filteredEnrollments.Count;
-        var totalPages = CalculateTotalPages(totalItems, PageSize);
-
-        if (totalPages > 0 && page > totalPages)
+        // Business process: mỗi dòng Student được tổng hợp từ AssignmentProgress, không dùng Progress theo Lesson.
+        var allItems = enrollments.Select(enrollment =>
         {
-            page = totalPages;
+            var progress = assignments
+                .Select(x => new
+                {
+                    Assignment = x,
+                    Progress = x.StudentProgresses.FirstOrDefault(p => p.StudentId == enrollment.StudentId)
+                }).ToList();
+            var completed = progress.Count(x => x.Progress?.Status == AssignmentCompletionStatus.Completed);
+            var anyStarted = progress.Any(x => x.Progress != null);
+            var overdue = progress.Count(x =>
+                x.Assignment.DueDate < now &&
+                x.Progress?.Status != AssignmentCompletionStatus.Completed);
+            var scores = progress.Where(x => x.Progress?.BestQuizScore != null)
+                .Select(x => x.Progress!.BestQuizScore!.Value).ToList();
+            var averageScore = scores.Count == 0 ? (double?)null : Math.Round(scores.Average(), 1);
+            var learningStatus = assignments.Count > 0 && completed == assignments.Count
+                ? "Completed"
+                : anyStarted ? "InProgress" : "NotStarted";
+            var reasons = new List<string>();
+            if (overdue > 0) reasons.Add("Bài giao quá hạn");
+            if (averageScore.HasValue && averageScore < LowQuizScoreThreshold) reasons.Add("Điểm quiz thấp");
+            if (!anyStarted && assignments.Count > 0) reasons.Add("Chưa bắt đầu bài giao");
+            var risk = overdue * 2 + (averageScore.HasValue && averageScore < LowQuizScoreThreshold ? 3 : 0) +
+                       (!anyStarted && assignments.Count > 0 ? 1 : 0);
+
+            return new ManageStudentItemViewModel
+            {
+                StudentId = enrollment.StudentId,
+                StudentName = GetStudentFullName(enrollment),
+                Email = enrollment.Student.Email,
+                IsActive = enrollment.Student.IsActive,
+                EnrollmentStatus = enrollment.Student.IsActive ? "Đang hoạt động" : "Không hoạt động",
+                EnrolledAt = enrollment.EnrolledAt,
+                LearningStatus = learningStatus,
+                CompletedAssignments = completed,
+                TotalAssignments = assignments.Count,
+                AverageQuizScore = averageScore,
+                OverdueAssignmentCount = overdue,
+                RiskScore = risk,
+                SupportReasons = reasons
+            };
+        }).ToList();
+
+        var normalizedStatus = NormalizeStatus(status);
+        var filtered = allItems.AsEnumerable();
+        if (!string.IsNullOrWhiteSpace(keyword))
+        {
+            var term = keyword.Trim();
+            filtered = filtered.Where(x => x.StudentName.Contains(term, StringComparison.OrdinalIgnoreCase) ||
+                                           x.Email.Contains(term, StringComparison.OrdinalIgnoreCase));
         }
+        filtered = normalizedStatus switch
+        {
+            "notstarted" => filtered.Where(x => x.LearningStatus == "NotStarted"),
+            "inprogress" => filtered.Where(x => x.LearningStatus == "InProgress"),
+            "completed" => filtered.Where(x => x.LearningStatus == "Completed"),
+            "completedlate" => filtered.Where(x => assignments.Any(a =>
+                a.StudentProgresses.Any(p => p.StudentId == x.StudentId && p.IsCompletedLate))),
+            "support" => filtered.Where(x => x.RiskScore > 0),
+            _ => filtered
+        };
+        filtered = NormalizeSortBy(sortBy) switch
+        {
+            "email" => filtered.OrderBy(x => x.Email),
+            "date" => filtered.OrderByDescending(x => x.EnrolledAt),
+            "progress" => filtered.OrderByDescending(x => x.CompletionRate),
+            "risk" => filtered.OrderByDescending(x => x.RiskScore),
+            _ => filtered.OrderBy(x => x.StudentName)
+        };
 
-        var pagedEnrollments = ApplyPagination(filteredEnrollments, page, PageSize);
+        var filteredItems = filtered.ToList();
+        page = NormalizePage(page);
+        var totalPages = CalculateTotalPages(filteredItems.Count, PageSize);
+        if (totalPages > 0 && page > totalPages) page = totalPages;
 
-        return BuildViewModel(
-            classEntity,
-            pagedEnrollments,
-            keyword,
-            "active",
-            sortBy,
-            page,
-            PageSize,
-            totalItems,
-            totalPages,
-            totalStudents,
-            activeStudents,
-            inactiveStudents);
+        return new ManageStudentListViewModel
+        {
+            ClassId = classEntity.ClassId,
+            ClassName = classEntity.ClassName,
+            Keyword = keyword ?? string.Empty,
+            Status = normalizedStatus,
+            SortBy = NormalizeSortBy(sortBy),
+            Page = page,
+            PageSize = PageSize,
+            TotalItems = filteredItems.Count,
+            TotalPages = totalPages,
+            TotalStudents = allItems.Count,
+            ActiveStudents = allItems.Count(x => x.IsActive),
+            InactiveStudents = allItems.Count(x => !x.IsActive),
+            CompletedStudents = allItems.Count(x => x.LearningStatus == "Completed"),
+            InProgressStudents = allItems.Count(x => x.LearningStatus == "InProgress"),
+            NotStartedStudents = allItems.Count(x => x.LearningStatus == "NotStarted"),
+            CompletedLateStudents = allItems.Count(x => assignments.Any(a =>
+                a.StudentProgresses.Any(p => p.StudentId == x.StudentId && p.IsCompletedLate))),
+            StudentsNeedSupport = allItems.Count(x => x.RiskScore > 0),
+            Students = filteredItems.Skip((page - 1) * PageSize).Take(PageSize).ToList()
+        };
     }
 
     /// <summary>
@@ -142,50 +213,27 @@ public class StudentManagementService : IStudentManagementService
     private async Task<List<TeacherSupportStudentItemViewModel>> BuildSupportItemsForClassAsync(Class classEntity)
     {
         var enrollments = await _classRepository.GetActiveStudentsByClassIdAsync(classEntity.ClassId);
-        var assignments = await _classRepository.GetAssignmentsByClassCourseAsync(
-            classEntity.ClassId,
-            classEntity.CourseId);
-        var lessonIds = assignments
-            .Where(a => a.LessonId.HasValue)
-            .Select(a => a.LessonId!.Value)
-            .Distinct()
-            .ToList();
-
-        var studentIds = enrollments.Select(e => e.StudentId).Distinct().ToList();
-        var progressRecords = await _classRepository.GetProgressByStudentIdsAndLessonIdsAsync(studentIds, lessonIds);
-        var progressByStudent = progressRecords
-            .GroupBy(p => p.StudentId)
-            .ToDictionary(g => g.Key, g => g.ToList());
-
-        var overdueLessonIds = assignments
-            .Where(a => a.DueDate < DateTime.UtcNow && a.LessonId.HasValue)
-            .Select(a => a.LessonId!.Value)
-            .Distinct()
+        var assignments = (await _classRepository.GetAssignmentsWithProgressByClassAsync(classEntity.ClassId))
+            .Where(x => x.Status is AssignmentStatus.Published or AssignmentStatus.Archived)
             .ToList();
 
         var items = new List<TeacherSupportStudentItemViewModel>();
 
         foreach (var enrollment in enrollments)
         {
-            var studentProgress = progressByStudent.GetValueOrDefault(enrollment.StudentId) ?? new List<Progress>();
-            var studentProfile = await _classRepository.GetStudentProfileByIdAsync(enrollment.StudentId);
+            var studentProfile = enrollment.Student.StudentProfile;
             var lastActiveDate = studentProfile?.LastActiveDate ?? enrollment.Student.LastLoginAt;
-
-            var completedLessonIds = studentProgress
-                .Where(p => string.Equals(p.CompletionStatus, "Completed", StringComparison.OrdinalIgnoreCase))
-                .Select(p => p.LessonId)
-                .ToHashSet();
-
-            var startedLessonIds = studentProgress
-                .Select(p => p.LessonId)
-                .ToHashSet();
-
-            var avgScore = studentProgress.Any()
-                ? Math.Round(studentProgress.Average(p => p.QuizScore), 1)
-                : (double?)null;
-
-            var overdueCount = overdueLessonIds.Count(id => !completedLessonIds.Contains(id));
-            var notStartedCount = lessonIds.Count(id => !startedLessonIds.Contains(id));
+            var progress = assignments.Select(x => new
+            {
+                Assignment = x,
+                Progress = x.StudentProgresses.FirstOrDefault(p => p.StudentId == enrollment.StudentId)
+            }).ToList();
+            var scores = progress.Where(x => x.Progress?.BestQuizScore != null)
+                .Select(x => x.Progress!.BestQuizScore!.Value).ToList();
+            var avgScore = scores.Count == 0 ? (double?)null : Math.Round(scores.Average(), 1);
+            var overdueCount = progress.Count(x => x.Assignment.DueDate < DateTime.UtcNow &&
+                                                   x.Progress?.Status != AssignmentCompletionStatus.Completed);
+            var notStartedCount = progress.Count(x => x.Progress == null);
             var hasLowScore = avgScore.HasValue && avgScore.Value < LowQuizScoreThreshold;
             var isInactive = !lastActiveDate.HasValue ||
                 lastActiveDate.Value.Date < DateTime.UtcNow.Date.AddDays(-InactiveDaysThreshold);
@@ -206,7 +254,9 @@ public class StudentManagementService : IStudentManagementService
                 ClassId = classEntity.ClassId,
                 ClassName = classEntity.ClassName,
                 StudentId = enrollment.StudentId,
-                StudentName = enrollment.Student.Username,
+                StudentName = !string.IsNullOrWhiteSpace(studentProfile?.FullName)
+                    ? studentProfile.FullName
+                    : enrollment.Student.Username,
                 Email = enrollment.Student.Email,
                 AverageQuizScore = avgScore,
                 OverdueLessonCount = overdueCount,
@@ -336,7 +386,7 @@ public class StudentManagementService : IStudentManagementService
 
         return enrollments
             .Where(e =>
-                e.Student.Username.ToLower().Contains(normalizedKeyword) ||
+                GetStudentFullName(e).ToLower().Contains(normalizedKeyword) ||
                 e.Student.Email.ToLower().Contains(normalizedKeyword))
             .ToList();
     }
@@ -352,7 +402,7 @@ public class StudentManagementService : IStudentManagementService
         {
             "email" => enrollments.OrderBy(e => e.Student.Email).ToList(),
             "date" => enrollments.OrderByDescending(e => e.EnrolledAt).ToList(),
-            _ => enrollments.OrderBy(e => e.Student.Username).ToList()
+            _ => enrollments.OrderBy(GetStudentFullName).ToList()
         };
     }
 
@@ -406,7 +456,7 @@ public class StudentManagementService : IStudentManagementService
             Students = pagedEnrollments.Select(e => new ManageStudentItemViewModel
             {
                 StudentId = e.StudentId,
-                StudentName = e.Student.Username,
+                StudentName = GetStudentFullName(e),
                 Email = e.Student.Email,
                 IsActive = e.Student.IsActive,
                 EnrollmentStatus = e.Student.IsActive ? "Đang hoạt động" : "Không hoạt động",
@@ -471,13 +521,15 @@ public class StudentManagementService : IStudentManagementService
             return null;
         }
 
-        var progressRecords = await _classRepository.GetStudentProgressByStudentIdAsync(studentId);
+        var assignments = (await _classRepository.GetAssignmentsWithProgressByClassAsync(classId))
+            .Where(x => x.Status is AssignmentStatus.Published or AssignmentStatus.Archived)
+            .ToList();
         var feedbacks = await _classRepository.GetTeacherFeedbackByStudentIdAsync(studentId);
 
         return BuildStudentDetailViewModel(
             classEntity,
             studentProfile,
-            progressRecords,
+            assignments,
             feedbacks);
     }
 
@@ -495,13 +547,18 @@ public class StudentManagementService : IStudentManagementService
     private static TeacherStudentDetailViewModel BuildStudentDetailViewModel(
         EnglishLearningOnlineSystem.Models.Class classEntity,
         EnglishLearningOnlineSystem.Models.StudentProfile studentProfile,
-        List<EnglishLearningOnlineSystem.Models.Progress> progressRecords,
+        List<WeeklyAssignment> assignments,
         List<EnglishLearningOnlineSystem.Models.TeacherFeedback> feedbacks)
     {
-        var completedLessons = CountCompletedLessons(progressRecords);
-        var inProgressLessons = CountInProgressLessons(progressRecords);
-        var averageQuizScore = CalculateAverageQuizScore(progressRecords);
-        var totalXPEarned = CalculateTotalXPEarned(progressRecords);
+        var studentProgress = assignments
+            .Select(x => new
+            {
+                Assignment = x,
+                Progress = x.StudentProgresses.FirstOrDefault(p => p.StudentId == studentProfile.StudentId),
+                Activities = x.ActivityProgresses.Where(p => p.StudentId == studentProfile.StudentId).ToList()
+            }).ToList();
+        var quizScores = studentProgress.Where(x => x.Progress?.BestQuizScore != null)
+            .Select(x => x.Progress!.BestQuizScore!.Value).ToList();
 
         return new TeacherStudentDetailViewModel
         {
@@ -509,7 +566,9 @@ public class StudentManagementService : IStudentManagementService
             ClassName = classEntity.ClassName,
 
             StudentId = studentProfile.StudentId,
-            StudentName = studentProfile.User.Username,
+            StudentName = string.IsNullOrWhiteSpace(studentProfile.FullName)
+                ? studentProfile.User.Username
+                : studentProfile.FullName,
             Nickname = studentProfile.Nickname ?? studentProfile.User.Username,
             Email = studentProfile.User.Email,
             AvatarUrl = string.IsNullOrWhiteSpace(studentProfile.AvatarUrl)
@@ -521,66 +580,50 @@ public class StudentManagementService : IStudentManagementService
             CurrentStreakDays = studentProfile.CurrentStreakDays,
             LastActiveDate = studentProfile.LastActiveDate,
 
-            CompletedLessons = completedLessons,
-            InProgressLessons = inProgressLessons,
-            AverageQuizScore = averageQuizScore,
-            TotalXPEarned = totalXPEarned,
-            StudyDurationMinutes = progressRecords
-                .Where(p => string.Equals(p.CompletionStatus, "Completed", StringComparison.OrdinalIgnoreCase))
-                .Sum(p => p.Lesson?.EstimatedMinutes ?? 0),
+            CompletedLessons = studentProgress.Count(x => x.Progress?.Status == AssignmentCompletionStatus.Completed),
+            InProgressLessons = studentProgress.Count(x => x.Progress?.Status == AssignmentCompletionStatus.InProgress),
+            AverageQuizScore = quizScores.Count == 0 ? 0 : Math.Round(quizScores.Average(), 2),
+            TotalXPEarned = studentProfile.XP,
+            StudyDurationMinutes = studentProgress
+                .Where(x => x.Progress?.Status == AssignmentCompletionStatus.Completed)
+                .Sum(x => x.Assignment.Lesson?.EstimatedMinutes ?? 0),
 
-            LessonProgresses = BuildLessonProgressViewModels(progressRecords),
+            LessonProgresses = studentProgress.Select(x => new TeacherStudentLessonProgressViewModel
+            {
+                AssignmentId = x.Assignment.AssignmentId,
+                LessonId = x.Assignment.LessonId ?? 0,
+                LessonTitle = x.Assignment.Lesson?.Title ?? "Bài học chưa xác định",
+                Topic = x.Assignment.Lesson?.Topic ?? "Chưa cập nhật",
+                QuizScore = x.Progress?.BestQuizScore ?? 0,
+                CompletionStatus = x.Progress?.Status.ToString() ?? AssignmentCompletionStatus.NotStarted.ToString(),
+                CompletedAt = x.Progress?.CompletedAt,
+                DueDate = x.Assignment.DueDate,
+                FlashcardStatus = GetActivityStatus(x.Assignment, x.Activities, AssignmentActivityType.Flashcard),
+                QuizStatus = GetActivityStatus(x.Assignment, x.Activities, AssignmentActivityType.Quiz),
+                MiniGameStatus = GetActivityStatus(x.Assignment, x.Activities, AssignmentActivityType.MiniGame),
+                IsCompletedLate = x.Progress?.IsCompletedLate ?? false
+            }).ToList(),
             Feedbacks = BuildFeedbackViewModels(feedbacks)
         };
     }
 
-    // Đếm các bài học đã hoàn thành.
-    private static int CountCompletedLessons(List<EnglishLearningOnlineSystem.Models.Progress> progressRecords)
+    private static string GetActivityStatus(
+        WeeklyAssignment assignment,
+        List<AssignmentActivityProgress> activities,
+        AssignmentActivityType type)
     {
-        return progressRecords.Count(p =>
-            string.Equals(p.CompletionStatus, "Completed", StringComparison.OrdinalIgnoreCase));
-    }
-
-    // Đếm các bài học chưa hoàn thành.
-    private static int CountInProgressLessons(List<EnglishLearningOnlineSystem.Models.Progress> progressRecords)
-    {
-        return progressRecords.Count(p =>
-            !string.Equals(p.CompletionStatus, "Completed", StringComparison.OrdinalIgnoreCase));
-    }
-
-    // Tính điểm quiz trung bình và làm tròn đến hai chữ số thập phân.
-    private static double CalculateAverageQuizScore(List<EnglishLearningOnlineSystem.Models.Progress> progressRecords)
-    {
-        if (!progressRecords.Any())
+        var requiredIds = type switch
         {
-            return 0;
-        }
-
-        return Math.Round(progressRecords.Average(p => p.QuizScore), 2);
-    }
-
-    // Tính tổng XP học sinh đã nhận từ các bài học.
-    private static int CalculateTotalXPEarned(List<EnglishLearningOnlineSystem.Models.Progress> progressRecords)
-    {
-        return progressRecords.Sum(p => p.XPEarned);
-    }
-
-    // Chuyển các bản ghi tiến độ sang dữ liệu hiển thị cho giáo viên.
-    private static List<TeacherStudentLessonProgressViewModel> BuildLessonProgressViewModels(
-        List<EnglishLearningOnlineSystem.Models.Progress> progressRecords)
-    {
-        return progressRecords.Select(p => new TeacherStudentLessonProgressViewModel
-        {
-            LessonId = p.LessonId,
-            LessonTitle = p.Lesson?.Title ?? "Bài học chưa xác định",
-            Topic = p.Lesson?.Topic ?? "Chưa cập nhật",
-            QuizScore = p.QuizScore,
-            XPEarned = p.XPEarned,
-            CompletionStatus = string.IsNullOrWhiteSpace(p.CompletionStatus)
-                ? "Chưa cập nhật"
-                : p.CompletionStatus,
-            CompletedAt = p.CompletedAt
-        }).ToList();
+            AssignmentActivityType.Flashcard when assignment.IncludeVocabulary && assignment.Vocabularies.Count > 0 => new List<int> { 0 },
+            AssignmentActivityType.Quiz when assignment.IncludeQuiz && assignment.Quizzes.Count > 0 => new List<int> { 0 },
+            AssignmentActivityType.MiniGame when assignment.IncludeMiniGame => assignment.MiniGames.Select(x => x.GameId).ToList(),
+            _ => new List<int>()
+        };
+        if (requiredIds.Count == 0) return "NotAssigned";
+        if (requiredIds.All(id => activities.Any(x => x.ActivityType == type && x.ActivityId == id &&
+                                                     x.Status == AssignmentActivityStatus.Completed)))
+            return "Completed";
+        return activities.Any(x => x.ActivityType == type) ? "InProgress" : "NotStarted";
     }
 
     // Chuyển lịch sử phản hồi sang dữ liệu hiển thị và bổ sung nhãn đã đọc/chưa đọc.
@@ -631,12 +674,21 @@ public class StudentManagementService : IStudentManagementService
             ClassId = classEntity.ClassId,
             ClassName = classEntity.ClassName,
             StudentId = studentProfile.StudentId,
-            StudentName = studentProfile.User.Username,
+            StudentName = string.IsNullOrWhiteSpace(studentProfile.FullName)
+                ? studentProfile.User.Username
+                : studentProfile.FullName,
             StudentEmail = studentProfile.User.Email,
             AvatarUrl = string.IsNullOrWhiteSpace(studentProfile.AvatarUrl)
                 ? "/images/default-avatar.png"
                 : studentProfile.AvatarUrl
         };
+    }
+
+    private static string GetStudentFullName(ClassEnrollment enrollment)
+    {
+        return string.IsNullOrWhiteSpace(enrollment.Student.StudentProfile?.FullName)
+            ? enrollment.Student.Username
+            : enrollment.Student.StudentProfile.FullName;
     }
 
     /// <summary>
@@ -673,13 +725,15 @@ public class StudentManagementService : IStudentManagementService
             IsRead = false,
             CreateAt = DateTime.UtcNow,
             TeacherId = teacherId,
-            StudentId = model.StudentId
+            StudentId = model.StudentId,
+            ClassId = model.ClassId
         };
 
         await _classRepository.AddTeacherFeedbackAsync(feedback);
         await _classRepository.AddNotificationAsync(new Notification
         {
             UserId = model.StudentId,
+            FeedbackId = feedback.FeedbackId,
             Type = "TEACHER_FEEDBACK",
             Message = "Giáo viên vừa gửi phản hồi cho bạn. Hãy kiểm tra ngay!",
             IsRead = false,

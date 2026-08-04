@@ -23,11 +23,16 @@ public class StudentProfileRepository : IStudentProfileRepository
         return (profile, profile?.User);
     }
 
-    public async Task<bool> UpdateProfileAsync(int userId, string nickname, string? avatarUrl)
+    public async Task<bool> UpdateProfileAsync(
+        int userId,
+        string fullName,
+        string nickname,
+        string? avatarUrl)
     {
         var profile = await _db.StudentProfiles!.FindAsync(userId);
         if (profile == null) return false;
 
+        profile.FullName = fullName;
         profile.Nickname = nickname;
         if (avatarUrl != null)
             profile.AvatarUrl = avatarUrl;

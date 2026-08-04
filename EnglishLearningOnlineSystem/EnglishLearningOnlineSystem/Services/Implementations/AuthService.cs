@@ -161,6 +161,7 @@ public class AuthService : IAuthService
         await _userRepository.AddStudentProfileAsync(new StudentProfile
         {
             StudentId = user.Id,
+            FullName = string.IsNullOrWhiteSpace(displayName) ? user.Username : displayName.Trim(),
             Nickname = string.IsNullOrWhiteSpace(displayName) ? user.Username : displayName.Trim(),
             AvatarUrl = string.IsNullOrWhiteSpace(trimmedAvatarUrl) ? "/images/default-avatar.png" : trimmedAvatarUrl[..Math.Min(trimmedAvatarUrl.Length, 500)],
             Level = 1,

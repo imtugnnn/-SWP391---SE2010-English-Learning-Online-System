@@ -9,6 +9,9 @@ namespace EnglishLearningOnlineSystem.Models
         public int StudentId { get; set; }
         public User User { get; set; }
 
+        [Required, MaxLength(150)]
+        public string FullName { get; set; } = string.Empty;
+
         [MaxLength(255)]
         public string Nickname { get; set; }
         public int Level { get; set; } = 1;

@@ -420,10 +420,8 @@
                 return;
             }
             
-            // So sánh ID mới nhất với ID đã xem lần cuối
-            const lastSeenId = parseInt(localStorage.getItem('lastSeenNotifId') || '0', 10);
-            const latestId = data[0].id;
-            if (latestId > lastSeenId) {
+            // Business process: chấm đỏ phản ánh trạng thái chưa đọc lưu tại máy chủ.
+            if (data.some(n => !n.isRead)) {
                 dot.classList.remove('d-none');
             } else {
                 dot.classList.add('d-none');
@@ -441,10 +439,16 @@
                     <div class="notif-item-content">${escapeHtmlStr(n.content)}</div>
                     <div class="notif-item-time">🕒 ${timeFormatted}</div>
                 `;
+                if (n.targetUrl) {
+                    item.setAttribute('role', 'link');
+                    item.tabIndex = 0;
+                    item.addEventListener('click', () => window.location.href = n.targetUrl);
+                    item.addEventListener('keydown', event => {
+                        if (event.key === 'Enter' || event.key === ' ') window.location.href = n.targetUrl;
+                    });
+                }
                 body.appendChild(item);
             });
-            
-            window.latestNotifId = latestId;
         } catch (err) {
             console.error(err);
             document.getElementById('notifDropdownBody').innerHTML = '<div class="notif-empty">Không thể tải thông báo</div>';
@@ -460,11 +464,6 @@
             panel.classList.add('d-none');
         } else {
             panel.classList.remove('d-none');
-            // Ẩn chấm đỏ và lưu ID thông báo cuối cùng làm mốc đã xem
-            if (window.latestNotifId) {
-                localStorage.setItem('lastSeenNotifId', window.latestNotifId);
-                document.getElementById('bellDot').classList.add('d-none');
-            }
         }
     }
     

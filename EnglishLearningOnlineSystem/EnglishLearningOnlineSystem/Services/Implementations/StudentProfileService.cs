@@ -23,16 +23,23 @@ public class StudentProfileService : IStudentProfileService
             Username = user.Username,
             Email = user.Email,
             BirthDate = user.BirthDate,
+            FullName = string.IsNullOrWhiteSpace(profile.FullName) ? user.Username : profile.FullName,
             Nickname = profile.Nickname ?? user.Username,
             AvatarUrl = profile.AvatarUrl ?? "/images/default-avatar.png",
             Level = profile.Level,
             XP = profile.XP,
             CurrentStreakDays = profile.CurrentStreakDays,
-            NewNickname = profile.Nickname ?? user.Username
+            NewNickname = profile.Nickname ?? user.Username,
+            NewFullName = string.IsNullOrWhiteSpace(profile.FullName) ? user.Username : profile.FullName
         };
     }
 
-    public async Task<bool> UpdateProfileAsync(int userId, string nickname, IFormFile? avatarFile, IWebHostEnvironment env)
+    public async Task<bool> UpdateProfileAsync(
+        int userId,
+        string fullName,
+        string nickname,
+        IFormFile? avatarFile,
+        IWebHostEnvironment env)
     {
         string? savedAvatarUrl = null;
 
@@ -54,6 +61,10 @@ public class StudentProfileService : IStudentProfileService
             savedAvatarUrl = $"/uploads/avatars/{fileName}";
         }
 
-        return await _repo.UpdateProfileAsync(userId, nickname, savedAvatarUrl);
+        return await _repo.UpdateProfileAsync(
+            userId,
+            fullName.Trim(),
+            nickname.Trim(),
+            savedAvatarUrl);
     }
 }

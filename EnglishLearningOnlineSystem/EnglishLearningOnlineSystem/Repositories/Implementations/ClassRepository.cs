@@ -28,6 +28,7 @@ public class ClassRepository : IClassRepository
     {
         return await _context.ClassEnrollments!
             .Include(e => e.Student)
+                .ThenInclude(u => u.StudentProfile)
             .Where(e => e.ClassId == classId && e.Student.IsActive)
             .AsNoTracking()
             .ToListAsync();
@@ -84,6 +85,22 @@ public class ClassRepository : IClassRepository
             .AsNoTracking()
             .Where(p => p.StudentId == studentId)
             .OrderByDescending(p => p.CompletedAt)
+            .ToListAsync();
+    }
+
+    public Task<List<WeeklyAssignment>> GetAssignmentsWithProgressByClassAsync(int classId)
+    {
+        return _context.WeeklyAssignments!
+            .AsNoTracking()
+            .AsSplitQuery()
+            .Include(x => x.Lesson)
+            .Include(x => x.Vocabularies)
+            .Include(x => x.Quizzes)
+            .Include(x => x.MiniGames)
+            .Include(x => x.StudentProgresses)
+            .Include(x => x.ActivityProgresses)
+            .Where(x => x.ClassId == classId && x.Status != AssignmentStatus.Cancelled)
+            .OrderByDescending(x => x.WeekStartDate)
             .ToListAsync();
     }
 
