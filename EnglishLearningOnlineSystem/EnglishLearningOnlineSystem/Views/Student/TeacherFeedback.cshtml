@@ -26,7 +26,7 @@
                     <div class="student-feedback-heading"><div><strong>@item.TeacherName</strong><span>@item.ClassName</span></div><time>@item.CreatedAt.ToString("dd/MM/yyyy HH:mm")</time></div>
                     @if (!string.IsNullOrWhiteSpace(item.AssignmentTitle)) { <div class="student-feedback-context">Bài giao: @item.AssignmentTitle</div> }
                     <p>@item.Content</p>
-                    @if (!item.IsRead) { <form asp-controller="Student" asp-action="MarkFeedbackRead" method="post">@Html.AntiForgeryToken()<input type="hidden" name="feedbackId" value="@item.FeedbackId" /><button type="submit" class="student-link-button">Đánh dấu đã đọc</button></form> }
+                    @if (!item.IsRead) { <form asp-controller="Student" asp-action="MarkFeedbackRead" asp-route-feedbackId="@item.FeedbackId" method="post">@Html.AntiForgeryToken()<button type="submit" class="student-link-button">Đánh dấu đã đọc</button></form> }
                 </div>
             </article>
         }

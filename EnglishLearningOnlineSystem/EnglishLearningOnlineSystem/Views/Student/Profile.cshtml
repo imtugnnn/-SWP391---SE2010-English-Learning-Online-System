@@ -349,8 +349,8 @@
         <div class="profile-card">
             <img id="avatarDisplay" src="@Model.AvatarUrl" alt="avatar" class="avatar-img"
                  onerror="this.src='/images/default-avatar.png'" />
-            <div class="profile-name">@Model.Nickname</div>
-            <div class="profile-username">@@@Model.Username</div>
+            <div class="profile-name">@Model.FullName</div>
+            <div class="profile-username">@Model.Nickname · @@@Model.Username</div>
             <div class="level-badge"> Level @Model.Level</div>
 
             <div class="stat-row">
@@ -406,6 +406,10 @@
                 <h4> Thông tin hồ sơ</h4>
 
                 <div class="view-row">
+                    <span class="vr-label">Họ và tên</span>
+                    <span class="vr-val">@Model.FullName</span>
+                </div>
+                <div class="view-row">
                     <span class="vr-label">Nickname</span>
                     <span class="vr-val">@Model.Nickname</span>
                 </div>
@@ -453,6 +457,13 @@
                                    onchange="previewAvatar(event)"
                                    style="display:none" />
                         </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label" for="fullNameInput">Họ và tên</label>
+                        <input type="text" id="fullNameInput" name="NewFullName"
+                               class="form-control-custom" value="@Model.FullName"
+                               maxlength="150" placeholder="Họ và tên đầy đủ" required />
                     </div>
 
                     <!-- Nickname -->

@@ -34,6 +34,8 @@ public class UserService : IUserService
         // B2: Validate trước, rồi mới xuống repository để tạo user.
         if (vm.RoleId <= 0) return UserServiceResult<int>.Fail("Role is required.");
         if (vm.RoleId == 2) return UserServiceResult<int>.Fail("Không được phép tạo tài khoản có vai trò Admin.");
+        if (vm.RoleId == 1 && string.IsNullOrWhiteSpace(vm.FullName))
+            return UserServiceResult<int>.Fail("Họ và tên học sinh là bắt buộc.");
 
         var ageValidation = ValidateAge(vm.RoleId, vm.BirthDate);
         if (!ageValidation.isValid) return UserServiceResult<int>.Fail(ageValidation.errorMessage);
@@ -55,6 +57,17 @@ public class UserService : IUserService
             RoleId = vm.RoleId
         };
 
+        if (user.RoleId == 1)
+        {
+            // Business process: user và hồ sơ định danh học sinh được lưu cùng một transaction EF.
+            user.StudentProfile = new StudentProfile
+            {
+                FullName = vm.FullName!.Trim(),
+                Nickname = user.Username,
+                AvatarUrl = "/images/default-avatar.png"
+            };
+        }
+
         // B3: Lưu user xuống database thông qua repository.
         await _userRepo.AddAsync(user);
         return UserServiceResult<int>.Ok(user.Id);
@@ -68,6 +81,8 @@ public class UserService : IUserService
 
         if (existing.RoleId == 2 || vm.RoleId == 2)
             return UserServiceResult<object>.Fail("Không được phép chỉnh sửa hoặc gán vai trò Admin.");
+        if (vm.RoleId == 1 && string.IsNullOrWhiteSpace(vm.FullName))
+            return UserServiceResult<object>.Fail("Họ và tên học sinh là bắt buộc.");
 
         var ageValidation = ValidateAge(vm.RoleId, vm.BirthDate);
         if (!ageValidation.isValid) return UserServiceResult<object>.Fail(ageValidation.errorMessage);
@@ -88,6 +103,11 @@ public class UserService : IUserService
         existing.IsActive = vm.IsActive;
         existing.RoleId = vm.RoleId;
 
+        if (vm.RoleId == 1 && existing.StudentProfile != null)
+        {
+            existing.StudentProfile.FullName = vm.FullName!.Trim();
+        }
+
         // Password: để trống => giữ nguyên
         if (!string.IsNullOrWhiteSpace(vm.Password))
         {
@@ -96,6 +116,16 @@ public class UserService : IUserService
 
         // B3: Cập nhật thay đổi xuống database.
         await _userRepo.UpdateAsync(existing);
+        if (vm.RoleId == 1 && existing.StudentProfile == null)
+        {
+            await _userRepo.AddStudentProfileAsync(new StudentProfile
+            {
+                StudentId = existing.Id,
+                FullName = vm.FullName!.Trim(),
+                Nickname = existing.Username,
+                AvatarUrl = "/images/default-avatar.png"
+            });
+        }
         return UserServiceResult<object>.Ok(null);
     }
 

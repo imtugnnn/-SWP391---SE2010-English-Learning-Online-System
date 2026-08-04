@@ -349,6 +349,7 @@
                                 <th>Tên học sinh</th>
                                 <th>Email</th>
                                 <th>Tiến độ</th>
+                                <th>Trạng thái</th>
                                 <th>Điểm TB</th>
                                 <th>Hỗ trợ</th>
                                 <th>Ngày tham gia</th>
@@ -365,6 +366,11 @@
                                     <td>
                                         <div class="fw-bold">@student.CompletedAssignments/@student.TotalAssignments</div>
                                         <div class="progress mt-1" style="height:6px;min-width:90px"><div class="progress-bar" style="width:@student.CompletionRate%"></div></div>
+                                    </td>
+                                    <td>
+                                        @if (student.LearningStatus == "Completed") { <span class="badge-soft-success">Hoàn thành</span> }
+                                        else if (student.LearningStatus == "InProgress") { <span class="badge-soft-primary">Đang học</span> }
+                                        else { <span class="badge-soft-secondary">Chưa bắt đầu</span> }
                                     </td>
                                     <td>@(student.AverageQuizScore.HasValue ? $"{student.AverageQuizScore:0.#}%" : "—")</td>
                                     <td>

@@ -5,5 +5,5 @@ namespace EnglishLearningOnlineSystem.Repositories.Interfaces;
 public interface IStudentProfileRepository
 {
     Task<(StudentProfile? profile, User? user)> GetByUserIdAsync(int userId);
-    Task<bool> UpdateProfileAsync(int userId, string nickname, string? avatarUrl);
+    Task<bool> UpdateProfileAsync(int userId, string fullName, string nickname, string? avatarUrl);
 }

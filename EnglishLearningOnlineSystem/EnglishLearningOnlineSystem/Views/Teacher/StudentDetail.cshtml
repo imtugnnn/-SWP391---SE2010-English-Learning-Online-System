@@ -423,7 +423,7 @@
                                 <th>Chủ đề</th>
                                 <th>Điểm quiz</th>
                                 <th>Hoạt động</th>
-                                <th>XP</th>
+                                <th>Hạn nộp</th>
                                 <th>Trạng thái</th>
                                 <th>Ngày hoàn thành</th>
                             </tr>
@@ -443,11 +443,11 @@
                                             @if (item.MiniGameStatus != "NotAssigned") { <span class="badge-soft-secondary">Game: @item.MiniGameStatus</span> }
                                         </div>
                                     </td>
-                                    <td>@item.XPEarned</td>
+                                    <td>@(item.DueDate?.ToString("dd/MM/yyyy") ?? "—")</td>
                                     <td>
                                         @if (item.CompletionStatus.Equals("Completed", StringComparison.OrdinalIgnoreCase))
                                         {
-                                            <span class="badge-soft-success">Hoàn thành</span>
+                                            <span class="badge-soft-success">@(item.IsCompletedLate ? "Hoàn thành muộn" : "Hoàn thành")</span>
                                         }
                                         else
                                         {

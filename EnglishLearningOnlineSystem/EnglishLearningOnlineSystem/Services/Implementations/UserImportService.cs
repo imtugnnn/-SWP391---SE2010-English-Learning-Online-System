@@ -85,8 +85,15 @@ public class UserImportService : IUserImportService
         foreach (var row in rows)
         {
             var username = row.Username.Trim();
+            var fullName = row.FullName.Trim();
             var email = row.Email.Trim();
             var className = row.ClassName.Trim();
+
+            if (string.IsNullOrWhiteSpace(fullName) || fullName.Length > 150)
+            {
+                validationErrors.Add($"Dòng {row.RowNumber}: họ tên không được để trống và tối đa 150 ký tự.");
+                continue;
+            }
 
             if (string.IsNullOrWhiteSpace(username))
             {
@@ -147,7 +154,7 @@ public class UserImportService : IUserImportService
 
             fileUsernames.Add(username);
             fileEmails.Add(email);
-            preparedRows.Add((row with { Username = username, Email = email, ClassName = className }, matchedClass));
+            preparedRows.Add((row with { Username = username, FullName = fullName, Email = email, ClassName = className }, matchedClass));
         }
 
         if (validationErrors.Count > 0)
@@ -187,6 +194,7 @@ public class UserImportService : IUserImportService
                 _context.StudentProfiles!.Add(new StudentProfile
                 {
                     StudentId = user.Id,
+                    FullName = item.value.Row.FullName,
                     Nickname = user.Username,
                     AvatarUrl = "/images/default-avatar.png",
                     Level = 1,

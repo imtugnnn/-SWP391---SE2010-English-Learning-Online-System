@@ -77,6 +77,8 @@ builder.Services.AddScoped<IAssignmentProgressRepository, AssignmentProgressRepo
 builder.Services.AddScoped<IAssignmentProgressService, AssignmentProgressService>();
 // Luồng Teacher dùng Repository/Unit of Work, không truy cập AppDbContext từ Service.
 builder.Services.AddScoped<INotificationRepository, NotificationRepository>();
+builder.Services.AddScoped<IStudentCommunicationRepository, StudentCommunicationRepository>();
+builder.Services.AddScoped<IStudentCommunicationService, StudentCommunicationService>();
 builder.Services.AddScoped<ITeacherDashboardRepository, TeacherDashboardRepository>();
 builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
 builder.Services.AddScoped<ITeacherAssignmentService, TeacherAssignmentService>();

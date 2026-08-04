@@ -50,6 +50,7 @@ public class UserRepository : IUserRepository
     {
         return _context.Users
             .Include(u => u.Role)
+            .Include(u => u.StudentProfile)
             .Include(u => u.ClassEnrollments)
                 .ThenInclude(ce => ce.Class)
                     .ThenInclude(c => c.AcademicYear)
@@ -63,6 +64,7 @@ public class UserRepository : IUserRepository
     {
         return _context.Users
             .Include(u => u.Role)
+            .Include(u => u.StudentProfile)
             .FirstOrDefaultAsync(u => u.Id == id);
     }
 

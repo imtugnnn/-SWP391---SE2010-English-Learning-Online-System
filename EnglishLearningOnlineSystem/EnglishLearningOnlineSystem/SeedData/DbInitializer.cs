@@ -179,6 +179,7 @@ public static class DbInitializer
                 profile = new StudentProfile
                 {
                     StudentId = user.Id,
+                    FullName = definition.Nickname,
                     Nickname = definition.Nickname,
                     Level = definition.Level,
                     XP = definition.Xp,
@@ -187,6 +188,10 @@ public static class DbInitializer
                     AvatarUrl = "/images/default-avatar.png"
                 };
                 context.StudentProfiles!.Add(profile);
+            }
+            else if (string.IsNullOrWhiteSpace(profile.FullName))
+            {
+                profile.FullName = definition.Nickname;
             }
 
             result[definition.Key] = profile;

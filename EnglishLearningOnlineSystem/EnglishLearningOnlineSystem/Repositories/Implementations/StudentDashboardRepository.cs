@@ -125,6 +125,7 @@ public class StudentDashboardRepository : IStudentDashboardRepository
         _db.StudentProfiles!.Add(new StudentProfile
         {
             StudentId = userId,
+            FullName = user.Username,
             Nickname = user.Username,
             AvatarUrl = "/images/default-avatar.png",
             Level = 1,

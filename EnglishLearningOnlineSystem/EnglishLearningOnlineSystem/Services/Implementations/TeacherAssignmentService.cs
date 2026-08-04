@@ -377,14 +377,15 @@ public class TeacherAssignmentService : ITeacherAssignmentService
             if (model.Status == AssignmentStatus.Published)
             {
                 var students = await _classRepository.GetActiveStudentsByClassIdAsync(model.ClassId);
-                var notifications = students.Select(student => new Notification
+                var notifications = assignments.SelectMany(assignment => students.Select(student => new Notification
                 {
                     UserId = student.StudentId,
+                    Assignment = assignment,
                     Type = "NEW_ASSIGNMENT",
-                    Message = $"Giáo viên vừa giao bài học mới từ {model.WeekStartDate:dd/MM/yyyy} đến {model.DueDate:dd/MM/yyyy}.",
+                    Message = $"Bài {availableLessons.First(x => x.LessonId == assignment.LessonId).Title} đã được giao từ {model.WeekStartDate:dd/MM/yyyy} đến {model.DueDate:dd/MM/yyyy}.",
                     IsRead = false,
                     CreateAt = DateTime.UtcNow
-                }).ToList();
+                })).ToList();
 
                 await _notificationRepository.AddRangeAsync(notifications);
             }
@@ -691,6 +692,7 @@ public class TeacherAssignmentService : ITeacherAssignmentService
             var notifications = students.Select(student => new Notification
             {
                 UserId = student.StudentId,
+                AssignmentId = assignment.AssignmentId,
                 Type = "NEW_ASSIGNMENT",
                 Message = $"Giáo viên vừa giao bài học mới từ {assignment.WeekStartDate:dd/MM/yyyy} đến {assignment.DueDate:dd/MM/yyyy}.",
                 IsRead = false,
@@ -728,7 +730,11 @@ public class TeacherAssignmentService : ITeacherAssignmentService
                 return new TeacherAssignmentStudentCompletionViewModel
                 {
                     StudentId = enrollment.StudentId,
-                    StudentName = progress?.Student?.Nickname ?? enrollment.Student.Username,
+                    StudentName = !string.IsNullOrWhiteSpace(progress?.Student?.FullName)
+                        ? progress.Student.FullName
+                        : !string.IsNullOrWhiteSpace(enrollment.Student.StudentProfile?.FullName)
+                            ? enrollment.Student.StudentProfile.FullName
+                            : enrollment.Student.Username,
                     Email = enrollment.Student.Email,
                     CompletionStatus = progress?.Status.ToString() ?? AssignmentCompletionStatus.NotStarted.ToString(),
                     CompletedActivityCount = progress?.CompletedActivityCount ?? 0,
@@ -839,6 +845,7 @@ public class TeacherAssignmentService : ITeacherAssignmentService
                 .Select(x => new Notification
                 {
                     UserId = x.StudentId,
+                    AssignmentId = assignment.AssignmentId,
                     Type = "ASSIGNMENT_UPDATED",
                     Message = $"Bài giao {assignment.Lesson.Title} đã được cập nhật. Hạn hoàn thành: {assignment.DueDate:dd/MM/yyyy}.",
                     IsRead = false,
@@ -898,6 +905,7 @@ public class TeacherAssignmentService : ITeacherAssignmentService
                 .Select(x => new Notification
                 {
                     UserId = x.StudentId,
+                    AssignmentId = assignment.AssignmentId,
                     Type = "ASSIGNMENT_CANCELLED",
                     Message = $"Bài giao {assignment.Lesson?.Title ?? string.Empty} đã được giáo viên hủy.",
                     IsRead = false,

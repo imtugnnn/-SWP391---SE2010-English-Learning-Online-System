@@ -8,6 +8,7 @@ namespace EnglishLearningOnlineSystem.Helpers.Admin.Users;
 public sealed record ExcelUserImportRow(
     int RowNumber,
     string Username,
+    string FullName,
     string Email,
     DateTime? BirthDate,
     string ClassName);
@@ -57,12 +58,14 @@ public static class UserExcelImportHelper
             }
 
             var username = ReadTextCell(row, "A", sharedStrings);
-            var email = ReadTextCell(row, "B", sharedStrings);
-            var birthDate = ReadDateCell(row, "C", sharedStrings, dateStyleIndexes);
-            var className = ReadTextCell(row, "D", sharedStrings);
+            var fullName = ReadTextCell(row, "B", sharedStrings);
+            var email = ReadTextCell(row, "C", sharedStrings);
+            var birthDate = ReadDateCell(row, "D", sharedStrings, dateStyleIndexes);
+            var className = ReadTextCell(row, "E", sharedStrings);
 
             if (string.IsNullOrWhiteSpace(username)
                 && string.IsNullOrWhiteSpace(email)
+                && string.IsNullOrWhiteSpace(fullName)
                 && string.IsNullOrWhiteSpace(className)
                 && !birthDate.HasValue)
             {
@@ -72,6 +75,7 @@ public static class UserExcelImportHelper
             rows.Add(new ExcelUserImportRow(
                 rowNumber,
                 username.Trim(),
+                fullName.Trim(),
                 email.Trim(),
                 birthDate,
                 className.Trim()));
@@ -336,21 +340,24 @@ public static class UserExcelImportHelper
   <sheetData>
     <row r="1">
       <c r="A1" t="inlineStr"><is><t>username</t></is></c>
-      <c r="B1" t="inlineStr"><is><t>email</t></is></c>
-      <c r="C1" t="inlineStr"><is><t>ngay_sinh</t></is></c>
-      <c r="D1" t="inlineStr"><is><t>lop</t></is></c>
+      <c r="B1" t="inlineStr"><is><t>ho_ten</t></is></c>
+      <c r="C1" t="inlineStr"><is><t>email</t></is></c>
+      <c r="D1" t="inlineStr"><is><t>ngay_sinh</t></is></c>
+      <c r="E1" t="inlineStr"><is><t>lop</t></is></c>
     </row>
     <row r="2">
       <c r="A2" t="inlineStr"><is><t>student01</t></is></c>
-      <c r="B2" t="inlineStr"><is><t>student01@example.com</t></is></c>
-      <c r="C2" t="inlineStr"><is><t>27/01/2015</t></is></c>
-      <c r="D2" t="inlineStr"><is><t>10A1</t></is></c>
+      <c r="B2" t="inlineStr"><is><t>Nguyễn Minh Anh</t></is></c>
+      <c r="C2" t="inlineStr"><is><t>student01@example.com</t></is></c>
+      <c r="D2" t="inlineStr"><is><t>27/01/2015</t></is></c>
+      <c r="E2" t="inlineStr"><is><t>10A1</t></is></c>
     </row>
     <row r="3">
       <c r="A3" t="inlineStr"><is><t>student02</t></is></c>
-      <c r="B3" t="inlineStr"><is><t>student02@example.com</t></is></c>
-      <c r="C3" t="inlineStr"><is><t>27/01/2016</t></is></c>
-      <c r="D3" t="inlineStr"><is><t>10A2</t></is></c>
+      <c r="B3" t="inlineStr"><is><t>Trần Gia Huy</t></is></c>
+      <c r="C3" t="inlineStr"><is><t>student02@example.com</t></is></c>
+      <c r="D3" t="inlineStr"><is><t>27/01/2016</t></is></c>
+      <c r="E3" t="inlineStr"><is><t>10A2</t></is></c>
     </row>
   </sheetData>
 </worksheet>

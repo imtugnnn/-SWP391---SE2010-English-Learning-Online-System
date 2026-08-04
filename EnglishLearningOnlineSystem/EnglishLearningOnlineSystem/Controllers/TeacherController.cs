@@ -137,13 +137,12 @@ public class TeacherController : Controller
             return NotFound();
         }
 
-        var viewModel = await _studentManagementService.GetStudentsNeedSupportAsync(
-            teacherId.Value,
-            classId.ToString(),
-            reason,
-            sortBy);
-
-        return View(viewModel);
+        return RedirectToAction(nameof(ManageStudentList), new
+        {
+            classId,
+            status = "support",
+            sortBy = "risk"
+        });
     }
 
     /// <summary>
@@ -185,16 +184,10 @@ public class TeacherController : Controller
         }
 
         var viewModel = await _studentManagementService.GetProvideFeedbackFormAsync(
-            classId,
-            studentId,
-            teacherId.Value);
-
-        if (viewModel == null)
-        {
-            return NotFound();
-        }
-
-        return View(viewModel);
+            classId, studentId, teacherId.Value);
+        return viewModel == null
+            ? NotFound()
+            : RedirectToAction(nameof(StudentDetail), new { classId, studentId });
     }
 
     /// <summary>
@@ -213,7 +206,8 @@ public class TeacherController : Controller
 
         if (!ModelState.IsValid)
         {
-            return View(model);
+            TempData["ErrorMessage"] = "Nội dung phản hồi không hợp lệ hoặc vượt quá 1000 ký tự.";
+            return RedirectToAction(nameof(StudentDetail), new { model.ClassId, model.StudentId });
         }
 
         var success = await _studentManagementService.CreateStudentFeedbackAsync(
@@ -223,7 +217,8 @@ public class TeacherController : Controller
         if (!success)
         {
             ModelState.AddModelError(string.Empty, "Không thể gửi phản hồi. Vui lòng kiểm tra lại thông tin.");
-            return View(model);
+            TempData["ErrorMessage"] = "Không thể gửi phản hồi. Vui lòng kiểm tra lại thông tin.";
+            return RedirectToAction(nameof(StudentDetail), new { model.ClassId, model.StudentId });
         }
 
         TempData["SuccessMessage"] = "Phản hồi đã được gửi thành công.";

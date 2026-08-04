@@ -23,6 +23,7 @@ public class StudentController : BaseStudentController
     private readonly IQuizAttemptService _quizService;
     private readonly IFlashcardService _flashcardService;
     private readonly ISystemNotificationService _systemNotificationService;
+    private readonly IStudentCommunicationService _communicationService;
     private readonly IWebHostEnvironment _env;
 
     // Khởi tạo các service và truyền DbContext cho BaseStudentController
@@ -37,6 +38,7 @@ public class StudentController : BaseStudentController
         IQuizAttemptService quizService,
         IFlashcardService flashcardService,
         ISystemNotificationService systemNotificationService,
+        IStudentCommunicationService communicationService,
         IWebHostEnvironment env)
         : base(db)
     {
@@ -49,6 +51,7 @@ public class StudentController : BaseStudentController
         _quizService = quizService;
         _flashcardService = flashcardService;
         _systemNotificationService = systemNotificationService;
+        _communicationService = communicationService;
         _env = env;
     }
 
@@ -240,10 +243,13 @@ public class StudentController : BaseStudentController
         var userId = GetCurrentUserId();
         if (userId == null) return RedirectToAction("Login", "Auth");
 
-        // Kiểm tra nickname hợp lệ
-        if (string.IsNullOrWhiteSpace(model.NewNickname))
+        // Business process: FullName là dữ liệu định danh học sinh; Nickname chỉ là tên hiển thị.
+        if (string.IsNullOrWhiteSpace(model.NewFullName) ||
+            model.NewFullName.Trim().Length is < 2 or > 150 ||
+            string.IsNullOrWhiteSpace(model.NewNickname) ||
+            model.NewNickname.Trim().Length > 50)
         {
-            model.ErrorMessage = "Nickname cannot be empty.";
+            model.ErrorMessage = "Họ tên phải có 2-150 ký tự và nickname không được để trống.";
 
             var fresh = await _profileService.GetProfileAsync(userId.Value);
             if (fresh != null)
@@ -255,6 +261,8 @@ public class StudentController : BaseStudentController
                 model.Username = fresh.Username;
                 model.Email = fresh.Email;
                 model.BirthDate = fresh.BirthDate;
+                model.FullName = fresh.FullName;
+                model.NewFullName = fresh.NewFullName;
             }
 
             return View(model);
@@ -262,6 +270,7 @@ public class StudentController : BaseStudentController
 
         var ok = await _profileService.UpdateProfileAsync(
             userId.Value,
+            model.NewFullName,
             model.NewNickname,
             model.AvatarFile,
             _env);
@@ -373,10 +382,59 @@ public class StudentController : BaseStudentController
         return View(vm);
     }
 
+    [HttpGet("/student/notifications")]
+    public async Task<IActionResult> Notifications(string? filter = null)
+    {
+        var userId = GetCurrentUserId();
+        if (userId == null) return RedirectToAction("Login", "Auth");
+        return View(await _communicationService.GetNotificationsAsync(userId.Value, filter));
+    }
+
+    [HttpPost("/student/notifications/{notificationId:int}/read")]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> MarkNotificationRead(int notificationId)
+    {
+        var userId = GetCurrentUserId();
+        if (userId == null) return RedirectToAction("Login", "Auth");
+        await _communicationService.MarkNotificationReadAsync(notificationId, userId.Value);
+        return RedirectToAction(nameof(Notifications));
+    }
+
+    [HttpPost("/student/notifications/read-all")]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> MarkAllNotificationsRead()
+    {
+        var userId = GetCurrentUserId();
+        if (userId == null) return RedirectToAction("Login", "Auth");
+        await _communicationService.MarkAllNotificationsReadAsync(userId.Value);
+        return RedirectToAction(nameof(Notifications));
+    }
+
+    [HttpGet("/student/feedback")]
+    public async Task<IActionResult> TeacherFeedback()
+    {
+        var userId = GetCurrentUserId();
+        if (userId == null) return RedirectToAction("Login", "Auth");
+        return View(await _communicationService.GetTeacherFeedbackAsync(userId.Value));
+    }
+
+    [HttpPost("/student/feedback/{feedbackId:int}/read")]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> MarkFeedbackRead(int feedbackId)
+    {
+        var userId = GetCurrentUserId();
+        if (userId == null) return RedirectToAction("Login", "Auth");
+        await _communicationService.MarkFeedbackReadAsync(feedbackId, userId.Value);
+        return RedirectToAction(nameof(TeacherFeedback));
+    }
+
     // Endpoint API lấy danh sách thông báo hệ thống dành cho học sinh (RoleId = 1)
     [HttpGet("/student/notifications/api")]
     public async Task<IActionResult> GetNotificationsApi()
     {
+        var userId = GetCurrentUserId();
+        if (userId == null) return Unauthorized();
+
         await _systemNotificationService.RefreshDueScheduledAsync();
         var now = DateTime.Now;
         var notifications = await _db.SystemNotifications!
@@ -395,14 +453,35 @@ public class StudentController : BaseStudentController
             ))
             .Select(n => new
             {
-                id = n.Id,
+                id = $"system-{n.Id}",
                 title = n.Title,
                 content = n.Content,
-                publishTime = n.PublishTime ?? n.CreatedAt
+                publishTime = n.PublishTime ?? n.CreatedAt,
+                isRead = true,
+                targetUrl = (string?)null
             })
             .ToList();
 
-        return Json(studentNotifications);
+        // Business process: chuông và Notification Center dùng chung nguồn thông báo cá nhân.
+        var personalCenter = await _communicationService.GetNotificationsAsync(userId.Value, "all");
+        var personalNotifications = personalCenter.Notifications
+            .Select(n => new
+            {
+                id = $"personal-{n.NotificationId}",
+                title = n.Title,
+                content = n.Message,
+                publishTime = n.CreatedAt,
+                isRead = n.IsRead,
+                targetUrl = n.TargetUrl
+            });
+
+        var combined = studentNotifications
+            .Concat(personalNotifications)
+            .OrderByDescending(n => n.publishTime)
+            .Take(10)
+            .ToList();
+
+        return Json(combined);
     }
 
 }
